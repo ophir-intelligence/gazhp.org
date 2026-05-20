@@ -31,4 +31,6 @@ Then open http://localhost:3000.
 
 ## Hosting
 
-The site is deployed via **GitHub Pages** from the `main` branch root, with the custom domain `gazhphealth.org` set via the `CNAME` file.
+The site is deployed via **GitHub Pages** from the `main` branch root of [`ophir-intelligence/gazhp.org`](https://github.com/ophir-intelligence/gazhp.org), with the custom domain `gazhphealth.org` set via the `CNAME` file.
+
+The repo is owned by the **Ophir Intelligence** GitHub organization.
