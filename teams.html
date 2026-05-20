@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Meet the GAZHP team — the healthcare professionals driving Zambia's health transformation from around the world." />
+  <title>Our Team — GAZHP</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>" />
+  <style>
+    .team-full-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 28px;
+      margin-top: 52px;
+    }
+    .team-full-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      text-align: center;
+    }
+    .team-full-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+    .team-full-photo {
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--teal) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      color: rgba(255,255,255,.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .team-full-photo::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10,31,61,.5), transparent 50%);
+    }
+    .team-full-info { padding: 24px 20px; }
+    .team-full-name { font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .team-full-role { font-size: .8rem; color: var(--teal); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .team-full-bio { font-size: .85rem; color: var(--gray-600); line-height: 1.6; }
+    .team-section-head {
+      margin-bottom: 36px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .team-section-head h3 {
+      font-family: var(--font-head);
+      font-size: 1.6rem;
+      color: var(--navy);
+    }
+    .team-section-head p { font-size: .92rem; color: var(--gray-600); margin-top: 6px; }
+    .join-banner {
+      background: linear-gradient(135deg, var(--navy), #0d3060);
+      border-radius: var(--radius-lg);
+      padding: 56px 48px;
+      text-align: center;
+      color: var(--white);
+      margin-top: 80px;
+    }
+    .join-banner h3 {
+      font-family: var(--font-head);
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+    .join-banner p { font-size: 1rem; color: rgba(255,255,255,.75); margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
+  </style>
+</head>
+<body>
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar scrolled">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="images/logo.png" alt="GAZHP" class="nav-logo-img" />
+      <span>GAZHP</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="teams.html" class="active">Team</a>
+      <a href="membership.html">Membership</a>
+      <a href="contact.html">Contact</a>
+      <a href="contact.html#donate" class="nav-donate">Donate Now</a>
+    </div>
+    <button class="nav-hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<nav class="mobile-nav">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="teams.html">Team</a>
+  <a href="membership.html">Membership</a>
+  <a href="contact.html">Contact</a>
+  <a href="contact.html#donate" class="btn btn-primary">Donate Now</a>
+</nav>
+
+<!-- ========== PAGE HERO ========== -->
+<section class="page-hero">
+  <div class="container">
+    <div class="page-hero-inner">
+      <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <span>Team</span>
+      </div>
+      <h1>Our Team</h1>
+      <p>
+        Meet the healthcare professionals from around the world who are united by one mission —
+        transforming healthcare in Zambia.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== EXECUTIVE TEAM ========== -->
+<section class="section-pad">
+  <div class="container">
+    <div class="team-section-head fade-up">
+      <span class="tag">Leadership</span>
+      <h3>Executive Team</h3>
+      <p>The founding members and executive leadership driving GAZHP's strategy and vision.</p>
+    </div>
+    <div class="team-full-grid">
+      <div class="team-full-card fade-up">
+        <div class="team-full-photo"><img src="images/david.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. David Kazhila" /></div>
+        <div class="team-full-info">
+          <div class="team-full-name">Dr. David Gordon Kazhila</div>
+          <div class="team-full-role">Co-Founder &amp; President</div>
+          <p class="team-full-bio">Canadian-based cardiologist with 25+ years of experience. The visionary who sparked the GAZHP movement in 2019 from a single radio interview.</p>
+        </div>
+      </div>
+      <div class="team-full-card fade-up">
+        <div class="team-full-photo"><img src="images/sebastian.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. Sebastian Benaya" /></div>
+        <div class="team-full-info">
+          <div class="team-full-name">Dr. Sebastian Chibale Benaya</div>
+          <div class="team-full-role">Co-Founder &amp; Executive</div>
+          <p class="team-full-bio">Co-architect of GAZHP's organizational structure and programs. Instrumental in formalizing the alliance as a registered 501(c)(3) nonprofit.</p>
+        </div>
+      </div>
+      <div class="team-full-card fade-up">
+        <div class="team-full-photo"><img src="images/joseph.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. Joseph Yikona" /></div>
+        <div class="team-full-info">
+          <div class="team-full-name">Dr. Joseph Yikona</div>
+          <div class="team-full-role">Executive Member</div>
+          <p class="team-full-bio">A dedicated healthcare professional contributing clinical expertise and strategic leadership to GAZHP's programs and governance.</p>
+        </div>
+      </div>
+      <div class="team-full-card fade-up">
+        <div class="team-full-photo"><img src="images/yareka.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Yareka Mhango" /></div>
+        <div class="team-full-info">
+          <div class="team-full-name">Yareka Mhango</div>
+          <div class="team-full-role">Executive Member</div>
+          <p class="team-full-bio">A founding executive member providing essential leadership in organizational development and community outreach initiatives for GAZHP.</p>
+        </div>
+      </div>
+      <div class="team-full-card fade-up">
+        <div class="team-full-photo"><img src="images/musonda.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. John Musonda" /></div>
+        <div class="team-full-info">
+          <div class="team-full-name">Dr. John Musonda</div>
+          <div class="team-full-role">Executive Member</div>
+          <p class="team-full-bio">Based in South Africa, Dr. Musonda was among the first to join the alliance, bringing regional expertise and a strong professional network to GAZHP.</p>
+        </div>
+      </div>
+      <div class="team-full-card fade-up">
+        <div class="team-full-photo"><img src="images/lona.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. Lona Mwenda" /></div>
+        <div class="team-full-info">
+          <div class="team-full-name">Dr. Lona Mwenda</div>
+          <div class="team-full-role">Executive Member</div>
+          <p class="team-full-bio">A Zambia-based cardiologist providing vital on-the-ground perspective and clinical leadership for GAZHP's cardiovascular care program.</p>
+        </div>
+      </div>
+      <div class="team-full-card fade-up">
+        <div class="team-full-photo">👨‍💼</div>
+        <div class="team-full-info">
+          <div class="team-full-name">Mr. Steven Moyo</div>
+          <div class="team-full-role">Executive Member</div>
+          <p class="team-full-bio">Founding executive member contributing expertise in organizational management and administration to support GAZHP's operations.</p>
+        </div>
+      </div>
+      <div class="team-full-card fade-up">
+        <div class="team-full-photo">👩‍💼</div>
+        <div class="team-full-info">
+          <div class="team-full-name">Ms. Nyuma Harrison</div>
+          <div class="team-full-role">Executive Member</div>
+          <p class="team-full-bio">A founding executive member providing critical support in communications, community engagement, and organizational development.</p>
+        </div>
+      </div>
+      <div class="team-full-card fade-up">
+        <div class="team-full-photo"><img src="images/pierre.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. Pierre Dil" /></div>
+        <div class="team-full-info">
+          <div class="team-full-name">Dr. Pierre Dil</div>
+          <div class="team-full-role">Executive Member</div>
+          <p class="team-full-bio">A founding executive member of GAZHP, contributing medical expertise and strategic vision to the alliance's health programs.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join Banner -->
+    <div class="join-banner fade-up">
+      <h3>Are You a Zambian Healthcare Professional?</h3>
+      <p>
+        Whether you're based in Zambia or anywhere in the world, there is a place for you in GAZHP.
+        Join a community of professionals committed to transforming Zambia's health future.
+      </p>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <a href="membership.html" class="btn btn-primary btn-lg">Join the Alliance</a>
+        <a href="contact.html" class="btn btn-outline-white btn-lg">Get in Touch</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo">
+          <img src="images/logo.png" alt="GAZHP" class="nav-logo-img" />
+          <span>GAZHP</span>
+        </a>
+        <p>Global Alliance of Zambian Healthcare Professionals — building a healthier Zambia through diaspora collaboration.</p>
+        <div class="social-links">
+          <a href="#" class="social-link">f</a>
+          <a href="#" class="social-link">𝕏</a>
+          <a href="#" class="social-link">📸</a>
+          <a href="#" class="social-link">in</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="teams.html">Our Team</a></li>
+          <li><a href="membership.html">Membership</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Programs</h4>
+        <ul>
+          <li><a href="about.html#programs">Mental Health</a></li>
+          <li><a href="about.html#programs">Cardiovascular Care</a></li>
+          <li><a href="about.html#programs">Primary Care</a></li>
+          <li><a href="about.html#programs">Telemedicine</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <div class="footer-contact-item"><span>🌐</span><span>gazhphealth.org</span></div>
+        <div class="footer-contact-item"><span>📧</span><span>info@gazhphealth.org</span></div>
+        <div class="footer-contact-item"><span>📍</span><span>Delaware, USA &amp; Zambia</span></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 GAZHP — <a href="index.html">Global Alliance of Zambian Healthcare Professionals</a>. All rights reserved.</p>
+      <span class="nonprofit-badge">✓ 501(c)(3) Registered Nonprofit</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

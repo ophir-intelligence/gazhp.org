@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Contact GAZHP — Get in touch, donate, or apply for membership with the Global Alliance of Zambian Healthcare Professionals." />
+  <title>Contact — GAZHP</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>" />
+</head>
+<body>
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar scrolled">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="images/logo.png" alt="GAZHP" class="nav-logo-img" />
+      <span>GAZHP</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="teams.html">Team</a>
+      <a href="membership.html">Membership</a>
+      <a href="contact.html" class="active">Contact</a>
+      <a href="#donate" class="nav-donate">Donate Now</a>
+    </div>
+    <button class="nav-hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<nav class="mobile-nav">
+  <a href="index.html">Home</a>
+  <a href="about.html">About</a>
+  <a href="teams.html">Team</a>
+  <a href="membership.html">Membership</a>
+  <a href="contact.html">Contact</a>
+  <a href="#donate" class="btn btn-primary">Donate Now</a>
+</nav>
+
+<!-- ========== PAGE HERO ========== -->
+<section class="page-hero">
+  <div class="container">
+    <div class="page-hero-inner">
+      <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <span>Contact</span>
+      </div>
+      <h1>Get in Touch</h1>
+      <p>
+        Have questions about GAZHP, our programs, or how to get involved?
+        We'd love to hear from you.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CONTACT FORM ========== -->
+<section class="section-pad">
+  <div class="container">
+    <div class="contact-grid">
+      <!-- LEFT: Info -->
+      <div class="contact-info fade-up">
+        <h3>Contact Information</h3>
+        <div class="contact-detail">
+          <div class="contact-icon">🌐</div>
+          <div class="contact-detail-text">
+            <strong>Website</strong>
+            <span>gazhphealth.org</span>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon">📧</div>
+          <div class="contact-detail-text">
+            <strong>Email</strong>
+            <span>info@gazhphealth.org</span>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon">📍</div>
+          <div class="contact-detail-text">
+            <strong>Registered Address</strong>
+            <span>Delaware, USA<br />501(c)(3) Nonprofit</span>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-icon">🌍</div>
+          <div class="contact-detail-text">
+            <strong>Operations</strong>
+            <span>Zambia &amp; Global Diaspora Network<br />15+ Countries</span>
+          </div>
+        </div>
+
+        <div class="contact-social">
+          <h4>Follow Us</h4>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">f</a>
+            <a href="#" class="social-link" aria-label="Twitter">𝕏</a>
+            <a href="#" class="social-link" aria-label="Instagram">📸</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">in</a>
+          </div>
+        </div>
+
+        <!-- Quick links -->
+        <div style="margin-top:36px;background:var(--gray-50);border-radius:var(--radius-md);padding:24px;">
+          <h4 style="font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-800);margin-bottom:16px;">Quick Actions</h4>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <a href="membership.html" class="btn btn-green" style="justify-content:center;">🤝 &nbsp;Join as a Member</a>
+            <a href="#donate" class="btn btn-teal" style="justify-content:center;">❤️ &nbsp;Make a Donation</a>
+            <a href="about.html" class="btn" style="border:2px solid var(--gray-200);color:var(--navy);justify-content:center;">📖 &nbsp;Learn About Us</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Form -->
+      <div class="contact-form-card fade-up">
+        <h3>Send Us a Message</h3>
+        <form class="js-contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fname">First Name *</label>
+              <input type="text" id="fname" name="fname" placeholder="Your first name" required />
+            </div>
+            <div class="form-group">
+              <label for="lname">Last Name *</label>
+              <input type="text" id="lname" name="lname" placeholder="Your last name" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" name="email" placeholder="your@email.com" required />
+          </div>
+          <div class="form-group">
+            <label for="profession">Profession / Role</label>
+            <select id="profession" name="profession">
+              <option value="">Select your role…</option>
+              <option>Physician / Doctor</option>
+              <option>Nurse / Midwife</option>
+              <option>Allied Health Professional</option>
+              <option>Medical Student</option>
+              <option>Researcher / Academic</option>
+              <option>Healthcare Administrator</option>
+              <option>Supporter / Donor</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="subject">Subject *</label>
+            <select id="subject" name="subject" required>
+              <option value="">What is this about?</option>
+              <option>General Inquiry</option>
+              <option>Membership Application</option>
+              <option>Donation / Fundraising</option>
+              <option>Partnership / Collaboration</option>
+              <option>Media / Press</option>
+              <option>Volunteer Opportunity</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Message *</label>
+            <textarea id="message" name="message" placeholder="Tell us how we can help or how you'd like to get involved…" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-teal btn-lg form-submit">
+            Send Message →
+          </button>
+          <p class="form-note">We typically respond within 2–3 business days.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== DONATE SECTION ========== -->
+<section class="section-pad donate" id="donate" style="background:var(--gray-50);">
+  <div class="container">
+    <div class="center fade-up">
+      <span class="tag">Donate</span>
+      <h2 class="section-title">Support Zambia's Healthcare Future</h2>
+      <p class="section-sub">
+        Your donation directly funds programs that train healthcare workers, expand specialist access,
+        and strengthen Zambia's health infrastructure. Every dollar counts.
+      </p>
+    </div>
+
+    <!-- Donation form -->
+    <div style="max-width:660px;margin:52px auto 0;background:var(--white);border-radius:var(--radius-lg);padding:48px;box-shadow:var(--shadow-md);" class="fade-up">
+      <h3 style="font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:8px;">Make a Donation</h3>
+      <p style="font-size:.9rem;color:var(--gray-600);margin-bottom:32px;">
+        All donations are tax-deductible. GAZHP is a registered 501(c)(3) nonprofit.
+      </p>
+
+      <!-- Donation categories -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;" id="donate-cats">
+        <button onclick="selectDonate(this,'Training &amp; Capacity Building')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:10px 16px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;color:var(--navy);cursor:pointer;">📚 Training</button>
+        <button onclick="selectDonate(this,'Specialist Care &amp; Telemedicine')" class="amount-btn" style="border:2px solid var(--teal);background:var(--teal);color:white;padding:10px 16px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;cursor:pointer;">🏥 Specialist Care</button>
+        <button onclick="selectDonate(this,'Equipment &amp; Health Systems')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:10px 16px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;color:var(--navy);cursor:pointer;">🔧 Equipment</button>
+        <button onclick="selectDonate(this,'General Support')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:10px 16px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;color:var(--navy);cursor:pointer;">💛 General</button>
+      </div>
+
+      <!-- Amounts -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;" id="donate-amounts">
+        <button onclick="selectAmount(this,'25')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;">$25</button>
+        <button onclick="selectAmount(this,'50')" class="amount-btn" style="border:2px solid var(--teal);background:var(--teal);color:white;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;cursor:pointer;">$50</button>
+        <button onclick="selectAmount(this,'100')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;">$100</button>
+        <button onclick="selectAmount(this,'250')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;">$250</button>
+        <button onclick="selectAmount(this,'500')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;">$500</button>
+      </div>
+
+      <div class="form-group">
+        <label for="custom-amount">Or enter a custom amount ($)</label>
+        <input type="number" id="custom-amount" placeholder="Enter amount…" min="1" />
+      </div>
+      <div class="form-group">
+        <label for="donor-email">Your Email</label>
+        <input type="email" id="donor-email" placeholder="for donation receipt" />
+      </div>
+      <div class="form-group">
+        <label for="donor-name">Your Name</label>
+        <input type="text" id="donor-name" placeholder="How should we acknowledge you?" />
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+        <input type="checkbox" id="anonymous" style="width:16px;height:16px;" />
+        <label for="anonymous" style="font-size:.88rem;color:var(--gray-600);">Make this donation anonymous</label>
+      </div>
+      <button type="button" onclick="submitDonation()" class="btn btn-teal btn-lg" style="width:100%;justify-content:center;">
+        ❤️ &nbsp;Complete Donation
+      </button>
+      <p style="font-size:.78rem;color:var(--gray-400);text-align:center;margin-top:12px;">
+        🔒 Secure processing. GAZHP will never share your information.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo">
+          <img src="images/logo.png" alt="GAZHP" class="nav-logo-img" />
+          <span>GAZHP</span>
+        </a>
+        <p>Global Alliance of Zambian Healthcare Professionals — building a healthier Zambia through diaspora collaboration.</p>
+        <div class="social-links">
+          <a href="#" class="social-link">f</a>
+          <a href="#" class="social-link">𝕏</a>
+          <a href="#" class="social-link">📸</a>
+          <a href="#" class="social-link">in</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="teams.html">Our Team</a></li>
+          <li><a href="membership.html">Membership</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Programs</h4>
+        <ul>
+          <li><a href="about.html#programs">Mental Health</a></li>
+          <li><a href="about.html#programs">Cardiovascular Care</a></li>
+          <li><a href="about.html#programs">Primary Care</a></li>
+          <li><a href="about.html#programs">Telemedicine</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <div class="footer-contact-item"><span>🌐</span><span>gazhphealth.org</span></div>
+        <div class="footer-contact-item"><span>📧</span><span>info@gazhphealth.org</span></div>
+        <div class="footer-contact-item"><span>📍</span><span>Delaware, USA &amp; Zambia</span></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 GAZHP — <a href="index.html">Global Alliance of Zambian Healthcare Professionals</a>. All rights reserved.</p>
+      <span class="nonprofit-badge">✓ 501(c)(3) Registered Nonprofit</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  // Donate category selector
+  function selectDonate(btn, label) {
+    document.querySelectorAll('#donate-cats .amount-btn').forEach(b => {
+      b.style.background = 'none';
+      b.style.borderColor = 'var(--gray-200)';
+      b.style.color = 'var(--navy)';
+    });
+    btn.style.background = 'var(--teal)';
+    btn.style.borderColor = 'var(--teal)';
+    btn.style.color = 'white';
+  }
+  // Amount selector
+  function selectAmount(btn, amount) {
+    document.querySelectorAll('#donate-amounts .amount-btn').forEach(b => {
+      b.style.background = 'none';
+      b.style.borderColor = 'var(--gray-200)';
+      b.style.color = 'var(--navy)';
+    });
+    btn.style.background = 'var(--teal)';
+    btn.style.borderColor = 'var(--teal)';
+    btn.style.color = 'white';
+    document.getElementById('custom-amount').value = amount;
+  }
+  // Donation submit placeholder
+  function submitDonation() {
+    const email = document.getElementById('donor-email').value;
+    const name = document.getElementById('donor-name').value;
+    const amount = document.getElementById('custom-amount').value || '50';
+    if (!amount || isNaN(amount) || Number(amount) < 1) {
+      alert('Please enter a valid donation amount.');
+      return;
+    }
+    // Show confirmation toast
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = '<span class="toast-icon">❤️</span><span>Thank you! We\'ll be in touch to complete your donation.</span>';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => toast.classList.remove('show'), 5000);
+  }
+</script>
+</body>
+</html>
