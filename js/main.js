@@ -113,7 +113,7 @@ const contactForm = document.querySelector('.js-contact-form');
 if (contactForm) {
   contactForm.addEventListener('submit', e => {
     e.preventDefault();
-    showToast('✅', 'Message sent! We\'ll get back to you soon.');
+    showToast('#i-check', 'Message sent! We\'ll get back to you soon.');
     contactForm.reset();
   });
 }
@@ -126,7 +126,7 @@ function showToast(icon, message) {
     toast.className = 'toast';
     document.body.appendChild(toast);
   }
-  toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
+  toast.innerHTML = `<svg class="icon"><use href="${icon}"/></svg><span>${message}</span>`;
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 4000);
 }
