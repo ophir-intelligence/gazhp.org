@@ -13,6 +13,8 @@
   --teal:         #00a89c;   /* teal — tags, hover accents */
   --red-cta:      #c94040;   /* caduceus red — primary donate CTA */
   --red-hover:    #b03030;
+  --navy:         #0a2540;   /* deep navy — dark sections, banners */
+  --gold:         #d9a527;   /* gold — accents on dark backgrounds */
 
   /* Neutrals */
   --white:        #ffffff;
@@ -461,7 +463,7 @@ button { cursor: pointer; font-family: inherit; border: none; }
 /* ========================================
    DIFFERENTIATORS
    ======================================== */
-.diff { background: var(--gray-50); }
+.diff { background: var(--navy); }
 .diff-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 52px; }
 .diff-card { display: flex; gap: 18px; align-items: flex-start; padding: 28px; background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-100); }
 .diff-icon {
@@ -561,6 +563,7 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
   background: var(--white); border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-lg); padding: 36px 28px;
   text-align: center; transition: var(--transition); position: relative;
+  display: flex; flex-direction: column;
 }
 .membership-card.recommended { border-color: var(--green-mid); }
 .membership-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-5px); }
@@ -574,11 +577,16 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
 .membership-type { font-size: 1.3rem; font-weight: 800; color: var(--black); margin-bottom: 4px; }
 .membership-fee { font-size: 1.9rem; font-weight: 900; color: var(--green-dark); margin-bottom: 8px; }
 .membership-fee span { font-size: .95rem; font-weight: 500; color: var(--gray-400); }
+.membership-fee-tiers { margin-bottom: 18px; }
+.fee-row { display: flex; align-items: baseline; gap: 7px; justify-content: center; flex-wrap: wrap; margin-bottom: 6px; }
+.fee-row:last-child { margin-bottom: 0; }
+.fee-amount { font-size: 1.45rem; font-weight: 900; color: var(--green-dark); line-height: 1.2; }
+.fee-note { font-size: .76rem; color: var(--gray-400); font-weight: 500; }
 .membership-desc { font-size: .86rem; color: var(--gray-600); line-height: 1.65; margin-bottom: 22px; }
 .membership-features { text-align: left; margin-bottom: 28px; }
 .membership-features li { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: var(--gray-600); margin-bottom: 9px; }
 .membership-features li::before { content: ''; width: 14px; height: 14px; flex-shrink: 0; margin-top: 4px; background-color: var(--green-mid); -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>") center/contain no-repeat; mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>") center/contain no-repeat; }
-.membership-apply { width: 100%; justify-content: center; }
+.membership-apply { width: 100%; justify-content: center; margin-top: auto; }
 
 /* ========================================
    CONTACT
