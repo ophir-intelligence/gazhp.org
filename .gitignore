@@ -6,3 +6,8 @@ node_modules/
 *.log
 .env
 .env.local
+
+# Spreadsheets / data exports — may contain personal contact info (PII). Never commit.
+*.xlsx
+*.xls
+*.csv
