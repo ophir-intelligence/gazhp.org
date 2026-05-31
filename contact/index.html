@@ -207,51 +207,12 @@
       </p>
     </div>
 
-    <!-- Donation form -->
-    <div style="max-width:660px;margin:52px auto 0;background:var(--white);border-radius:var(--radius-lg);padding:48px;box-shadow:var(--shadow-md);" class="fade-up">
-      <h3 style="font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:8px;">Make a Donation</h3>
-      <p style="font-size:.9rem;color:var(--gray-600);margin-bottom:32px;">
-        All donations are tax-deductible. GAZHP is a registered 501(c)(3) nonprofit.
-      </p>
-
-      <!-- Donation categories -->
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;" id="donate-cats">
-        <button onclick="selectDonate(this,'Training &amp; Capacity Building')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:10px 16px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;color:var(--navy);cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="#i-book-open"/></svg>Training</button>
-        <button onclick="selectDonate(this,'Specialist Care &amp; Telemedicine')" class="amount-btn" style="border:2px solid var(--teal);background:var(--teal);color:white;padding:10px 16px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="#i-hospital"/></svg>Specialist Care</button>
-        <button onclick="selectDonate(this,'Equipment &amp; Health Systems')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:10px 16px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;color:var(--navy);cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="#i-wrench"/></svg>Equipment</button>
-        <button onclick="selectDonate(this,'General Support')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:10px 16px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;color:var(--navy);cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="#i-heart"/></svg>General</button>
-      </div>
-
-      <!-- Amounts -->
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;" id="donate-amounts">
-        <button onclick="selectAmount(this,'25')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;">$25</button>
-        <button onclick="selectAmount(this,'50')" class="amount-btn" style="border:2px solid var(--teal);background:var(--teal);color:white;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;cursor:pointer;">$50</button>
-        <button onclick="selectAmount(this,'100')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;">$100</button>
-        <button onclick="selectAmount(this,'250')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;">$250</button>
-        <button onclick="selectAmount(this,'500')" class="amount-btn" style="border:2px solid var(--gray-200);background:none;padding:12px 20px;border-radius:var(--radius-sm);font-size:1rem;font-weight:700;color:var(--navy);cursor:pointer;">$500</button>
-      </div>
-
-      <div class="form-group">
-        <label for="custom-amount">Or enter a custom amount ($)</label>
-        <input type="number" id="custom-amount" placeholder="Enter amount…" min="1" />
-      </div>
-      <div class="form-group">
-        <label for="donor-email">Your Email</label>
-        <input type="email" id="donor-email" placeholder="for donation receipt" />
-      </div>
-      <div class="form-group">
-        <label for="donor-name">Your Name</label>
-        <input type="text" id="donor-name" placeholder="How should we acknowledge you?" />
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
-        <input type="checkbox" id="anonymous" style="width:16px;height:16px;" />
-        <label for="anonymous" style="font-size:.88rem;color:var(--gray-600);">Make this donation anonymous</label>
-      </div>
-      <button type="button" onclick="submitDonation()" class="btn btn-teal btn-lg" style="width:100%;justify-content:center;">
-        <svg class="icon"><use href="#i-heart"/></svg>Complete Donation
-      </button>
-      <p style="font-size:.78rem;color:var(--gray-400);text-align:center;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:6px;">
-        <svg class="icon" style="width:13px;height:13px;"><use href="#i-lock"/></svg>Secure processing. GAZHP will never share your information.
+    <!-- Donorbox donation form -->
+    <div style="max-width:720px;margin:52px auto 0;" class="fade-up">
+      <script type="module" src="https://donorbox.org/widgets.js" async></script>
+      <dbox-widget campaign="donate-to-gazhp" type="donation_form" enable-auto-scroll="true"></dbox-widget>
+      <p style="font-size:.78rem;color:var(--gray-400);text-align:center;margin-top:16px;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <svg class="icon" style="width:13px;height:13px;"><use href="#i-lock"/></svg>Secure processing by Donorbox. GAZHP is a registered 501(c)(3) nonprofit &mdash; donations may be tax-deductible.
       </p>
     </div>
   </div>
@@ -309,47 +270,5 @@
 </footer>
 
 <script src="/js/main.js"></script>
-<script>
-  // Donate category selector
-  function selectDonate(btn, label) {
-    document.querySelectorAll('#donate-cats .amount-btn').forEach(b => {
-      b.style.background = 'none';
-      b.style.borderColor = 'var(--gray-200)';
-      b.style.color = 'var(--navy)';
-    });
-    btn.style.background = 'var(--teal)';
-    btn.style.borderColor = 'var(--teal)';
-    btn.style.color = 'white';
-  }
-  // Amount selector
-  function selectAmount(btn, amount) {
-    document.querySelectorAll('#donate-amounts .amount-btn').forEach(b => {
-      b.style.background = 'none';
-      b.style.borderColor = 'var(--gray-200)';
-      b.style.color = 'var(--navy)';
-    });
-    btn.style.background = 'var(--teal)';
-    btn.style.borderColor = 'var(--teal)';
-    btn.style.color = 'white';
-    document.getElementById('custom-amount').value = amount;
-  }
-  // Donation submit placeholder
-  function submitDonation() {
-    const email = document.getElementById('donor-email').value;
-    const name = document.getElementById('donor-name').value;
-    const amount = document.getElementById('custom-amount').value || '50';
-    if (!amount || isNaN(amount) || Number(amount) < 1) {
-      alert('Please enter a valid donation amount.');
-      return;
-    }
-    // Show confirmation toast
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = '<svg class="icon"><use href="#i-heart"/></svg><span>Thank you! We\'ll be in touch to complete your donation.</span>';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => toast.classList.remove('show'), 5000);
-  }
-</script>
 </body>
 </html>
