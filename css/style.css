@@ -675,6 +675,11 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
 .eyebrow-pill { display: inline-flex; align-items: center; gap: 8px; }
 .eyebrow-pill .icon { width: 14px; height: 14px; }
 
+/* Donorbox embed — wrapper class that flex-centers the form on /donate/ and /join/ */
+.donorbox-wrap { display: flex; flex-direction: column; align-items: center; max-width: 720px; margin: 32px auto 0; }
+.donorbox-wrap dbox-widget { width: 100%; max-width: 485px; }
+.donorbox-wrap > p { text-align: center; }
+
 /* ========================================
    NEWS
    ======================================== */
