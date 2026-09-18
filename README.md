@@ -22,7 +22,8 @@ Official website for the Global Alliance of Zambian Healthcare Professionals (GA
 ## Payments & admin dashboard
 
 - `/donate/` and `/join/` show every payment method switched on in **`js/payments-config.js`**: Donorbox, Stripe, PayPal, Flutterwave, Mobile Money (MTN/Airtel/Zamtel), bank transfer, Zelle, Cash App, Venmo, checks, plus any custom link.
-- `/dashboard/` is the passcode-locked admin dashboard for memberships and donations. It isn't linked from the site.
+- `/dashboard/` is the password-locked admin dashboard for memberships and donations. It isn't linked from the site.
+- `api/` holds the optional payments API (Cloudflare Worker + D1). It lets donors pay through Stripe, PayPal and Flutterwave directly with no Donorbox fee, and the dashboard fills itself from payment webhooks.
 
 See **[PAYMENTS-SETUP.md](PAYMENTS-SETUP.md)** for what to fill in.
 

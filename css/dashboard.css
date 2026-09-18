@@ -164,3 +164,15 @@
   .kpi-value { font-size: 1.6rem; }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ---------- Automated (API) mode ---------- */
+[data-api-only] { display: none !important; }
+.api-mode [data-api-only] { display: revert !important; }
+.api-mode [data-local-only] { display: none !important; }
+.sync { align-items: center; gap: 8px; font-size: .78rem; color: var(--gray-600); white-space: nowrap; }
+.api-mode .sync[data-api-only] { display: inline-flex !important; }
+.btn-xs { padding: 5px 12px; font-size: .78rem; }
+.pending-card { border-color: #f0d68a; background: #fffcf2; }
+.pill.st-pending { background: #fff3cd; color: #7a5200; }
+.pill.st-failed { background: #fdecea; color: var(--bad); }
+.pill.st-refunded { background: var(--gray-100); color: var(--gray-600); }

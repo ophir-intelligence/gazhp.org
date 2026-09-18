@@ -4,6 +4,8 @@
    THIS IS THE ONLY FILE YOU NEED TO EDIT to switch payment methods on or off.
 
    How it works:
+     • AUTOMATED MODE: fill in `api.baseUrl` (below) after deploying /api.
+       Stripe, PayPal and Flutterwave keys live on the server, never here.
      • Every payment method has an `enabled` flag and a few blanks ("").
      • A method only appears on /donate/ and /join/ when it is enabled AND its
        required fields are filled in. Leave anything blank and it stays hidden,
@@ -21,6 +23,19 @@
    ============================================================================= */
 
 window.GAZHP_CONFIG = {
+
+  /* ---------------------------------------------------------------------------
+     OWN PAYMENTS API  (automated — replaces Donorbox)
+     Once the API in /api is deployed, paste its address here, e.g.
+     'https://gazhp-payments.<your-account>.workers.dev'.
+     Then card (Stripe), PayPal and mobile money (Flutterwave) payments happen
+     on your own donate/join forms, record themselves in the dashboard, and
+     Donorbox is hidden automatically. If the API is ever unreachable, the
+     pages fall back to the options below (incl. Donorbox if enabled).
+     ------------------------------------------------------------------------- */
+  api: {
+    baseUrl: '',
+  },
 
   /* ---------------------------------------------------------------------------
      ORGANIZATION

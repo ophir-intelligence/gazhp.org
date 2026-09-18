@@ -1,6 +1,106 @@
 # Payments & Dashboard — Setup Guide
 
-Everything is already built. What's left is **filling in your details** in one file:
+There are two ways to run payments. Both are built and ready:
+
+| | **A. Automated (own API)** (recommended) | **B. Links only** (what's live today) |
+|---|---|---|
+| How donors pay | GAZHP's own form, then Stripe / PayPal / Flutterwave secure checkout | Donorbox form, payment links, account details |
+| Platform fee | **None.** You pay only the processors' own fees | Donorbox charges its fee on top of processing |
+| Dashboard | **Updates itself** from payment webhooks, shared by all admins | Import CSV exports by hand, kept in one browser |
+| Needs | Free Cloudflare account and one-time setup (below) | Nothing extra |
+
+Bank transfer, Zelle, Cash App, Venmo, checks and direct mobile money work in both modes. They have no public API, so donors tell you with an "I've paid" form. In automated mode, those reports land in the dashboard under **Awaiting confirmation**, where you confirm with one click once the money arrives.
+
+---
+
+## A. Automated payments (own API)
+
+The API lives in [`api/`](api/). It's a Cloudflare Worker (free tier: 100k requests per day) plus a D1 database. Secret keys stay on Cloudflare and never go in the website code.
+
+**What it does**
+- Creates checkouts server-side with prices from [`api/src/config.js`](api/src/config.js), so nobody can change the price in their browser.
+- **Stripe:** cards, Apple Pay, Google Pay and US bank (ACH), plus **monthly donations** and **auto-renewing yearly memberships**.
+- **PayPal:** one-time payments in USD.
+- **Flutterwave:** MTN / Airtel / Zamtel mobile money and Zambian cards in **ZMW**. Memberships are converted with `ZMW_PER_USD` in `wrangler.toml`.
+- Receives webhooks, verifies their signatures, and records each payment once. Renewals, refunds and failed bank debits update automatically.
+- Optional email alert for every new payment or "I've paid" report (via resend.com).
+- If the API is ever unreachable, /donate/ and /join/ fall back to Donorbox and the offline options automatically.
+
+### Step 1. Deploy the API (about 15 minutes, one time)
+
+You need Node.js and a free Cloudflare account.
+
+```bash
+cd api
+npm install
+npx wrangler login
+npx wrangler d1 create gazhp-payments
+```
+Copy the `database_id` it prints into `api/wrangler.toml`, then:
+```bash
+npm run db:init
+npx wrangler secret put ADMIN_PASSWORD
+npx wrangler deploy
+```
+`ADMIN_PASSWORD` is the dashboard password in automated mode. Use 16 or more characters. `deploy` prints your API address, e.g. `https://gazhp-payments.<account>.workers.dev`.
+
+Paste that address into **`js/payments-config.js` → `api.baseUrl`**, commit and push.
+
+### Step 2. Connect each gateway
+
+Each gateway switches on as soon as its key is set, with no redeploy needed. Set each key with `npx wrangler secret put NAME`.
+
+**Stripe**
+1. In Stripe, go to **Developers → API keys** and copy the secret key into `STRIPE_SECRET_KEY`.
+2. Go to **Developers → Webhooks → Add endpoint**:
+   - URL: `<API>/webhooks/stripe`
+   - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `invoice.paid`, `charge.refunded`
+   - Copy the signing secret (`whsec_…`) into `STRIPE_WEBHOOK_SECRET`.
+3. **Settings → Payment methods:** turn on Apple Pay, Google Pay and ACH Direct Debit (US bank account).
+4. Apply for Stripe's discounted nonprofit rate by emailing Stripe support with your 501(c)(3) letter.
+
+**PayPal**
+1. At developer.paypal.com, go to **Apps & Credentials → Live → Create App**. Copy the client ID and secret into `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`.
+2. Optional, for refund tracking: in the same app, add a webhook with URL `<API>/webhooks/paypal` and events `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.DENIED` and `PAYMENT.CAPTURE.REFUNDED`. Copy its ID into `PAYPAL_WEBHOOK_ID`.
+3. Apply for PayPal's confirmed-nonprofit rate.
+
+**Flutterwave**
+1. Go to **Settings → API Keys** and copy the secret key into `FLW_SECRET_KEY`.
+2. Go to **Settings → Webhooks**:
+   - URL: `<API>/webhooks/flutterwave`
+   - Secret hash: any long random string. Put the same string in `FLW_WEBHOOK_HASH`.
+3. Make sure Zambian mobile money is enabled on your account.
+
+**Email alerts (optional):** set `RESEND_API_KEY`, `NOTIFY_EMAIL` (e.g. info@gazhphealth.org) and `FROM_EMAIL` (an address on a domain you've verified in Resend).
+
+### Step 3. Test before going live
+Use test keys first:
+- Stripe: `sk_test_…`, test card `4242 4242 4242 4242`.
+- PayPal: sandbox app, and set `PAYPAL_ENV = "sandbox"` in `wrangler.toml`, then run `npx wrangler deploy`.
+- Flutterwave: test secret key.
+
+Make a donation and a membership payment, check that they appear in /dashboard/ within a minute, then swap in the live keys.
+
+### Step 4. Retire Donorbox
+The Donorbox form is hidden automatically once the API is live. Import your Donorbox history in **Dashboard → Import data** (Donations → Export CSV in Donorbox) so past members and donors carry over, then cancel the Donorbox plan.
+
+### Changing prices
+Edit [`api/src/config.js`](api/src/config.js) and run `npx wrangler deploy`. The website reads prices from the API.
+
+### Local development
+```bash
+cd api
+cp .dev.vars.example .dev.vars
+npm run db:init:local
+npx wrangler dev
+```
+Then set `api.baseUrl` to `http://localhost:8787` while testing locally.
+
+---
+
+## B. Links-only mode (no API)
+
+Fill in **your details** in one file:
 
 ```
 js/payments-config.js
@@ -75,7 +175,9 @@ custom: [
 
 ## 3. Admin dashboard: `/dashboard/`
 
-The passcode was given to the site admin privately (it is not written anywhere in this repo). To change it, open /dashboard/ → Setup → *Generate hash*, then paste the result into `dashboard.passcodeHash`.
+In automated mode, sign in with `ADMIN_PASSWORD` (set on Cloudflare). Payments arrive automatically, refresh every minute, and are shared by every admin. Everything below about CSV import, manual entry and the Google Sheet still works. Imports and manual entries are saved to the database instead of the browser.
+
+Without the API: the passcode was given to the site admin privately (it is not written anywhere in this repo). To change it, open /dashboard/ → Setup → *Generate hash*, then paste the result into `dashboard.passcodeHash`.
 
 The dashboard isn't linked from the site and is hidden from search engines (`robots.txt` plus a `noindex` tag). The passcode is a screen lock, not real security. That's fine because **no payment data is ever stored on the website**:
 

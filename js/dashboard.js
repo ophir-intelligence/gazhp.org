@@ -16,7 +16,11 @@
   const TERM = CFG.membershipTermMonths || 12;
   const REMIND_DAYS = CFG.renewalReminderDays || 30;
   const STORE_KEY = 'gazhp-dashboard-records-v1';
+  const SAMPLE_KEY = 'gazhp-dashboard-sample-v1';
   const SESSION_KEY = 'gazhp-dashboard-unlocked';
+  const TOKEN_KEY = 'gazhp-dashboard-token';
+  // Automated mode: payments come from the GAZHP API (Stripe/PayPal/Flutterwave webhooks).
+  const API = typeof (CFG.api || {}).baseUrl === 'string' && CFG.api.baseUrl.trim() ? CFG.api.baseUrl.trim().replace(/\/+$/, '') : '';
 
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -66,9 +70,38 @@
     init();
   }
 
+  const getToken = () => { try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } };
+  async function api(path, { method = 'GET', body } = {}) {
+    const res = await fetch(API + path, {
+      method,
+      headers: { authorization: 'Bearer ' + getToken(), ...(body ? { 'content-type': 'application/json' } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+      try { sessionStorage.removeItem(TOKEN_KEY); } catch {}
+      alert(data.error || 'Please sign in again.');
+      location.reload();
+      throw new Error('signed out');
+    }
+    if (!res.ok) throw new Error(data.error || 'The payments server returned an error.');
+    return data;
+  }
+
   $('#lock-form').addEventListener('submit', async e => {
     e.preventDefault();
     const err = $('#lock-err');
+    if (API) {
+      err.textContent = '';
+      try {
+        const res = await fetch(API + '/admin/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password: $('#lock-pass').value }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { err.textContent = data.error || 'Could not sign in.'; $('#lock-pass').select(); return; }
+        try { sessionStorage.setItem(TOKEN_KEY, data.token); } catch {}
+        unlock();
+      } catch { err.textContent = 'Cannot reach the payments server. Check your connection.'; }
+      return;
+    }
     if (!window.crypto || !crypto.subtle) { err.textContent = 'Open this page over https:// (or localhost) to unlock.'; return; }
     const h = await sha256($('#lock-pass').value);
     if (h === DC.passcodeHash) {
@@ -80,7 +113,7 @@
     }
   });
   $('#lock-btn').addEventListener('click', () => {
-    try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+    try { sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(TOKEN_KEY); } catch {}
     location.reload();
   });
 
@@ -89,24 +122,49 @@
      Record shape:
      { id, date:'YYYY-MM-DD', name, email, phone, country, amount, currency,
        type:'donation'|'membership', tier, method, ref, notes, source }
-     source: 'import' | 'manual' | 'sheet' | 'sample'
+     status (API mode): 'paid' | 'pending' | 'failed' | 'refunded'
+     source: 'stripe' | 'paypal' | 'flutterwave' | 'notify' | 'import' | 'manual' | 'sheet' | 'sample'
      ===================================================================== */
-  let local = [];      // persisted (import, manual, sample)
+  let local = [];      // API mode: server payments. Local mode: saved in this browser.
   let sheet = [];      // loaded from Google Sheet each visit
-  const all = () => local.concat(sheet);
+  let samples = [];    // demo data — kept in this browser only, never sent to the server
+  let lastSync = null;
+  const all = () => local.concat(sheet, samples);
+  // Only settled money counts in totals and membership.
+  const paid = () => all().filter(r => !r.status || r.status === 'paid');
 
-  function load() {
+  async function load() {
+    try { samples = JSON.parse(localStorage.getItem(SAMPLE_KEY) || '[]'); } catch { samples = []; }
+    if (API) {
+      const data = await api('/admin/payments');
+      local = (data.payments || []).map(r => ({ ...r, amount: Number(r.amount) }));
+      lastSync = new Date();
+      return;
+    }
     try { local = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { local = []; }
   }
   function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(local)); return true; }
-    catch { banner('warn', 'Could not save in this browser (storage is blocked or full). Download a backup so nothing is lost.'); return false; }
+    try {
+      localStorage.setItem(SAMPLE_KEY, JSON.stringify(samples));
+      if (!API) localStorage.setItem(STORE_KEY, JSON.stringify(local));
+      return true;
+    } catch { banner('warn', 'Could not save in this browser (storage is blocked or full). Download a backup so nothing is lost.'); return false; }
   }
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   const dedupeKey = r => r.ref ? (r.method + '|' + r.ref).toLowerCase()
     : [r.date, (r.email || r.name || '').toLowerCase(), r.amount, r.currency].join('|');
 
-  function addRecords(recs, source) {
+  async function addRecords(recs, source) {
+    if (source === 'sample') {
+      samples = recs.map(r => ({ ...r, id: uid(), source }));
+      save();
+      return { added: samples.length, dup: 0 };
+    }
+    if (API) {
+      const res = await api('/admin/payments', { method: 'POST', body: { source, records: recs } });
+      await load();
+      return { added: res.added, dup: res.duplicates };
+    }
     const seen = new Set(all().map(dedupeKey));
     let added = 0, dup = 0;
     recs.forEach(r => {
@@ -118,6 +176,17 @@
     });
     save();
     return { added, dup };
+  }
+  async function deleteRecord(id) {
+    if (samples.some(r => r.id === id)) { samples = samples.filter(r => r.id !== id); save(); return; }
+    if (API) { await api('/admin/payments/' + encodeURIComponent(id), { method: 'DELETE' }); local = local.filter(r => r.id !== id); return; }
+    local = local.filter(r => r.id !== id); save();
+  }
+  async function setStatus(id, status) {
+    if (API) await api('/admin/payments/' + encodeURIComponent(id), { method: 'PATCH', body: { status } });
+    const r = local.find(x => x.id === id);
+    if (r) r.status = status;
+    save();
   }
 
   /* =====================================================================
@@ -374,10 +443,10 @@
   function statusBanner() {
     const missingFx = [...new Set(all().map(r => (r.currency || '').toUpperCase()).filter(c => c && FX[c] == null))];
     const msgs = [];
-    if (DC.passcodeHash === '0a8b1e2c3e5690de87df39b4e36e01f91f44327ba59483b68424e7f13ec63e8c')
+    if (!API && DC.passcodeHash === '0a8b1e2c3e5690de87df39b4e36e01f91f44327ba59483b68424e7f13ec63e8c')
       msgs.push('You are using the default passcode. Change it in <a href="#setup" data-goto="setup">Setup</a>.');
     if (missingFx.length) msgs.push(`No exchange rate for ${missingFx.map(esc).join(', ')} — add it to <code>dashboard.fxRates</code> so these payments are counted in totals.`);
-    if (local.some(r => r.source === 'sample')) msgs.push('Sample data is loaded. Remove it in <a href="#setup" data-goto="setup">Setup</a> before using real figures.');
+    if (samples.length) msgs.push('Sample data is loaded. Remove it in <a href="#setup" data-goto="setup">Setup</a> before using real figures.');
     banner(msgs.length ? 'warn' : '', msgs.join('<br>'));
   }
 
@@ -527,15 +596,16 @@
     const sel = $('#ov-year');
     yearOptions(sel);
     const period = sel.value;
-    const recs = all().filter(r => inYear(r, period));
+    const recs = paid().filter(r => inYear(r, period));
     const dons = recs.filter(r => r.type === 'donation');
     const mems = recs.filter(r => r.type === 'membership');
-    const members = membersFrom(all());
+    const members = membersFrom(paid());
     const active = members.filter(m => m.status !== 'expired');
     const expiring = members.filter(m => m.status === 'expiring');
     const donors = new Set(dons.map(r => (r.email || r.name).toLowerCase())).size;
     const periodName = period === '12m' ? 'last 12 months' : period === 'all' ? 'all time' : period;
 
+    renderPending();
     if (!all().length) {
       $('#kpis').innerHTML = '';
       $('#goal').innerHTML = '';
@@ -558,13 +628,13 @@
     const goal = +DC.annualFundraisingGoal || 0;
     if (goal > 0) {
       const y = today().slice(0, 4);
-      const raised = sum(all().filter(r => r.date.startsWith(y)));
+      const raised = sum(paid().filter(r => r.date.startsWith(y)));
       const pct = Math.min(100, (raised / goal) * 100);
       $('#goal').innerHTML = `<div class="goal"><div class="goal-top"><span><strong>${y} fundraising goal</strong> · ${fmt(raised)} of ${fmt(goal)}</span><span><strong>${pct.toFixed(0)}%</strong></span></div>
         <div class="goal-bar" role="progressbar" aria-valuenow="${pct.toFixed(0)}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div></div>`;
     } else $('#goal').innerHTML = '';
 
-    drawMonthChart($('#month-chart'), monthBuckets(all(), period));
+    drawMonthChart($('#month-chart'), monthBuckets(paid(), period));
 
     const byMethod = {};
     recs.forEach(r => { const k = r.method || 'Other'; byMethod[k] = byMethod[k] || { name: k, value: 0, count: 0 }; byMethod[k].value += toReport(r) || 0; byMethod[k].count++; });
@@ -577,9 +647,25 @@
     const recent = all().slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
     $('#recent').innerHTML = `<div class="table-wrap"><table class="dtable"><tbody>${recent.map(r => `<tr>
       <td><strong>${esc(r.name || r.email || '—')}</strong><div class="muted">${fmtDate(r.date)} · ${esc(r.method)}</div></td>
-      <td>${typePill(r)}</td>
+      <td>${typePill(r)}${payStatus(r)}</td>
       <td class="num">${fmt(r.amount, r.currency, r.amount % 1 ? 2 : 0)}</td></tr>`).join('')}</tbody></table></div>`;
   }
+
+  // Offline payments donors reported ("I've paid") — confirm when the money arrives.
+  function renderPending() {
+    const list = all().filter(r => r.status === 'pending').sort((a, b) => b.date.localeCompare(a.date));
+    $('#pending').innerHTML = !list.length ? '' : `<div class="dash-card pending-card">
+      <div class="dash-card-head"><h3>Awaiting confirmation (${list.length})</h3><span class="dash-muted" style="margin:0;">Check your bank / mobile money / Zelle, then confirm.</span></div>
+      <div class="table-wrap"><table class="dtable"><tbody>${list.slice(0, 20).map(r => `<tr>
+        <td><strong>${esc(r.name || '—')}</strong><div class="muted">${esc(r.email || '')}${r.phone ? ' · ' + esc(r.phone) : ''}</div></td>
+        <td class="nowrap">${esc(r.method)}<div class="muted">sent ${fmtDate(r.date)}</div></td>
+        <td>${typePill(r)}${r.tier ? `<div class="muted">${esc(tierShort(r.tier))}</div>` : ''}</td>
+        <td class="muted">${esc(r.ref || '')}</td>
+        <td class="num">${fmt(r.amount, r.currency, r.amount % 1 ? 2 : 0)}</td>
+        <td class="nowrap"><button class="btn btn-green btn-xs" data-status="paid" data-id="${esc(r.id)}">Confirm</button> <button class="row-del" data-status="failed" data-id="${esc(r.id)}">Not received</button></td>
+      </tr>`).join('')}</tbody></table></div></div>`;
+  }
+  const payStatus = r => !r.status || r.status === 'paid' ? '' : `<div><span class="pill st-${esc(r.status)}">${esc(r.status[0].toUpperCase() + r.status.slice(1))}</span></div>`;
   const typePill = r => r.type === 'membership' ? '<span class="pill m">Membership</span>' : '<span class="pill d">Donation</span>';
   const statusCell = s => ({
     active: '<span class="status active"><svg class="icon"><use href="#i-check"/></svg>Active</span>',
@@ -593,7 +679,7 @@
   function filteredMembers() {
     const q = $('#mem-search').value.trim().toLowerCase();
     const st = $('#mem-status').value, tier = $('#mem-tier').value;
-    return membersFrom(all()).filter(m =>
+    return membersFrom(paid()).filter(m =>
       (!st || m.status === st) && (!tier || m.tier === tier) &&
       (!q || [m.name, m.email, m.country, m.phone, tierLabel(m.tier)].join(' ').toLowerCase().includes(q)));
   }
@@ -602,7 +688,7 @@
     if (tierSel.options.length <= 1) tierSel.innerHTML += TIERS.map(t => `<option value="${esc(t.id)}">${esc(t.name)} — ${esc(t.region)}</option>`).join('');
     const list = filteredMembers();
     if (!list.length) {
-      $('#mem-table').innerHTML = `<div class="empty-state">${membersFrom(all()).length ? 'No members match these filters.' : 'No membership payments yet. Import exports or record a membership payment.'}</div>`;
+      $('#mem-table').innerHTML = `<div class="empty-state">${membersFrom(paid()).length ? 'No members match these filters.' : 'No membership payments yet. Import exports or record a membership payment.'}</div>`;
       return;
     }
     $('#mem-table').innerHTML = `<table class="dtable"><thead><tr>
@@ -624,8 +710,9 @@
      ===================================================================== */
   function filteredTx() {
     const q = $('#tx-search').value.trim().toLowerCase();
-    const type = $('#tx-type').value, method = $('#tx-method').value, year = $('#tx-year').value;
+    const type = $('#tx-type').value, method = $('#tx-method').value, year = $('#tx-year').value, status = $('#tx-status').value;
     return all().filter(r => (!type || r.type === type) && (!method || r.method === method) && inYear(r, year) &&
+      (!status || (r.status || 'paid') === status) &&
       (!q || [r.name, r.email, r.ref, r.country, r.notes, r.phone].join(' ').toLowerCase().includes(q)))
       .sort((a, b) => b.date.localeCompare(a.date));
   }
@@ -636,7 +723,8 @@
     mSel.innerHTML = '<option value="">All methods</option>' + methods.map(m => `<option>${esc(m)}</option>`).join('');
     mSel.value = methods.includes(cur) ? cur : '';
     const list = filteredTx();
-    $('#tx-summary').textContent = list.length ? `${list.length} payment${list.length === 1 ? '' : 's'} · ${fmt(sum(list))} total (in ${REPORT_CUR})` : '';
+    const settled = list.filter(r => !r.status || r.status === 'paid');
+    $('#tx-summary').textContent = list.length ? `${list.length} payment${list.length === 1 ? '' : 's'} · ${fmt(sum(settled))} received (in ${REPORT_CUR})${settled.length < list.length ? ` · ${list.length - settled.length} pending, failed or refunded (not counted)` : ''}` : '';
     if (!list.length) { $('#tx-table').innerHTML = `<div class="empty-state">${all().length ? 'No payments match these filters.' : 'No payments yet.'}</div>`; return; }
     const shown = list.slice(0, 500);
     $('#tx-table').innerHTML = `<table class="dtable"><thead><tr><th>Date</th><th>Name</th><th>Type</th><th>Method</th><th>Reference</th><th class="num">Amount</th><th class="num">${esc(REPORT_CUR)}</th><th></th></tr></thead><tbody>
@@ -645,12 +733,12 @@
         return `<tr>
         <td class="nowrap">${fmtDate(r.date)}</td>
         <td>${esc(r.name || '—')}<div class="muted">${esc(r.email)}${r.country ? ' · ' + esc(r.country) : ''}</div></td>
-        <td>${typePill(r)}${r.tier ? `<div class="muted">${esc(tierShort(r.tier))}</div>` : ''}</td>
-        <td>${esc(r.method)}</td>
+        <td>${typePill(r)}${r.tier ? `<div class="muted">${esc(tierShort(r.tier))}</div>` : ''}${payStatus(r)}</td>
+        <td>${esc(r.method)}${r.recurring && r.recurring !== 'once' ? `<div class="muted">${r.recurring === 'month' ? 'Monthly' : 'Yearly'}</div>` : ''}</td>
         <td class="muted">${esc(r.ref)}</td>
         <td class="num">${fmt(r.amount, r.currency, r.amount % 1 ? 2 : 0)}</td>
         <td class="num">${conv == null ? '<span class="muted">no rate</span>' : fmt(conv)}</td>
-        <td>${r.source === 'sheet' ? '<span class="muted" title="From Google Sheet — edit it there">sheet</span>' : `<button class="row-del" data-del="${esc(r.id)}" title="Delete this payment">Delete</button>`}</td></tr>`;
+        <td class="nowrap">${r.status === 'pending' ? `<button class="btn btn-green btn-xs" data-status="paid" data-id="${esc(r.id)}">Confirm</button> ` : ''}${r.source === 'sheet' ? '<span class="muted" title="From Google Sheet — edit it there">sheet</span>' : `<button class="row-del" data-del="${esc(r.id)}" title="Delete this payment">Delete</button>`}</td></tr>`;
       }).join('')}
       </tbody></table>${list.length > shown.length ? `<p class="dash-muted" style="margin-top:12px;">Showing the latest 500. Use filters or export CSV to see all.</p>` : ''}`;
   }
@@ -677,6 +765,7 @@
     ];
     const cell = (gw, parts) => {
       const ok = parts.filter(Boolean);
+      if (API && apiConfig && gw === g.donorbox && gw && gw.enabled) return `<span class="check-off">Replaced by own API (hidden)</span>`;
       if (gw && gw.enabled && ok.length) return `<span class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Live on site</span>`;
       if (gw && gw.enabled) return `<span class="check-miss"><svg class="icon"><use href="#i-alert"/></svg>Enabled, but details missing — hidden</span>`;
       if (ok.length) return `<span class="check-miss"><svg class="icon"><use href="#i-alert"/></svg>Filled in — set enabled: true</span>`;
@@ -684,10 +773,19 @@
     };
     const extra = [
       ['Organization EIN', has(CFG.org?.ein)], ['Mailing address', has(CFG.org?.mailingAddress)],
-      ['Passcode changed', DC.passcodeHash !== '0a8b1e2c3e5690de87df39b4e36e01f91f44327ba59483b68424e7f13ec63e8c'],
+      ['Passcode changed', !!API || DC.passcodeHash !== '0a8b1e2c3e5690de87df39b4e36e01f91f44327ba59483b68424e7f13ec63e8c'],
       ['Fundraising goal', +DC.annualFundraisingGoal > 0], ['Google Sheet (optional)', has(DC.googleSheetCsvUrl)],
     ];
-    $('#setup-table').innerHTML = `<table class="dtable"><thead><tr><th>Payment method</th><th>What it covers</th><th>Filled in</th><th>Status</th></tr></thead><tbody>
+    const gw = apiConfig && apiConfig.gateways;
+    const on = v => v ? '<span class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Live — automatic</span>' : '<span class="check-off">Key not set on server</span>';
+    const apiHtml = API ? `<table class="dtable" style="margin-bottom:18px;"><thead><tr><th>Automated payments (own API)</th><th>What it covers</th><th>Status</th></tr></thead><tbody>
+      <tr><td><strong>Payments API</strong></td><td class="muted">${esc(API)}</td><td>${gw ? '<span class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Connected</span>' : '<span class="check-miss"><svg class="icon"><use href="#i-alert"/></svg>Checking… / unreachable</span>'}</td></tr>
+      <tr><td><strong>Stripe</strong></td><td class="muted">Cards, Apple Pay, Google Pay, US bank · monthly & yearly</td><td>${gw ? on(gw.stripe) : '—'}</td></tr>
+      <tr><td><strong>PayPal</strong></td><td class="muted">PayPal balance & cards (one-time)</td><td>${gw ? on(gw.paypal) : '—'}</td></tr>
+      <tr><td><strong>Flutterwave</strong></td><td class="muted">MTN, Airtel, Zamtel mobile money & Zambian cards</td><td>${gw ? on(gw.flutterwave) : '—'}</td></tr>
+      </tbody></table>
+      <p class="dash-muted">With the API connected, Donorbox and the payment-link rows below are hidden on the site automatically. Bank, Zelle and direct mobile money still show as "Other ways to pay" and arrive here as <em>Awaiting confirmation</em>.</p>` : '';
+    $('#setup-table').innerHTML = apiHtml + `<table class="dtable"><thead><tr><th>Payment method</th><th>What it covers</th><th>Filled in</th><th>Status</th></tr></thead><tbody>
       ${rows.map(([name, what, gw, parts]) => `<tr><td><strong>${esc(name)}</strong></td><td class="muted">${esc(what)}</td><td class="muted">${esc(parts.filter(Boolean).join(', ') || '—')}</td><td>${cell(gw, parts)}</td></tr>`).join('')}
       </tbody></table>
       <table class="dtable" style="margin-top:18px;"><thead><tr><th>Other settings</th><th>Status</th></tr></thead><tbody>
@@ -696,8 +794,10 @@
   }
 
   function renderStoreInfo() {
-    const n = local.filter(r => r.source !== 'sample').length, s = sheet.length;
-    $('#store-info').textContent = `${n} payment${n === 1 ? '' : 's'} saved in this browser${s ? ` · ${s} from Google Sheet` : ''}.`;
+    const n = local.length, s = sheet.length;
+    $('#store-info').textContent = API
+      ? `${n} payment${n === 1 ? '' : 's'} in the payments database${s ? ` · ${s} from Google Sheet` : ''}.`
+      : `${n} payment${n === 1 ? '' : 's'} saved in this browser${s ? ` · ${s} from Google Sheet` : ''}.`;
   }
 
   function render() {
@@ -724,15 +824,20 @@
       const go = e.target.closest('[data-goto]');
       if (go) { e.preventDefault(); showTab(go.dataset.goto); }
       const del = e.target.closest('[data-del]');
-      if (del && confirm('Delete this payment from this browser?')) {
-        local = local.filter(r => r.id !== del.dataset.del); save(); render();
+      if (del && confirm(API ? 'Delete this payment from the database? This cannot be undone.' : 'Delete this payment from this browser?')) {
+        deleteRecord(del.dataset.del).then(render, err => alert(err.message));
+      }
+      const stBtn = e.target.closest('[data-status]');
+      if (stBtn) {
+        stBtn.disabled = true;
+        setStatus(stBtn.dataset.id, stBtn.dataset.status).then(render, err => { alert(err.message); stBtn.disabled = false; });
       }
     });
     $('#ov-year').addEventListener('change', render);
     let rt;
     addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (tab === 'overview') renderOverview(); }, 150); });
     ['#mem-search', '#mem-status', '#mem-tier'].forEach(s => $(s).addEventListener('input', renderMembers));
-    ['#tx-search', '#tx-type', '#tx-method', '#tx-year'].forEach(s => $(s).addEventListener('input', renderTx));
+    ['#tx-search', '#tx-type', '#tx-method', '#tx-status', '#tx-year'].forEach(s => $(s).addEventListener('input', renderTx));
 
     $('#mem-export').addEventListener('click', () => {
       const cols = ['name', 'email', 'phone', 'country', 'tier', 'first', 'lastPaid', 'expires', 'status', 'payments', 'total'];
@@ -741,7 +846,7 @@
         ...list.map(m => cols.map(c => c === 'tier' ? tierLabel(m.tier) : c === 'total' ? m.total.toFixed(2) : m[c]))]));
     });
     $('#mem-remind').addEventListener('click', () => {
-      const list = membersFrom(all()).filter(m => m.email && (m.status === 'expiring' || m.status === 'expired'));
+      const list = membersFrom(paid()).filter(m => m.email && (m.status === 'expiring' || m.status === 'expired'));
       if (!list.length) { alert('No expiring or expired members with an email address.'); return; }
       const subject = 'Time to renew your GAZHP membership';
       const body = `Dear member,\n\nThank you for being part of the Global Alliance of Zambian Healthcare Professionals. Your membership is due for renewal.\n\nRenew online: ${location.origin}/join/\n\nWith gratitude,\nGAZHP`;
@@ -752,7 +857,7 @@
       } else location.href = href;
     });
     $('#tx-export').addEventListener('click', () => exportRecords(filteredTx(), `gazhp-payments-${today()}.csv`));
-    $('#backup-btn').addEventListener('click', () => exportRecords(local.filter(r => r.source !== 'sample'), `gazhp-dashboard-backup-${today()}.csv`));
+    $('#backup-btn').addEventListener('click', () => exportRecords(local, `gazhp-dashboard-backup-${today()}.csv`));
 
     // Record payment form
     const form = $('#rec-form');
@@ -773,7 +878,7 @@
       if (t) { form.amount.value = t.amount; form.currency.value = t.currency; }
     });
     syncType();
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', async e => {
       e.preventDefault();
       const f = Object.fromEntries(new FormData(form));
       const rec = {
@@ -782,7 +887,8 @@
         name: f.name.trim(), email: f.email.trim().toLowerCase(), phone: f.phone.trim(), country: f.country.trim(),
         ref: f.ref.trim(), notes: f.notes.trim(),
       };
-      const { added } = addRecords([rec], 'manual');
+      let added = 0;
+      try { ({ added } = await addRecords([rec], 'manual')); } catch (err) { $('#rec-msg').textContent = err.message; return; }
       $('#rec-msg').textContent = added ? `Saved: ${rec.name}, ${fmt(rec.amount, rec.currency, 2)}.` : 'This payment is already recorded (same reference or same person, date and amount).';
       if (added) { const keep = { type: form.type.value, method: form.method.value, currency: form.currency.value }; form.reset(); form.type.value = keep.type; form.method.value = keep.method; form.currency.value = keep.currency; form.date.value = today(); syncType(); }
     });
@@ -795,7 +901,8 @@
         const text = await file.text();
         const res = rowsToRecords(parseCSV(text), $('#imp-source').value);
         if (res.error) { out.push(`<p><strong>${esc(file.name)}:</strong> ${esc(res.error)}</p>`); continue; }
-        const { added, dup } = addRecords(res.records, 'import');
+        let added, dup;
+        try { ({ added, dup } = await addRecords(res.records, 'import')); } catch (err) { out.push(`<p><strong>${esc(file.name)}:</strong> ${esc(err.message)}</p>`); continue; }
         const m = res.records.filter(r => r.type === 'membership').length;
         out.push(`<p class="check-ok"><svg class="icon"><use href="#i-check"/></svg><span><strong>${esc(file.name)}</strong> (${esc(res.source)}): ${added} added (${m} membership, ${res.records.length - m} donation)${dup ? `, ${dup} duplicates skipped` : ''}${res.skipped ? `, ${res.skipped} rows ignored (failed, refunded or not a payment)` : ''}.</span></p>`);
       }
@@ -815,12 +922,14 @@
       if (!h || !EXPORT_COLS.every(c => h.includes(c))) { alert('This does not look like a dashboard backup file.'); return; }
       const recs = body.map(r => Object.fromEntries(h.map((c, i) => [c, (r[i] || '').replace(/^'(?=[=+\-@])/, '')])))
         .map(r => ({ ...r, amount: parseFloat(r.amount) || 0, source: undefined })).filter(r => r.date && r.amount > 0);
-      const { added, dup } = addRecords(recs.map(({ source, ...r }) => r), 'import');
+      let added, dup;
+      try { ({ added, dup } = await addRecords(recs.map(({ source, ...r }) => r), 'import')); } catch (err) { alert(err.message); return; }
       $('#imp-result').innerHTML = `<p class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Restored ${added} payments${dup ? ` (${dup} already present)` : ''}.</p>`;
       renderStoreInfo(); statusBanner();
     });
     $('#clear-btn').addEventListener('click', () => {
       if (!confirm('Delete ALL payments saved in this browser? Download a backup first if you need them. This cannot be undone.')) return;
+      if (API) return;
       local = []; save(); render(); $('#imp-result').innerHTML = '';
     });
     $('#sheet-reload').addEventListener('click', () => loadSheet(true));
@@ -831,11 +940,11 @@
       if (v.length < 8) { $('#hash-out').textContent = 'Use at least 8 characters.'; return; }
       $('#hash-out').textContent = await sha256(v);
     });
-    $('#sample-load').addEventListener('click', () => {
-      const { added } = addRecords(sampleData(), 'sample');
+    $('#sample-load').addEventListener('click', async () => {
+      const { added } = await addRecords(sampleData(), 'sample');
       alert(`${added} sample payments loaded.`); showTab('overview');
     });
-    $('#sample-clear').addEventListener('click', () => { local = local.filter(r => r.source !== 'sample'); save(); render(); });
+    $('#sample-clear').addEventListener('click', () => { samples = []; save(); render(); });
   }
 
   /* =====================================================================
@@ -892,16 +1001,39 @@
   /* =====================================================================
      INIT
      ===================================================================== */
-  function init() {
-    load();
+  async function init() {
     bindActions();
+    document.body.classList.toggle('api-mode', !!API);
+    try { await load(); } catch (err) { if (err.message !== 'signed out') banner('warn', `Could not load payments: ${esc(err.message)}`); }
     const start = location.hash.slice(1);
     showTab(['overview', 'members', 'donations', 'record', 'import', 'setup'].includes(start) ? start : 'overview');
+    syncLabel();
     loadSheet(false);
+    if (API) {
+      // New online payments arrive via webhooks — pull them in automatically.
+      setInterval(() => { if (!document.hidden) refresh(); }, 60000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - (lastSync || 0) > 30000) refresh(); });
+      $('#refresh-btn').addEventListener('click', refresh);
+      api('/config').then(c => { apiConfig = c; if (tab === 'setup') renderSetup(); }).catch(() => {});
+    }
+  }
+  let apiConfig = null;
+  let refreshing = false;
+  async function refresh() {
+    if (refreshing) return;
+    refreshing = true;
+    try { await load(); render(); } catch (err) { if (err.message !== 'signed out') banner('warn', `Could not refresh: ${esc(err.message)}`); }
+    refreshing = false;
+    syncLabel();
+  }
+  function syncLabel() {
+    const el = $('#sync-label');
+    if (!API || !el) return;
+    el.textContent = lastSync ? 'Updated ' + lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not synced';
   }
 
   let remembered = null;
-  try { remembered = sessionStorage.getItem(SESSION_KEY); } catch {}
-  if (remembered && remembered === DC.passcodeHash) unlock();
+  try { remembered = API ? sessionStorage.getItem(TOKEN_KEY) : sessionStorage.getItem(SESSION_KEY); } catch {}
+  if (remembered && (API || remembered === DC.passcodeHash)) unlock();
   else setTimeout(() => $('#lock-pass').focus(), 50);
 })();

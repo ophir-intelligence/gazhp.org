@@ -25,7 +25,7 @@
   <form class="dash-lock-card" id="lock-form">
     <img src="/images/logo.png" alt="GAZHP" class="dash-lock-logo" />
     <h1>Admin Dashboard</h1>
-    <p>Memberships &amp; donations. Enter the admin passcode to continue.</p>
+    <p>Memberships &amp; donations. Enter the admin password to continue.</p>
     <label for="lock-pass" class="sr-only">Passcode</label>
     <input type="password" id="lock-pass" placeholder="Passcode" autocomplete="current-password" required />
     <button type="submit" class="btn btn-green">Unlock</button>
@@ -46,6 +46,7 @@
         <button role="tab" data-tab="import">Import data</button>
         <button role="tab" data-tab="setup">Setup</button>
       </nav>
+      <span class="sync" data-api-only><span id="sync-label"></span><button class="link-btn" id="refresh-btn" type="button">Refresh</button></span>
       <button class="dash-lockbtn" id="lock-btn" title="Lock dashboard"><svg class="icon"><use href="#i-lock"/></svg><span>Lock</span></button>
     </div>
   </header>
@@ -61,6 +62,7 @@
           <select id="ov-year"></select>
         </label>
       </div>
+      <div id="pending"></div>
       <div class="kpi-grid" id="kpis"></div>
       <div id="goal"></div>
       <div class="dash-grid-2">
@@ -119,6 +121,7 @@
           <input type="search" id="tx-search" placeholder="Search name, email, reference…" />
           <select id="tx-type"><option value="">Donations &amp; memberships</option><option value="donation">Donations only</option><option value="membership">Memberships only</option></select>
           <select id="tx-method"><option value="">All methods</option></select>
+          <select id="tx-status"><option value="">Any status</option><option value="paid">Received</option><option value="pending">Awaiting confirmation</option><option value="failed">Failed / not received</option><option value="refunded">Refunded</option></select>
           <select id="tx-year"></select>
         </div>
         <div class="dash-actions">
@@ -196,12 +199,13 @@
         </div>
         <div class="dash-card">
           <h3>Where your data lives</h3>
-          <p class="dash-muted">Imported and recorded payments are saved <strong>only in this browser</strong> on this computer — never on the public website. Download a backup regularly and restore it on another computer if needed.</p>
+          <p class="dash-muted" data-api-only>Online payments (Stripe, PayPal, Flutterwave) and "I've paid" reports are saved automatically in your private payments database. Imports and manual entries go there too, so every admin sees the same data on any computer.</p>
+          <p class="dash-muted" data-local-only>Imported and recorded payments are saved <strong>only in this browser</strong> on this computer — never on the public website. Download a backup regularly and restore it on another computer if needed.</p>
           <div class="dash-btn-col">
             <button class="btn btn-teal btn-sm" id="backup-btn">Download full backup (CSV)</button>
             <label class="btn btn-outline-dark btn-sm file-btn">Restore from backup<input type="file" id="restore-file" accept=".csv,text/csv" /></label>
             <button class="btn btn-outline-dark btn-sm" id="sheet-reload">Reload Google Sheet</button>
-            <button class="btn btn-primary btn-sm" id="clear-btn">Delete all data in this browser</button>
+            <button class="btn btn-primary btn-sm" id="clear-btn" data-local-only>Delete all data in this browser</button>
           </div>
           <p class="dash-muted" id="store-info"></p>
         </div>
