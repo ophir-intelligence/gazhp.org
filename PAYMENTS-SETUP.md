@@ -4,7 +4,7 @@ There are two ways to run payments. Both are built and ready:
 
 | | **A. Automated (own API)** (recommended) | **B. Links only** (what's live today) |
 |---|---|---|
-| How donors pay | GAZHP's own form, then Stripe / PayPal / Flutterwave secure checkout | Donorbox form, payment links, account details |
+| How donors pay | GAZHP's own form, then Stripe / PayPal / DPO Pay secure checkout | Donorbox form, payment links, account details |
 | Platform fee | **None.** You pay only the processors' own fees | Donorbox charges its fee on top of processing |
 | Dashboard | **Updates itself** from payment webhooks, shared by all admins | Import CSV exports by hand, kept in one browser |
 | Needs | Free Cloudflare account and one-time setup (below) | Nothing extra |
@@ -21,7 +21,7 @@ The API lives in [`api/`](api/). It's a Cloudflare Worker (free tier: 100k reque
 - Creates checkouts server-side with prices from [`api/src/config.js`](api/src/config.js), so nobody can change the price in their browser.
 - **Stripe:** cards, Apple Pay, Google Pay and US bank (ACH), plus **monthly donations** and **auto-renewing yearly memberships**.
 - **PayPal:** one-time payments in USD.
-- **Flutterwave:** MTN / Airtel / Zamtel mobile money and Zambian cards in **ZMW**. Memberships are converted with `ZMW_PER_USD` in `wrangler.toml`.
+- **DPO Pay (Zambia):** MTN / Airtel / Zamtel mobile money and Visa/Mastercard in **ZMW**. Memberships are converted with `ZMW_PER_USD` in `wrangler.toml`. Mobile-money payments that the donor approves on their phone after leaving the page are picked up by an automatic check every 15 minutes.
 - Receives webhooks, verifies their signatures, and records each payment once. Renewals, refunds and failed bank debits update automatically.
 - Optional email alert for every new payment or "I've paid" report (via resend.com).
 - If the API is ever unreachable, /donate/ and /join/ fall back to Donorbox and the offline options automatically.
@@ -64,12 +64,11 @@ Each gateway switches on as soon as its key is set, with no redeploy needed. Set
 2. Optional, for refund tracking: in the same app, add a webhook with URL `<API>/webhooks/paypal` and events `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.DENIED` and `PAYMENT.CAPTURE.REFUNDED`. Copy its ID into `PAYPAL_WEBHOOK_ID`.
 3. Apply for PayPal's confirmed-nonprofit rate.
 
-**Flutterwave**
-1. Go to **Settings → API Keys** and copy the secret key into `FLW_SECRET_KEY`.
-2. Go to **Settings → Webhooks**:
-   - URL: `<API>/webhooks/flutterwave`
-   - Secret hash: any long random string. Put the same string in `FLW_WEBHOOK_HASH`.
-3. Make sure Zambian mobile money is enabled on your account.
+**DPO Pay (Zambia)**
+1. Apply for a merchant account at dpogroup.com (DPO Pay by Network International). Ask for **MTN, Airtel and Zamtel mobile money** and card acceptance, settling in ZMW, plus USD if you want it.
+2. When approved, DPO gives you a **Company Token** and a **Service Type** number. Put them in `DPO_COMPANY_TOKEN` and `DPO_SERVICE_TYPE`.
+3. Optional: ask DPO to send payment notifications ("push") to `<API>/webhooks/dpo`. Payments are recorded without this too, when the donor returns to the site and through the 15-minute check.
+4. For testing, DPO provides test credentials and a sandbox URL. Put the URL in `DPO_API_URL` in `wrangler.toml`, then run `npx wrangler deploy`.
 
 **Email alerts (optional):** set `RESEND_API_KEY`, `NOTIFY_EMAIL` (e.g. info@gazhphealth.org) and `FROM_EMAIL` (an address on a domain you've verified in Resend).
 
@@ -77,7 +76,7 @@ Each gateway switches on as soon as its key is set, with no redeploy needed. Set
 Use test keys first:
 - Stripe: `sk_test_…`, test card `4242 4242 4242 4242`.
 - PayPal: sandbox app, and set `PAYPAL_ENV = "sandbox"` in `wrangler.toml`, then run `npx wrangler deploy`.
-- Flutterwave: test secret key.
+- DPO Pay: test company token and sandbox URL from DPO.
 
 Make a donation and a membership payment, check that they appear in /dashboard/ within a minute, then swap in the live keys.
 
@@ -142,11 +141,8 @@ Pick **either** option:
 
 For membership you can also paste per-tier PayPal payment links into `paypal.membershipLinks`.
 
-### Flutterwave (best for Zambia)
-Takes Zambian Visa/Mastercard, **MTN MoMo, Airtel Money, Zamtel** and bank transfers, in ZMW or USD.
-1. Register a business at flutterwave.com (select Zambia) and complete KYC.
-2. **Payment Links → Create payment link**, one for donations (let the customer enter the amount) and optionally one per membership tier.
-3. Paste the `https://flutterwave.com/pay/...` URLs into `flutterwave.donationLink` / `flutterwave.membershipLinks`.
+### DPO Pay (Zambia)
+Takes **MTN, Airtel and Zamtel mobile money** and Visa/Mastercard, in ZMW or USD. Without the API, paste payment links from your DPO account into `dpo.donationLink` / `dpo.membershipLinks`. Ask DPO to enable "Pay by Link" if you don't see it. Using the automated API is better, because payments then record themselves.
 
 ### Mobile Money (direct)
 If you have MTN/Airtel/Zamtel merchant or business numbers, fill in `mobileMoney.accountName` plus `number` and/or `merchantCode` for each network you use. Donors see the numbers with copy buttons, a unique reference code (e.g. `GAZHP-D-7KQ2M`), and an "I've paid" button that emails you the details. Membership amounts also show an approximate Kwacha figure based on `dashboard.fxRates.ZMW`.
@@ -181,7 +177,7 @@ Without the API: the passcode was given to the site admin privately (it is not w
 
 The dashboard isn't linked from the site and is hidden from search engines (`robots.txt` plus a `noindex` tag). The passcode is a screen lock, not real security. That's fine because **no payment data is ever stored on the website**:
 
-- **Import data:** upload the CSV exports you download from Donorbox, Stripe, PayPal and Flutterwave. Columns are detected automatically. Duplicates, refunds, failed payments and PayPal transfers/fees are skipped. Payments are classified as membership or donation from the campaign or description, and matched to a tier by name or amount.
+- **Import data:** upload the CSV exports you download from Donorbox, Stripe, PayPal and DPO Pay. Columns are detected automatically. Duplicates, refunds, failed payments and PayPal transfers/fees are skipped. Payments are classified as membership or donation from the campaign or description, and matched to a tier by name or amount.
 - **Record payment:** enter mobile money, bank, Zelle, cash and check payments by hand. Use the reference code from the donor's "I've paid" email.
 - Data is kept **only in the browser you use**. Use **Download full backup** regularly, and **Restore from backup** to move it to another computer.
 

@@ -1,7 +1,7 @@
 /* =============================================
    GAZHP — Admin dashboard (/dashboard/)
    Static, no server: data comes from CSV exports (Donorbox, Stripe,
-   PayPal, Flutterwave…), manually recorded payments and an optional
+   PayPal, DPO Pay…), manually recorded payments and an optional
    published Google Sheet. Records are kept in this browser's
    localStorage only — never uploaded anywhere.
    ============================================= */
@@ -19,7 +19,7 @@
   const SAMPLE_KEY = 'gazhp-dashboard-sample-v1';
   const SESSION_KEY = 'gazhp-dashboard-unlocked';
   const TOKEN_KEY = 'gazhp-dashboard-token';
-  // Automated mode: payments come from the GAZHP API (Stripe/PayPal/Flutterwave webhooks).
+  // Automated mode: payments come from the GAZHP API (Stripe/PayPal/DPO Pay notifications).
   const API = typeof (CFG.api || {}).baseUrl === 'string' && CFG.api.baseUrl.trim() ? CFG.api.baseUrl.trim().replace(/\/+$/, '') : '';
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -123,7 +123,7 @@
      { id, date:'YYYY-MM-DD', name, email, phone, country, amount, currency,
        type:'donation'|'membership', tier, method, ref, notes, source }
      status (API mode): 'paid' | 'pending' | 'failed' | 'refunded'
-     source: 'stripe' | 'paypal' | 'flutterwave' | 'notify' | 'import' | 'manual' | 'sheet' | 'sample'
+     source: 'stripe' | 'paypal' | 'dpo' | 'notify' | 'import' | 'manual' | 'sheet' | 'sample'
      ===================================================================== */
   let local = [];      // API mode: server payments. Local mode: saved in this browser.
   let sheet = [];      // loaded from Google Sheet each visit
@@ -239,7 +239,7 @@
     amount: ['amount', 'gross', 'amount paid', 'donation amount', 'amount charged', 'total', 'charged amount', 'amount (usd)'],
     currency: ['currency', 'donation currency', 'charged currency'],
     status: ['status', 'payment status', 'transaction status'],
-    ref: ['reference', 'transaction id', 'tx_ref', 'transaction reference', 'donation id', 'id', 'payment id', 'flw_ref', 'receipt id', 'receipt number', 'ref'],
+    ref: ['reference', 'transaction id', 'tx_ref', 'transaction reference', 'donation id', 'id', 'payment id', 'transaction token', 'transtoken', 'company ref', 'receipt id', 'receipt number', 'ref'],
     method: ['method', 'gateway', 'payment method', 'payment type', 'payment processor', 'processor'],
     type: ['type', 'kind', 'category'],
     tier: ['tier', 'membership tier', 'membership', 'level', 'plan'],
@@ -264,7 +264,7 @@
     if (h.includes('donor email') || h.includes('donorbox') || h.includes('donated at')) return 'Donorbox';
     if (h.includes('from email address') || (h.includes('gross') && h.includes('balance'))) return 'PayPal';
     if (h.includes('created date (utc)') || h.includes('created (utc)') || h.includes('payment intent')) return 'Stripe';
-    if (h.includes('tx_ref') || h.includes('flw_ref') || h.includes('flutterwave')) return 'Flutterwave';
+    if (h.includes('transaction token') || h.includes('transtoken') || h.includes('company ref') || h.includes('dpo')) return 'DPO Pay';
     return null;
   }
 
@@ -386,7 +386,7 @@
     if (/mobile|momo|mpesa/.test(s)) return 'Mobile Money';
     if (/paypal/.test(s)) return 'PayPal';
     if (/stripe/.test(s)) return 'Stripe';
-    if (/flutter/.test(s)) return 'Flutterwave';
+    if (/dpo|directpay|3g ?direct/.test(s)) return 'DPO Pay';
     if (/donorbox/.test(s)) return 'Donorbox';
     if (/zelle/.test(s)) return 'Zelle';
     if (/venmo/.test(s)) return 'Venmo';
@@ -754,7 +754,7 @@
       ['Donorbox', 'Cards, Apple/Google Pay, PayPal, ACH', g.donorbox, [has(g.donorbox?.donationCampaign) && 'donation form', has(g.donorbox?.membershipCampaign) && 'membership form']],
       ['Stripe', 'Card payment links', g.stripe, [has(g.stripe?.donationLink) && 'donation link', has(g.stripe?.monthlyDonationLink) && 'monthly link', tierLinks(g.stripe?.membershipLinks) && `${tierLinks(g.stripe?.membershipLinks)}/${TIERS.length} tier links`]],
       ['PayPal', 'PayPal & cards', g.paypal, [has(g.paypal?.hostedButtonId) && 'donate button', has(g.paypal?.paypalMeUsername) && 'paypal.me', tierLinks(g.paypal?.membershipLinks) && `${tierLinks(g.paypal?.membershipLinks)}/${TIERS.length} tier links`]],
-      ['Flutterwave', 'Zambia: cards & mobile money', g.flutterwave, [has(g.flutterwave?.donationLink) && 'donation link', tierLinks(g.flutterwave?.membershipLinks) && `${tierLinks(g.flutterwave?.membershipLinks)}/${TIERS.length} tier links`]],
+      ['DPO Pay', 'Zambia: mobile money & cards', g.dpo, [has(g.dpo?.donationLink) && 'donation link', tierLinks(g.dpo?.membershipLinks) && `${tierLinks(g.dpo?.membershipLinks)}/${TIERS.length} tier links`]],
       ['Mobile Money', 'MTN, Airtel, Zamtel direct', g.mobileMoney, [filled(g.mobileMoney?.mtn) && 'MTN', filled(g.mobileMoney?.airtel) && 'Airtel', filled(g.mobileMoney?.zamtel) && 'Zamtel']],
       ['Bank transfer', 'US and/or Zambian account', g.bankTransfer, [has(g.bankTransfer?.us?.accountNumber) && 'US account', has(g.bankTransfer?.zambia?.accountNumber) && 'Zambian account']],
       ['Zelle', 'US bank apps', g.zelle, [has(g.zelle?.emailOrPhone) && 'recipient']],
@@ -782,7 +782,7 @@
       <tr><td><strong>Payments API</strong></td><td class="muted">${esc(API)}</td><td>${gw ? '<span class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Connected</span>' : '<span class="check-miss"><svg class="icon"><use href="#i-alert"/></svg>Checking… / unreachable</span>'}</td></tr>
       <tr><td><strong>Stripe</strong></td><td class="muted">Cards, Apple Pay, Google Pay, US bank · monthly & yearly</td><td>${gw ? on(gw.stripe) : '—'}</td></tr>
       <tr><td><strong>PayPal</strong></td><td class="muted">PayPal balance & cards (one-time)</td><td>${gw ? on(gw.paypal) : '—'}</td></tr>
-      <tr><td><strong>Flutterwave</strong></td><td class="muted">MTN, Airtel, Zamtel mobile money & Zambian cards</td><td>${gw ? on(gw.flutterwave) : '—'}</td></tr>
+      <tr><td><strong>DPO Pay</strong></td><td class="muted">Zambia: MTN, Airtel, Zamtel mobile money & cards</td><td>${gw ? on(gw.dpo) : '—'}</td></tr>
       </tbody></table>
       <p class="dash-muted">With the API connected, Donorbox and the payment-link rows below are hidden on the site automatically. Bank, Zelle and direct mobile money still show as "Other ways to pay" and arrive here as <em>Awaiting confirmation</em>.</p>` : '';
     $('#setup-table').innerHTML = apiHtml + `<table class="dtable"><thead><tr><th>Payment method</th><th>What it covers</th><th>Filled in</th><th>Status</th></tr></thead><tbody>
@@ -975,7 +975,7 @@
     const first = ['Mwila', 'Chanda', 'Bwalya', 'Mutale', 'Natasha', 'Kondwani', 'Lubasi', 'Chileshe', 'Mulenga', 'Thandiwe', 'Kabwe', 'Nchimunya', 'Musonda', 'Sepo', 'Namukolo', 'Kalaba'];
     const last = ['Banda', 'Phiri', 'Mwale', 'Tembo', 'Zulu', 'Mumba', 'Sakala', 'Lungu', 'Chisenga', 'Ngoma', 'Kapata', 'Mwansa'];
     const countries = ['Zambia', 'United States', 'United Kingdom', 'Canada', 'Australia', 'South Africa', 'Zambia', 'Zambia'];
-    const donMethods = ['Donorbox', 'Donorbox', 'Donorbox', 'PayPal', 'Stripe', 'Flutterwave', 'Mobile Money — MTN', 'Mobile Money — Airtel', 'Bank transfer', 'Zelle'];
+    const donMethods = ['Donorbox', 'Donorbox', 'Donorbox', 'PayPal', 'Stripe', 'DPO Pay', 'Mobile Money — MTN', 'Mobile Money — Airtel', 'Bank transfer', 'Zelle'];
     let seed = 7;
     const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
     const pick = a => a[Math.floor(rnd() * a.length)];
@@ -985,7 +985,7 @@
     for (let i = 0; i < 36; i++) {
       const n = `${pick(first)} ${pick(last)}`;
       const method = pick(donMethods);
-      const zmw = /Mobile|Flutter/.test(method) && rnd() > .3;
+      const zmw = /Mobile|DPO/.test(method) && rnd() > .3;
       out.push({ date: dateAt(rnd()), type: 'donation', tier: '', name: n, email: n.toLowerCase().replace(' ', '.') + '@example.com', phone: '', country: zmw ? 'Zambia' : pick(countries),
         amount: zmw ? pick([250, 500, 1000, 2000]) : pick([25, 50, 50, 100, 100, 250, 500]), currency: zmw ? 'ZMW' : 'USD', method, ref: 'SAMPLE-D' + i, notes: '' });
     }
@@ -993,7 +993,7 @@
       const n = `${pick(first)} ${pick(last)}`;
       const t = pick(TIERS.length ? TIERS : [{ id: '', amount: 100, currency: 'USD' }]);
       out.push({ date: dateAt(rnd()), type: 'membership', tier: t.id, name: n, email: n.toLowerCase().replace(' ', '.') + '@example.com', phone: '', country: /developing/.test(t.id) ? 'Zambia' : pick(countries.slice(1, 5)),
-        amount: t.amount, currency: t.currency, method: pick(['Donorbox', 'Donorbox', 'PayPal', 'Flutterwave', 'Mobile Money — MTN', 'Bank transfer']), ref: 'SAMPLE-M' + i, notes: '' });
+        amount: t.amount, currency: t.currency, method: pick(['Donorbox', 'Stripe', 'PayPal', 'DPO Pay', 'Mobile Money — MTN', 'Bank transfer']), ref: 'SAMPLE-M' + i, notes: '' });
     }
     return out;
   }

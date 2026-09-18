@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS payments (
   tier        TEXT,
   amount      REAL NOT NULL,
   currency    TEXT NOT NULL,
-  method      TEXT NOT NULL,             -- Stripe, PayPal, Flutterwave, Zelle, Bank transfer…
+  method      TEXT NOT NULL,             -- Stripe, PayPal, DPO Pay, Zelle, Bank transfer…
   ref         TEXT,                      -- gateway transaction / reference code
   recurring   TEXT,                      -- once | month | year
   name        TEXT,
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS payments (
   country     TEXT,
   profession  TEXT,
   notes       TEXT,
-  source      TEXT NOT NULL              -- stripe | paypal | flutterwave | notify | manual | import
+  source      TEXT NOT NULL              -- stripe | paypal | dpo | notify | manual | import
 );
 CREATE INDEX IF NOT EXISTS payments_date  ON payments(date);
 CREATE INDEX IF NOT EXISTS payments_email ON payments(email);

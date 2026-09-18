@@ -5,7 +5,7 @@
 
    Two modes:
    • Automated — `api.baseUrl` is set and the API answers: our own form sends
-     donors to Stripe / PayPal / Flutterwave checkout via the GAZHP API, and
+     donors to Stripe / PayPal / DPO Pay checkout via the GAZHP API, and
      payments record themselves in the dashboard. Offline methods (bank,
      Zelle…) report through the API as "pending" for an admin to confirm.
    • Links — no API: every gateway enabled AND filled in inside
@@ -147,13 +147,13 @@
       if (!url) return null;
       return { id: 'paypal', title: 'PayPal', sub: 'PayPal balance, cards, Venmo (US)', body: amountHint() + linkBtn(url, purpose === 'membership' ? 'Pay membership with PayPal' : 'Donate with PayPal') };
     },
-    function flutterwave() {
+    function dpo() {
       if (online()) return null;
-      const g = G.flutterwave || {};
+      const g = G.dpo || {};
       if (!g.enabled) return null;
       const url = purpose === 'membership' ? tierLink(g) : g.donationLink;
       if (!has(url)) return null;
-      return { id: 'flutterwave', title: 'Zambia & Africa: Card or Mobile Money', sub: 'Flutterwave · MTN MoMo, Airtel Money, Zamtel, local cards — ZMW or USD', body: amountHint() + linkBtn(url, 'Pay with Flutterwave') };
+      return { id: 'dpo', title: 'Zambia: Mobile Money or Card', sub: 'DPO Pay · MTN, Airtel, Zamtel, Visa/Mastercard — ZMW or USD', body: amountHint(true) + linkBtn(url, 'Pay with DPO Pay') };
     },
     function mobileMoney() {
       const g = G.mobileMoney || {};
@@ -232,7 +232,7 @@
       </div>
       <div class="pay-panel${single ? ' pay-panel-single' : ''}" id="pay-panel" role="tabpanel">${list.find(m => m.id === activeId).body}</div>`;
   }
-  const secureNote = () => `<p class="pay-secure"><svg class="icon" style="width:13px;height:13px;"><use href="#i-lock"/></svg>Card and mobile-money payments are completed on Stripe, PayPal or Flutterwave's secure pages — GAZHP never sees your card details.${has(CFG.org.ein) ? ` EIN ${esc(CFG.org.ein)}.` : ''}</p>`;
+  const secureNote = () => `<p class="pay-secure"><svg class="icon" style="width:13px;height:13px;"><use href="#i-lock"/></svg>Card and mobile-money payments are completed on Stripe, PayPal or DPO Pay's secure pages — GAZHP never sees your card details.${has(CFG.org.ein) ? ` EIN ${esc(CFG.org.ein)}.` : ''}</p>`;
   const cancelledNote = () => new URLSearchParams(location.search).get('cancelled')
     ? '<p class="pay-cancelled" role="status">Payment cancelled — no money was taken. You can try again below.</p>' : '';
 
@@ -257,7 +257,7 @@
         <div class="pay-amounts">${presets.map(a => `<button type="button" class="pay-amt${Number(st.amount) === a ? ' selected' : ''}" data-amt="${a}">${money(a, st.currency)}</button>`).join('')}</div>
         <div class="pay-grid">
           <label>Amount (${esc(st.currency)})<input type="number" name="amount" min="${(d.min && d.min[st.currency]) || 1}" step="1" inputmode="decimal" placeholder="Other amount" value="${esc(st.amount)}" /></label>
-          ${g.flutterwave ? `<label>Currency<select name="currency"><option value="USD"${!zmw ? ' selected' : ''}>US dollars (USD)</option><option value="ZMW"${zmw ? ' selected' : ''}>Zambian kwacha (ZMW)</option></select></label>` : ''}
+          ${g.dpo ? `<label>Currency<select name="currency"><option value="USD"${!zmw ? ' selected' : ''}>US dollars (USD)</option><option value="ZMW"${zmw ? ' selected' : ''}>Zambian kwacha (ZMW)</option></select></label>` : ''}
         </div>
       </fieldset>`;
     }
@@ -281,7 +281,7 @@
       <div class="pay-gws">
         ${g.stripe ? btn('stripe', 'Card, Apple Pay or Google Pay', 'Visa · Mastercard · Amex · US bank account', zmw, 'Choose USD to pay by card') : ''}
         ${g.paypal ? btn('paypal', 'PayPal', 'PayPal balance or card', zmw || recurring, zmw ? 'Choose USD to use PayPal' : 'Recurring payments use card') : ''}
-        ${g.flutterwave ? btn('flutterwave', 'Mobile Money or Zambian card', 'MTN · Airtel · Zamtel · local Visa/Mastercard' + momoAmt, recurring, 'Recurring payments use card') : ''}
+        ${g.dpo ? btn('dpo', 'Mobile Money (Zambia)', 'MTN · Airtel · Zamtel · Zambian cards — via DPO Pay' + momoAmt, recurring, 'Recurring payments use card') : ''}
       </div>
       <p class="pay-form-err" role="alert"></p>
     </fieldset></form>`;
@@ -341,7 +341,7 @@
         gateway: gw, purpose, tier: isM && selectedTier ? selectedTier.id : '',
         amount: isM ? undefined : Number(st.amount),
         // Mobile money in Zambia is charged in kwacha.
-        currency: isM ? (gw === 'flutterwave' && apiCfg.zmwPerUsd ? 'ZMW' : 'USD') : st.currency,
+        currency: isM ? (gw === 'dpo' && apiCfg.zmwPerUsd ? 'ZMW' : 'USD') : st.currency,
         recurring: isM ? (st.autoRenew ? 'year' : 'once') : st.freq,
         name: st.name, email: st.email, phone: st.phone, country: st.country, profession: st.profession,
       });

@@ -154,7 +154,7 @@
             <option>Mobile Money — MTN</option><option>Mobile Money — Airtel</option><option>Mobile Money — Zamtel</option>
             <option>Bank transfer</option><option>Zelle</option><option>Cash App</option><option>Venmo</option>
             <option>Check</option><option>Cash</option><option>PayPal</option><option>Stripe</option>
-            <option>Flutterwave</option><option>Donorbox</option><option>Other</option>
+            <option>DPO Pay</option><option>Donorbox</option><option>Other</option>
           </select>
         </label>
         <label>Full name<input name="name" required /></label>
@@ -181,13 +181,13 @@
             <li><strong>Donorbox:</strong> Donations → Export → CSV</li>
             <li><strong>Stripe:</strong> Payments → Export → CSV</li>
             <li><strong>PayPal:</strong> Activity → Statements → Activity download → CSV</li>
-            <li><strong>Flutterwave:</strong> Transactions → Export → CSV</li>
+            <li><strong>DPO Pay:</strong> Transactions report → Export → CSV</li>
             <li><strong>Any spreadsheet</strong> with the columns listed in PAYMENTS-SETUP.md</li>
           </ul>
           <label class="dash-inline">Source
             <select id="imp-source">
               <option value="auto">Auto-detect</option>
-              <option>Donorbox</option><option>Stripe</option><option>PayPal</option><option>Flutterwave</option>
+              <option>Donorbox</option><option>Stripe</option><option>PayPal</option><option>DPO Pay</option>
               <option>Mobile Money</option><option>Bank transfer</option><option>Other</option>
             </select>
           </label>
@@ -199,7 +199,7 @@
         </div>
         <div class="dash-card">
           <h3>Where your data lives</h3>
-          <p class="dash-muted" data-api-only>Online payments (Stripe, PayPal, Flutterwave) and "I've paid" reports are saved automatically in your private payments database. Imports and manual entries go there too, so every admin sees the same data on any computer.</p>
+          <p class="dash-muted" data-api-only>Online payments (Stripe, PayPal, DPO Pay) and "I've paid" reports are saved automatically in your private payments database. Imports and manual entries go there too, so every admin sees the same data on any computer.</p>
           <p class="dash-muted" data-local-only>Imported and recorded payments are saved <strong>only in this browser</strong> on this computer — never on the public website. Download a backup regularly and restore it on another computer if needed.</p>
           <div class="dash-btn-col">
             <button class="btn btn-teal btn-sm" id="backup-btn">Download full backup (CSV)</button>

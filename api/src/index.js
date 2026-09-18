@@ -3,12 +3,14 @@
    -----------------------------------------------------------------------------
    Public:
      GET  /config                     tiers + which gateways are switched on
-     POST /checkout                   start a Stripe / PayPal / Flutterwave payment
+     POST /checkout                   start a Stripe / PayPal / DPO Pay payment
      POST /notify                     donor reports an offline payment (Zelle, bank…)
      GET  /paypal/return | /paypal/cancel
-     GET  /flutterwave/return
+     GET  /dpo/return
    Webhooks (gateways → us):
-     POST /webhooks/stripe | /webhooks/paypal | /webhooks/flutterwave
+     POST /webhooks/stripe | /webhooks/paypal | /webhooks/dpo
+   Scheduled (cron): re-checks recent DPO Pay payments, e.g. mobile money
+   approved on the donor's phone after they left the page.
    Admin (Bearer token from /admin/login):
      POST   /admin/login
      GET    /admin/payments
@@ -21,6 +23,9 @@ import { TIERS, DONATION, OFFLINE_METHODS } from './config.js';
 const enc = new TextEncoder();
 
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(dpoSweep(env, ctx));
+  },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const cors = corsHeaders(request, env);
@@ -48,11 +53,11 @@ async function route(request, env, ctx, url) {
 
   if (m === 'GET' && p === '/paypal/return') return paypalReturn(env, ctx, url);
   if (m === 'GET' && p === '/paypal/cancel') return Response.redirect(cancelUrl(env, url.searchParams.get('purpose')), 302);
-  if (m === 'GET' && p === '/flutterwave/return') return flutterwaveReturn(env, ctx, url);
+  if (m === 'GET' && p === '/dpo/return') return dpoReturn(env, ctx, url);
 
   if (m === 'POST' && p === '/webhooks/stripe') return stripeWebhook(request, env, ctx);
   if (m === 'POST' && p === '/webhooks/paypal') return paypalWebhook(request, env, ctx);
-  if (m === 'POST' && p === '/webhooks/flutterwave') return flutterwaveWebhook(request, env, ctx);
+  if (m === 'POST' && p === '/webhooks/dpo') return dpoWebhook(request, env, ctx);
 
   if (m === 'POST' && p === '/admin/login') return adminLogin(request, env);
   if (p.startsWith('/admin/')) {
@@ -108,7 +113,7 @@ const tierName = t => t ? `${t.name} — ${t.region}` : '';
 const gatewaysOn = env => ({
   stripe: !!env.STRIPE_SECRET_KEY,
   paypal: !!(env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET),
-  flutterwave: !!env.FLW_SECRET_KEY,
+  dpo: !!(env.DPO_COMPANY_TOKEN && env.DPO_SERVICE_TYPE),
 });
 const zmwPerUsd = env => parseFloat(env.ZMW_PER_USD) || 0;
 
@@ -232,13 +237,13 @@ async function checkout(request, env, url) {
       recurring = 'year';
     }
     // Mobile money in Zambia is charged in Kwacha.
-    if (gateway === 'flutterwave' && currency === 'USD' && zmwPerUsd(env) > 0 && b.currency === 'ZMW') {
+    if (gateway === 'dpo' && currency === 'USD' && zmwPerUsd(env) > 0 && b.currency === 'ZMW') {
       amount = Math.ceil(amount * zmwPerUsd(env)); currency = 'ZMW';
     }
   } else {
     currency = str(b.currency || 'USD', 3).toUpperCase();
     if (!['USD', 'ZMW'].includes(currency)) throw new HttpError(400, 'Unsupported currency.');
-    if (currency === 'ZMW' && gateway !== 'flutterwave') throw new HttpError(400, 'Kwacha payments are available through Mobile Money / Flutterwave.');
+    if (currency === 'ZMW' && gateway !== 'dpo') throw new HttpError(400, 'Kwacha payments are available through Mobile Money / DPO Pay.');
     amount = Math.round(parseFloat(b.amount) * 100) / 100;
     if (!(amount >= DONATION.min[currency]) || amount > DONATION.max[currency]) {
       throw new HttpError(400, `Please enter an amount between ${DONATION.min[currency]} and ${DONATION.max[currency].toLocaleString('en-US')} ${currency}.`);
@@ -261,7 +266,7 @@ async function checkout(request, env, url) {
   let redirect, gatewayRef;
   if (gateway === 'stripe') ({ redirect, gatewayRef } = await stripeCreate(env, co, label));
   else if (gateway === 'paypal') ({ redirect, gatewayRef } = await paypalCreate(env, co, label, apiBase));
-  else ({ redirect, gatewayRef } = await flutterwaveCreate(env, co, label, apiBase));
+  else ({ redirect, gatewayRef } = await dpoCreate(env, co, label, apiBase));
 
   await env.DB.prepare('UPDATE checkouts SET gateway_ref = ? WHERE id = ?').bind(gatewayRef || '', co.id).run();
   return json({ url: redirect });
@@ -472,67 +477,117 @@ async function paypalWebhook(request, env, ctx) {
   return json({ received: true });
 }
 
-/* ---------------------------- Flutterwave --------------------------------- */
-async function flwApi(env, path, { method = 'GET', body } = {}) {
-  const res = await fetch(`https://api.flutterwave.com/v3${path}`, {
-    method,
-    headers: { authorization: `Bearer ${env.FLW_SECRET_KEY}`, 'content-type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json().catch(() => ({}));
-  return { ok: res.ok && data.status === 'success', data };
+/* ------------------------------ DPO Pay ------------------------------------
+   Zambia: MTN / Airtel / Zamtel mobile money and local & international cards.
+   Flow: createToken → donor pays on DPO's page → verifyToken (always).
+   Docs: DPO Pay API v6 (XML).
+   -------------------------------------------------------------------------- */
+const dpoBase = env => (env.DPO_API_URL || 'https://secure.3gdirectpay.com').replace(/\/+$/, '');
+const xmlEsc = v => String(v ?? '').replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
+const xmlTag = (xml, name) => {
+  const m = String(xml).match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`, 'i'));
+  if (!m) return '';
+  return m[1].replace(/^<!\[CDATA\[([\s\S]*)\]\]>$/, '$1').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&').trim();
+};
+async function dpoApi(env, inner) {
+  const body = `<?xml version="1.0" encoding="utf-8"?><API3G><CompanyToken>${xmlEsc(env.DPO_COMPANY_TOKEN)}</CompanyToken>${inner}</API3G>`;
+  const res = await fetch(`${dpoBase(env)}/API/v6/`, { method: 'POST', headers: { 'content-type': 'application/xml' }, body });
+  return res.text();
 }
-async function flutterwaveCreate(env, co, label, apiBase) {
-  const r = await flwApi(env, '/payments', { method: 'POST', body: {
-    tx_ref: co.id, amount: co.amount, currency: co.currency,
-    redirect_url: `${apiBase}/flutterwave/return`,
-    customer: { email: co.email, name: co.name, phonenumber: co.phone || undefined },
-    customizations: { title: 'GAZHP', description: label, logo: `${siteUrl(env)}/images/logo.png` },
-    meta: { purpose: co.purpose, tier: co.tier },
-  } });
-  if (!r.ok || !r.data.data || !r.data.data.link) {
-    console.error('flutterwave create', JSON.stringify(r.data));
+async function dpoCreate(env, co, label, apiBase) {
+  const [first, ...rest] = co.name.split(/\s+/);
+  const phone = (co.phone || '').replace(/\D/g, '');
+  const d = new Date();
+  const serviceDate = `${d.getUTCFullYear()}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')} ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+  const xml = await dpoApi(env, `<Request>createToken</Request>
+    <Transaction>
+      <PaymentAmount>${co.amount.toFixed(2)}</PaymentAmount>
+      <PaymentCurrency>${xmlEsc(co.currency)}</PaymentCurrency>
+      <CompanyRef>${xmlEsc(co.id)}</CompanyRef>
+      <RedirectURL>${xmlEsc(`${apiBase}/dpo/return`)}</RedirectURL>
+      <BackURL>${xmlEsc(cancelUrl(env, co.purpose))}</BackURL>
+      <CompanyRefUnique>1</CompanyRefUnique>
+      <PTL>24</PTL>
+      <PTLtype>hours</PTLtype>
+      <customerEmail>${xmlEsc(co.email)}</customerEmail>
+      <customerFirstName>${xmlEsc(first)}</customerFirstName>
+      <customerLastName>${xmlEsc(rest.join(' ') || first)}</customerLastName>
+      ${phone ? `<customerPhone>${phone}</customerPhone>` : ''}
+    </Transaction>
+    <Services><Service>
+      <ServiceType>${xmlEsc(env.DPO_SERVICE_TYPE)}</ServiceType>
+      <ServiceDescription>${xmlEsc(label)}</ServiceDescription>
+      <ServiceDate>${serviceDate}</ServiceDate>
+    </Service></Services>`);
+  const token = xmlTag(xml, 'TransToken');
+  if (xmlTag(xml, 'Result') !== '000' || !token) {
+    console.error('dpo createToken', xml);
     throw new HttpError(502, 'Mobile money payments are unavailable right now. Please try another method.');
   }
-  return { redirect: r.data.data.link, gatewayRef: co.id };
+  return { redirect: `${dpoBase(env)}/payv2.php?ID=${encodeURIComponent(token)}`, gatewayRef: token };
 }
-/* Always confirm with Flutterwave's API — never trust the redirect/webhook alone. */
-async function verifyFlutterwave(env, ctx, transactionId) {
-  if (!/^\d+$/.test(String(transactionId || ''))) return null;
-  const r = await flwApi(env, `/transactions/${transactionId}/verify`);
-  if (!r.ok) return null;
-  const d = r.data.data;
-  const co = await getCheckout(env, d.tx_ref);
+/* Asks DPO for the real status — the redirect and push alone are never trusted. */
+async function verifyDpo(env, ctx, token) {
+  token = str(token, 100);
+  if (!/^[\w-]+$/.test(token)) return null;
+  const co = await env.DB.prepare(`SELECT * FROM checkouts WHERE gateway = 'dpo' AND gateway_ref = ?`).bind(token).first();
   if (!co) return null;
-  const valid = d.status === 'successful' && d.currency === co.currency && Number(d.amount) >= Number(co.amount) - 0.001;
-  const status = valid ? 'paid' : d.status === 'failed' ? 'failed' : 'pending';
-  const isMomo = /mobilemoney/i.test(d.payment_type || '');
-  await recordPayment(env, ctx, {
-    source: 'flutterwave', method: 'Flutterwave', ref: String(d.id), status, date: isoDate(d.created_at),
-    amount: Number(d.amount), currency: d.currency, recurring: 'once', type: co.purpose, tier: co.tier,
-    name: co.name || (d.customer && d.customer.name), email: co.email || (d.customer && d.customer.email),
-    phone: co.phone || (d.customer && d.customer.phone_number), country: co.country, profession: co.profession,
-    notes: isMomo ? 'Mobile money' : (d.payment_type || ''),
-  });
-  return { co, status };
-}
-async function flutterwaveReturn(env, ctx, url) {
-  const q = url.searchParams;
-  const co = await getCheckout(env, q.get('tx_ref'));
-  const purpose = co ? co.purpose : 'donation';
-  if (q.get('status') === 'cancelled') return Response.redirect(cancelUrl(env, purpose), 302);
-  const rec = await verifyFlutterwave(env, ctx, q.get('transaction_id'));
-  if (!rec) return Response.redirect(cancelUrl(env, purpose), 302);
-  return Response.redirect(thanksUrl(env, 'flutterwave', purpose, rec.status === 'paid' ? 'paid' : 'pending'), 302);
-}
-async function flutterwaveWebhook(request, env, ctx) {
-  if (!env.FLW_WEBHOOK_HASH || !safeEqual(request.headers.get('verif-hash') || '', env.FLW_WEBHOOK_HASH)) {
-    throw new HttpError(401, 'Invalid signature');
+  const xml = await dpoApi(env, `<Request>verifyToken</Request><TransactionToken>${xmlEsc(token)}</TransactionToken>`);
+  const result = xmlTag(xml, 'Result');
+  if (result === '000') {
+    // Guard against a mismatched amount/currency if DPO reports them.
+    const amt = parseFloat(xmlTag(xml, 'TransactionAmount'));
+    const cur = xmlTag(xml, 'TransactionCurrency');
+    const ok = (!cur || cur.toUpperCase() === co.currency) && (isNaN(amt) || amt >= Number(co.amount) - 0.01);
+    const method = xmlTag(xml, 'CustomerCreditType');
+    await recordPayment(env, ctx, {
+      source: 'dpo', method: 'DPO Pay', ref: token, status: ok ? 'paid' : 'pending',
+      date: isoDate(xmlTag(xml, 'TransactionSettlementDate') || xmlTag(xml, 'TransactionCreatedDate') || undefined),
+      amount: isNaN(amt) ? co.amount : amt, currency: (cur || co.currency).toUpperCase(), recurring: 'once',
+      type: co.purpose, tier: co.tier, name: co.name || xmlTag(xml, 'CustomerName'), email: co.email,
+      phone: co.phone || xmlTag(xml, 'CustomerPhone'), country: co.country || xmlTag(xml, 'CustomerCountry'),
+      profession: co.profession,
+      notes: [method, ok ? '' : 'Amount/currency did not match — check in DPO before confirming.'].filter(Boolean).join(' · '),
+    });
+    return { co, status: ok ? 'paid' : 'pending' };
   }
-  const event = await readJson(request, 200000);
-  const id = event.data && event.data.id;
-  if (id) await verifyFlutterwave(env, ctx, id);
-  return json({ received: true });
+  // 900 = not paid yet (e.g. waiting for mobile-money approval on the phone)
+  if (result === '900') return { co, status: 'waiting' };
+  // 901 declined, 904 cancelled, 902/903 expired or invalid
+  if (['901', '902', '903', '904'].includes(result)) {
+    await setStatusByRef(env, 'dpo', [token], 'failed');
+    return { co, status: 'failed' };
+  }
+  console.error('dpo verifyToken', xml);
+  return { co, status: 'waiting' };
+}
+async function dpoReturn(env, ctx, url) {
+  const token = url.searchParams.get('TransactionToken') || url.searchParams.get('ID');
+  const rec = await verifyDpo(env, ctx, token);
+  if (!rec) return Response.redirect(cancelUrl(env, 'donation'), 302);
+  if (rec.status === 'failed') return Response.redirect(cancelUrl(env, rec.co.purpose), 302);
+  return Response.redirect(thanksUrl(env, 'dpo', rec.co.purpose, rec.status === 'paid' ? 'paid' : 'pending'), 302);
+}
+/* DPO "push" notification: we only read the token from it, then verify with DPO. */
+async function dpoWebhook(request, env, ctx) {
+  const body = await request.text();
+  if (body.length > 50000) throw new HttpError(413, 'Request too large');
+  const token = xmlTag(body, 'TransactionToken') || new URLSearchParams(body).get('TransactionToken');
+  if (token) await verifyDpo(env, ctx, token);
+  return new Response('<?xml version="1.0" encoding="utf-8"?><API3G><Response>OK</Response></API3G>', { headers: { 'content-type': 'application/xml' } });
+}
+/* Every 15 minutes: re-check DPO checkouts from the last 3 days that aren't settled yet. */
+async function dpoSweep(env, ctx) {
+  if (!gatewaysOn(env).dpo) return;
+  const since = new Date(Date.now() - 3 * 86400000).toISOString();
+  const { results } = await env.DB.prepare(
+    `SELECT c.gateway_ref FROM checkouts c
+     WHERE c.gateway = 'dpo' AND c.gateway_ref <> '' AND c.created_at > ?
+       AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.source = 'dpo' AND p.ref = c.gateway_ref AND p.status IN ('paid', 'failed', 'refunded'))
+     ORDER BY c.created_at DESC LIMIT 50`).bind(since).all();
+  for (const r of results) {
+    try { await verifyDpo(env, ctx, r.gateway_ref); } catch (err) { console.error('dpo sweep', err); }
+  }
 }
 
 /* =============================================================================

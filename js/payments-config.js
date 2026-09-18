@@ -5,7 +5,7 @@
 
    How it works:
      • AUTOMATED MODE: fill in `api.baseUrl` (below) after deploying /api.
-       Stripe, PayPal and Flutterwave keys live on the server, never here.
+       Stripe, PayPal and DPO Pay keys live on the server, never here.
      • Every payment method has an `enabled` flag and a few blanks ("").
      • A method only appears on /donate/ and /join/ when it is enabled AND its
        required fields are filled in. Leave anything blank and it stays hidden,
@@ -28,7 +28,7 @@ window.GAZHP_CONFIG = {
      OWN PAYMENTS API  (automated — replaces Donorbox)
      Once the API in /api is deployed, paste its address here, e.g.
      'https://gazhp-payments.<your-account>.workers.dev'.
-     Then card (Stripe), PayPal and mobile money (Flutterwave) payments happen
+     Then card / Apple Pay (Stripe), PayPal and Zambian mobile money (DPO Pay) payments happen
      on your own donate/join forms, record themselves in the dashboard, and
      Donorbox is hidden automatically. If the API is ever unreachable, the
      pages fall back to the options below (incl. Donorbox if enabled).
@@ -111,11 +111,11 @@ window.GAZHP_CONFIG = {
       },
     },
 
-    /* 4. FLUTTERWAVE — best for Zambia & Africa: local Visa/Mastercard,
-          MTN MoMo, Airtel Money, Zamtel, bank transfer — in ZMW or USD.
-          Flutterwave Dashboard → Payment Links → Create. Paste the
-          https://flutterwave.com/pay/… URLs. */
-    flutterwave: {
+    /* 4. DPO PAY — Zambia: MTN, Airtel & Zamtel mobile money, Visa/Mastercard,
+          in ZMW or USD. For links-only mode, paste payment links created in
+          your DPO account (ask DPO to enable "Pay by Link" if you don't see it).
+          With the automated API, DPO is connected on the server instead. */
+    dpo: {
       enabled: false,
       donationLink: '',
       membershipLinks: {
