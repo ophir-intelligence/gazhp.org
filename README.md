@@ -19,6 +19,14 @@ Official website for the Global Alliance of Zambian Healthcare Professionals (GA
 └── CNAME              # Custom domain for GitHub Pages
 ```
 
+## Payments & admin dashboard
+
+- `/donate/` and `/join/` show every payment method switched on in **`js/payments-config.js`**: Donorbox, Stripe, PayPal, DPO Pay (Zambian mobile money & cards), Mobile Money (MTN/Airtel/Zamtel), bank transfer, Zelle, Cash App, Venmo, checks, plus any custom link.
+- `/dashboard/` is the password-locked admin dashboard for memberships and donations. It isn't linked from the site.
+- `api/` holds the optional payments API (Cloudflare Worker + D1). It lets donors pay through Stripe (cards, Apple Pay, Google Pay), PayPal and DPO Pay (Zambia) directly with no Donorbox fee, and the dashboard fills itself from payment webhooks.
+
+See **[PAYMENTS-SETUP.md](PAYMENTS-SETUP.md)** for what to fill in.
+
 ## Local development
 
 Any static file server works. The repo includes a `.claude/launch.json` config that uses `npx serve`:

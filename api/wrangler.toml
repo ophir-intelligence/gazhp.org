@@ -1,0 +1,43 @@
+# GAZHP payments API — Cloudflare Worker + D1 database.
+# Setup steps: see ../PAYMENTS-SETUP.md → "Automated payments (own API)".
+
+name = "gazhp-payments"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gazhp-payments"
+database_id = "REPLACE_WITH_DATABASE_ID"   # printed by: npx wrangler d1 create gazhp-payments
+
+[vars]
+SITE_URL = "https://gazhphealth.org"
+# Sites allowed to call the API from a browser (comma-separated).
+ALLOWED_ORIGINS = "https://gazhphealth.org,https://www.gazhphealth.org,http://localhost:3000"
+# "live" or "sandbox" (PayPal test mode).
+PAYPAL_ENV = "live"
+# Kwacha per 1 US dollar — used to price memberships in ZMW for mobile money (DPO Pay).
+ZMW_PER_USD = "27"
+# DPO Pay API server. Use the sandbox URL DPO gives you while testing.
+DPO_API_URL = "https://secure.3gdirectpay.com"
+
+# Re-check pending DPO Pay payments every 15 minutes (mobile money approved later on the phone).
+[triggers]
+crons = ["*/15 * * * *"]
+
+# SECRETS — never put these in this file. Set each one with:
+#   npx wrangler secret put NAME
+#
+#   ADMIN_PASSWORD         dashboard password (use 16+ characters)
+#   STRIPE_SECRET_KEY      sk_live_… (or sk_test_… to test)
+#   STRIPE_WEBHOOK_SECRET  whsec_…
+#   PAYPAL_CLIENT_ID       PayPal REST app client ID
+#   PAYPAL_CLIENT_SECRET   PayPal REST app secret
+#   PAYPAL_WEBHOOK_ID      optional — enables PayPal refund webhooks
+#   DPO_COMPANY_TOKEN      Company token from DPO Pay
+#   DPO_SERVICE_TYPE       Service type number DPO assigns to your account
+#   RESEND_API_KEY         optional — email alerts for new payments (resend.com)
+#   NOTIFY_EMAIL           optional — where alerts go, e.g. info@gazhphealth.org
+#   FROM_EMAIL             optional — verified sender, e.g. payments@gazhphealth.org
+#
+# A gateway switches on automatically once its secret key is set.

@@ -80,16 +80,12 @@
   <div class="container">
     <div class="center fade-up" style="max-width:720px;margin:0 auto;">
       <p class="section-sub">
-        Choose your amount below and complete the secure form. Donations are processed through Donorbox.
+        Choose a payment method below. Pay by card, PayPal, mobile money, bank transfer and more.
         GAZHP is a registered 501(c)(3) nonprofit, so your gift may be tax-deductible — check with your local tax advisor.
       </p>
     </div>
-    <div class="donorbox-wrap fade-up">
-      <script type="module" src="https://donorbox.org/widgets.js" async></script>
-      <dbox-widget campaign="donate-to-gazhp" type="donation_form" enable-auto-scroll="true"></dbox-widget>
-      <p style="font-size:.78rem;color:var(--gray-400);text-align:center;margin-top:16px;display:flex;align-items:center;justify-content:center;gap:6px;">
-        <svg class="icon" style="width:13px;height:13px;"><use href="#i-lock"/></svg>Secure processing by Donorbox.
-      </p>
+    <div class="pay-wrap fade-up">
+      <div id="payment-options" data-purpose="donation"></div>
       <p style="text-align:center;margin-top:24px;">
         <a href="/membership/" style="font-size:.88rem;color:var(--teal);font-weight:600;">Prefer to support through membership? View tiers ›</a>
       </p>
@@ -148,6 +144,8 @@
   </div>
 </footer>
 
+<script src="/js/payments-config.js"></script>
+<script src="/js/payments.js"></script>
 <script src="/js/main.js"></script>
 </body>
 </html>

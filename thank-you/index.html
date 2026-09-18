@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Become a member of GAZHP — join a global community of Zambian healthcare professionals through our secure Donorbox membership form." />
-  <title>Become a Member — GAZHP</title>
+  <meta name="robots" content="noindex" />
+  <title>Thank You — GAZHP</title>
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="icon" type="image/png" href="/images/logo.png" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
@@ -38,7 +38,7 @@
       <a href="/about/">About</a>
       <a href="/team/">Team</a>
       <a href="/news/">News</a>
-      <a href="/membership/" class="active">Membership</a>
+      <a href="/membership/">Membership</a>
       <a href="/contact/">Contact</a>
       <a href="/donate/" class="nav-donate">Donate Now</a>
     </div>
@@ -57,40 +57,17 @@
   <a href="/donate/" class="btn btn-primary">Donate Now</a>
 </nav>
 
-<!-- ========== PAGE HERO ========== -->
+<!-- ========== THANK YOU ========== -->
 <section class="page-hero">
   <div class="container">
     <div class="page-hero-inner">
-      <div class="breadcrumb">
-        <a href="/">Home</a>
-        <span>›</span>
-        <a href="/membership/">Membership</a>
-        <span>›</span>
-        <span>Join</span>
+      <div class="thanks-icon" aria-hidden="true"><svg class="icon"><use href="#i-heart"/></svg></div>
+      <h1 id="thanks-title">Thank you!</h1>
+      <p id="thanks-text">Your payment was received. A receipt is on its way to your email.</p>
+      <div class="thanks-actions">
+        <a href="/" class="btn btn-green">Back to home</a>
+        <a href="/news/" class="btn btn-outline-dark">See our impact</a>
       </div>
-      <h1>Become a Member</h1>
-      <p>
-        Join a global community of Zambian healthcare professionals committed to leadership,
-        mentorship, professional growth, and improving healthcare outcomes for our communities.
-      </p>
-    </div>
-  </div>
-</section>
-
-<!-- ========== APPLY (Donorbox membership form) ========== -->
-<section class="section-pad" id="apply">
-  <div class="container">
-    <div class="center fade-up" style="max-width:720px;margin:0 auto;">
-      <p class="section-sub">
-        Pick your tier, then choose how to pay — card, PayPal, mobile money, bank transfer and more.
-        GAZHP is a registered 501(c)(3) nonprofit, so dues may be tax-deductible — check with your local tax advisor.
-      </p>
-    </div>
-    <div class="pay-wrap fade-up">
-      <div id="payment-options" data-purpose="membership"></div>
-      <p style="text-align:center;margin-top:24px;">
-        <a href="/membership/" style="font-size:.88rem;color:var(--teal);font-weight:600;">‹ Back to membership tiers &amp; benefits</a>
-      </p>
     </div>
   </div>
 </section>
@@ -124,12 +101,12 @@
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Membership</h4>
+        <h4>Get Involved</h4>
         <ul>
-          <li><a href="/membership/">Professional Member</a></li>
-          <li><a href="/membership/">Student Member</a></li>
-          <li><a href="/membership/">Corporate Member</a></li>
-          <li><a href="/membership/">Sponsors &amp; Partners</a></li>
+          <li><a href="/donate/">Donate</a></li>
+          <li><a href="/join/">Become a Member</a></li>
+          <li><a href="/membership/">Membership Tiers</a></li>
+          <li><a href="/contact/">Partner With Us</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -146,8 +123,25 @@
   </div>
 </footer>
 
-<script src="/js/payments-config.js"></script>
-<script src="/js/payments.js"></script>
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var member = q.get('purpose') === 'membership';
+    var pending = q.get('status') === 'pending';
+    var t = document.getElementById('thanks-title'), p = document.getElementById('thanks-text');
+    if (member) {
+      t.textContent = pending ? 'Thank you — almost there' : 'Welcome to GAZHP!';
+      p.textContent = pending
+        ? 'Your membership payment is being processed. We\'ll email you as soon as it clears.'
+        : 'Your membership payment was received. A receipt is on its way to your email, and we\'ll be in touch with next steps.';
+    } else if (pending) {
+      t.textContent = 'Thank you — almost there';
+      p.textContent = 'Your donation is being processed (bank payments can take a few days). We\'ll email your receipt once it clears.';
+    } else {
+      p.textContent = 'Your donation was received and a receipt is on its way to your email. Thank you for helping strengthen healthcare in Zambia.';
+    }
+  })();
+</script>
 <script src="/js/main.js"></script>
 </body>
 </html>
