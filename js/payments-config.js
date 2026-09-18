@@ -164,11 +164,11 @@ window.GAZHP_CONFIG = {
      ADMIN DASHBOARD  (/dashboard/)
      ------------------------------------------------------------------------- */
   dashboard: {
-    /* SHA-256 hash of the dashboard passcode. Default passcode is  gazhp-admin
-       CHANGE IT: open /dashboard/, go to Setup → "Generate passcode hash",
-       and paste the result here. The passcode only hides the screen — your
-       data is never stored on the website itself (see PAYMENTS-SETUP.md). */
-    passcodeHash: '0a8b1e2c3e5690de87df39b4e36e01f91f44327ba59483b68424e7f13ec63e8c',
+    /* SHA-256 hash of the dashboard passcode (the passcode itself is never
+       stored here). To change it: open /dashboard/, go to Setup → "Generate
+       hash", and paste the result here. The passcode only hides the screen —
+       your data is never stored on the website itself (see PAYMENTS-SETUP.md). */
+    passcodeHash: 'f0ecc5f76336f2c4e6e1a5da0fdf7e08f2d7b55e375c6309933f1b3ef7fa6ce6',
 
     reportingCurrency: 'USD',
     /* Exchange rates INTO the reporting currency, used to total mixed-currency

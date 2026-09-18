@@ -75,7 +75,7 @@ custom: [
 
 ## 3. Admin dashboard: `/dashboard/`
 
-**Default passcode: `gazhp-admin`. Change it straight away:** open /dashboard/ → Setup → *Generate hash*, then paste the result into `dashboard.passcodeHash`.
+The passcode was given to the site admin privately (it is not written anywhere in this repo). To change it, open /dashboard/ → Setup → *Generate hash*, then paste the result into `dashboard.passcodeHash`.
 
 The dashboard isn't linked from the site and is hidden from search engines (`robots.txt` plus a `noindex` tag). The passcode is a screen lock, not real security. That's fine because **no payment data is ever stored on the website**:
 
