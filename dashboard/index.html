@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin Dashboard — GAZHP</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+  <link rel="icon" type="image/png" href="/images/logo.png" />
+</head>
+<body class="dash-body">
+
+<svg xmlns="http://www.w3.org/2000/svg" class="icon-sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+  </defs>
+</svg>
+
+<!-- ========== LOCK SCREEN ========== -->
+<div class="dash-lock" id="dash-lock">
+  <form class="dash-lock-card" id="lock-form">
+    <img src="/images/logo.png" alt="GAZHP" class="dash-lock-logo" />
+    <h1>Admin Dashboard</h1>
+    <p>Memberships &amp; donations. Enter the admin passcode to continue.</p>
+    <label for="lock-pass" class="sr-only">Passcode</label>
+    <input type="password" id="lock-pass" placeholder="Passcode" autocomplete="current-password" required />
+    <button type="submit" class="btn btn-green">Unlock</button>
+    <p class="dash-lock-err" id="lock-err" role="alert"></p>
+  </form>
+</div>
+
+<!-- ========== APP ========== -->
+<div class="dash-app" id="dash-app" hidden>
+  <header class="dash-header">
+    <div class="dash-header-inner">
+      <a href="/" class="dash-brand"><img src="/images/logo.png" alt="" /><span>GAZHP Admin</span></a>
+      <nav class="dash-tabs" role="tablist" aria-label="Dashboard sections">
+        <button role="tab" data-tab="overview" class="active">Overview</button>
+        <button role="tab" data-tab="members">Members</button>
+        <button role="tab" data-tab="donations">Payments</button>
+        <button role="tab" data-tab="record">Record payment</button>
+        <button role="tab" data-tab="import">Import data</button>
+        <button role="tab" data-tab="setup">Setup</button>
+      </nav>
+      <button class="dash-lockbtn" id="lock-btn" title="Lock dashboard"><svg class="icon"><use href="#i-lock"/></svg><span>Lock</span></button>
+    </div>
+  </header>
+
+  <main class="dash-main">
+    <div id="dash-banner"></div>
+
+    <!-- OVERVIEW -->
+    <section data-panel="overview">
+      <div class="dash-toolbar">
+        <h2>Overview</h2>
+        <label>Period
+          <select id="ov-year"></select>
+        </label>
+      </div>
+      <div class="kpi-grid" id="kpis"></div>
+      <div id="goal"></div>
+      <div class="dash-grid-2">
+        <div class="dash-card">
+          <div class="dash-card-head">
+            <h3>Money received by month</h3>
+            <div class="legend" id="month-legend"></div>
+          </div>
+          <div class="chart" id="month-chart"></div>
+          <details class="table-view"><summary>View as table</summary><div id="month-table"></div></details>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-head"><h3>By payment method</h3></div>
+          <div class="chart" id="method-chart"></div>
+        </div>
+      </div>
+      <div class="dash-grid-2">
+        <div class="dash-card">
+          <div class="dash-card-head"><h3>Recent payments</h3><button class="link-btn" data-goto="donations">View all ›</button></div>
+          <div id="recent"></div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-head"><h3>Active members by tier</h3></div>
+          <div class="chart" id="tier-chart"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEMBERS -->
+    <section data-panel="members" hidden>
+      <div class="dash-toolbar">
+        <h2>Members</h2>
+        <div class="dash-filters">
+          <input type="search" id="mem-search" placeholder="Search name, email, country…" />
+          <select id="mem-status">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="expiring">Expiring soon</option>
+            <option value="expired">Expired</option>
+          </select>
+          <select id="mem-tier"><option value="">All tiers</option></select>
+        </div>
+        <div class="dash-actions">
+          <button class="btn btn-outline-dark btn-sm" id="mem-remind">Email renewal reminders</button>
+          <button class="btn btn-teal btn-sm" id="mem-export">Export CSV</button>
+        </div>
+      </div>
+      <div class="dash-card"><div class="table-wrap" id="mem-table"></div></div>
+    </section>
+
+    <!-- DONATIONS / ALL PAYMENTS -->
+    <section data-panel="donations" hidden>
+      <div class="dash-toolbar">
+        <h2>All payments</h2>
+        <div class="dash-filters">
+          <input type="search" id="tx-search" placeholder="Search name, email, reference…" />
+          <select id="tx-type"><option value="">Donations &amp; memberships</option><option value="donation">Donations only</option><option value="membership">Memberships only</option></select>
+          <select id="tx-method"><option value="">All methods</option></select>
+          <select id="tx-year"></select>
+        </div>
+        <div class="dash-actions">
+          <button class="btn btn-teal btn-sm" id="tx-export">Export CSV</button>
+        </div>
+      </div>
+      <p class="dash-muted" id="tx-summary"></p>
+      <div class="dash-card"><div class="table-wrap" id="tx-table"></div></div>
+    </section>
+
+    <!-- RECORD PAYMENT -->
+    <section data-panel="record" hidden>
+      <div class="dash-toolbar"><h2>Record a payment</h2></div>
+      <p class="dash-muted">For payments that don't come through an online export — mobile money, bank transfer, Zelle, cash, checks. Match the donor's reference code (e.g. GAZHP-D-7KQ2M) from their "I've paid" email.</p>
+      <form class="dash-card dash-form" id="rec-form">
+        <label>Type
+          <select name="type" required>
+            <option value="donation">Donation</option>
+            <option value="membership">Membership dues</option>
+          </select>
+        </label>
+        <label data-show="membership">Membership tier
+          <select name="tier" id="rec-tier"></select>
+        </label>
+        <label>Date received<input type="date" name="date" required /></label>
+        <label>Amount<input type="number" name="amount" min="0" step="0.01" required /></label>
+        <label>Currency<select name="currency" id="rec-currency"></select></label>
+        <label>Payment method
+          <select name="method" required>
+            <option>Mobile Money — MTN</option><option>Mobile Money — Airtel</option><option>Mobile Money — Zamtel</option>
+            <option>Bank transfer</option><option>Zelle</option><option>Cash App</option><option>Venmo</option>
+            <option>Check</option><option>Cash</option><option>PayPal</option><option>Stripe</option>
+            <option>Flutterwave</option><option>Donorbox</option><option>Other</option>
+          </select>
+        </label>
+        <label>Full name<input name="name" required /></label>
+        <label>Email<input type="email" name="email" /></label>
+        <label>Phone<input name="phone" /></label>
+        <label>Country<input name="country" /></label>
+        <label>Reference / transaction ID<input name="ref" /></label>
+        <label class="full">Notes<textarea name="notes" rows="2"></textarea></label>
+        <div class="full dash-form-actions">
+          <button type="submit" class="btn btn-green">Save payment</button>
+          <span class="dash-muted" id="rec-msg" role="status"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- IMPORT -->
+    <section data-panel="import" hidden>
+      <div class="dash-toolbar"><h2>Import data</h2></div>
+      <div class="dash-grid-2">
+        <div class="dash-card">
+          <h3>Upload payment exports (CSV)</h3>
+          <p class="dash-muted">Download a CSV from each provider and drop it here. Columns are detected automatically; duplicates are skipped, and failed/refunded payments are ignored.</p>
+          <ul class="dash-list">
+            <li><strong>Donorbox:</strong> Donations → Export → CSV</li>
+            <li><strong>Stripe:</strong> Payments → Export → CSV</li>
+            <li><strong>PayPal:</strong> Activity → Statements → Activity download → CSV</li>
+            <li><strong>Flutterwave:</strong> Transactions → Export → CSV</li>
+            <li><strong>Any spreadsheet</strong> with the columns listed in PAYMENTS-SETUP.md</li>
+          </ul>
+          <label class="dash-inline">Source
+            <select id="imp-source">
+              <option value="auto">Auto-detect</option>
+              <option>Donorbox</option><option>Stripe</option><option>PayPal</option><option>Flutterwave</option>
+              <option>Mobile Money</option><option>Bank transfer</option><option>Other</option>
+            </select>
+          </label>
+          <label class="dropzone" id="dropzone">
+            <input type="file" id="imp-file" accept=".csv,text/csv" multiple />
+            <span><strong>Choose CSV files</strong> or drag them here</span>
+          </label>
+          <div id="imp-result" role="status"></div>
+        </div>
+        <div class="dash-card">
+          <h3>Where your data lives</h3>
+          <p class="dash-muted">Imported and recorded payments are saved <strong>only in this browser</strong> on this computer — never on the public website. Download a backup regularly and restore it on another computer if needed.</p>
+          <div class="dash-btn-col">
+            <button class="btn btn-teal btn-sm" id="backup-btn">Download full backup (CSV)</button>
+            <label class="btn btn-outline-dark btn-sm file-btn">Restore from backup<input type="file" id="restore-file" accept=".csv,text/csv" /></label>
+            <button class="btn btn-outline-dark btn-sm" id="sheet-reload">Reload Google Sheet</button>
+            <button class="btn btn-primary btn-sm" id="clear-btn">Delete all data in this browser</button>
+          </div>
+          <p class="dash-muted" id="store-info"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETUP -->
+    <section data-panel="setup" hidden>
+      <div class="dash-toolbar"><h2>Setup checklist</h2></div>
+      <p class="dash-muted">Everything here is read from <code>js/payments-config.js</code>. Fill in a gateway's details, set <code>enabled: true</code>, and it appears on <a href="/donate/">/donate/</a> and <a href="/join/">/join/</a> automatically.</p>
+      <div class="dash-card"><div class="table-wrap" id="setup-table"></div></div>
+      <div class="dash-grid-2">
+        <div class="dash-card">
+          <h3>Change the dashboard passcode</h3>
+          <p class="dash-muted">Type a new passcode, then copy the hash into <code>dashboard.passcodeHash</code> in the config file.</p>
+          <div class="dash-inline-form">
+            <input type="text" id="hash-in" placeholder="New passcode (8+ characters)" autocomplete="off" />
+            <button class="btn btn-teal btn-sm" id="hash-btn">Generate hash</button>
+          </div>
+          <code class="hash-out" id="hash-out"></code>
+        </div>
+        <div class="dash-card">
+          <h3>Try it with sample data</h3>
+          <p class="dash-muted">Loads 60 made-up payments so you can see how the dashboard works. Remove them anytime.</p>
+          <div class="dash-btn-col">
+            <button class="btn btn-teal btn-sm" id="sample-load">Load sample data</button>
+            <button class="btn btn-outline-dark btn-sm" id="sample-clear">Remove sample data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="chart-tip" id="chart-tip" role="tooltip" hidden></div>
+
+<script src="/js/payments-config.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

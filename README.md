@@ -19,6 +19,13 @@ Official website for the Global Alliance of Zambian Healthcare Professionals (GA
 └── CNAME              # Custom domain for GitHub Pages
 ```
 
+## Payments & admin dashboard
+
+- `/donate/` and `/join/` show every payment method switched on in **`js/payments-config.js`**: Donorbox, Stripe, PayPal, Flutterwave, Mobile Money (MTN/Airtel/Zamtel), bank transfer, Zelle, Cash App, Venmo, checks, plus any custom link.
+- `/dashboard/` is the passcode-locked admin dashboard for memberships and donations. It isn't linked from the site.
+
+See **[PAYMENTS-SETUP.md](PAYMENTS-SETUP.md)** for what to fill in.
+
 ## Local development
 
 Any static file server works. The repo includes a `.claude/launch.json` config that uses `npx serve`:
