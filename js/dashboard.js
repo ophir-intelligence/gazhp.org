@@ -243,7 +243,7 @@
     amount: ['amount', 'gross', 'amount paid', 'donation amount', 'amount charged', 'total', 'charged amount', 'amount (usd)'],
     currency: ['currency', 'donation currency', 'charged currency'],
     status: ['status', 'payment status', 'transaction status'],
-    ref: ['reference', 'transaction id', 'tx_ref', 'transaction reference', 'donation id', 'id', 'payment id', 'transaction token', 'transtoken', 'company ref', 'receipt id', 'receipt number', 'ref'],
+    ref: ['reference', 'transaction id', 'tx_ref', 'transaction reference', 'donation id', 'payment intent id', 'paymentintent id', 'id', 'payment id', 'transaction token', 'transtoken', 'company ref', 'receipt id', 'receipt number', 'ref'],
     method: ['method', 'gateway', 'payment method', 'payment type', 'payment processor', 'processor'],
     type: ['type', 'kind', 'category'],
     tier: ['tier', 'membership tier', 'membership', 'level', 'plan'],
@@ -769,7 +769,7 @@
     ];
     const cell = (gw, parts) => {
       const ok = parts.filter(Boolean);
-      if (API && apiConfig && gw === g.donorbox && gw && gw.enabled) return `<span class="check-off">Replaced by own API (hidden)</span>`;
+      if (API && apiConfig && Object.values(apiConfig.gateways || {}).some(Boolean) && gw === g.donorbox && gw && gw.enabled) return `<span class="check-off">Replaced by own API (hidden)</span>`;
       if (gw && gw.enabled && ok.length) return `<span class="check-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Live on site</span>`;
       if (gw && gw.enabled) return `<span class="check-miss"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Enabled, but details missing — hidden</span>`;
       if (ok.length) return `<span class="check-miss"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Filled in — set enabled: true</span>`;

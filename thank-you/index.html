@@ -81,9 +81,14 @@
 <section class="page-hero">
   <div class="container">
     <div class="page-hero-inner">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Thank you</span>
+      </nav>
       <div class="thanks-icon" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg></div>
       <h1 id="thanks-title">Thank you!</h1>
-      <p id="thanks-text">Your payment was received. A receipt is on its way to your email.</p>
+      <p id="thanks-text">Your payment was received. We'll send a receipt to your email.</p>
       <div class="thanks-actions">
         <a href="/" class="btn btn-green">Back to home</a>
         <a href="/news/" class="btn btn-outline-dark">See our impact</a>
@@ -92,7 +97,7 @@
       <p style="margin-top:40px;font-size:.98rem;">
         Help us reach more supporters: share our donation page with friends and colleagues.
       </p>
-      <div class="share-bar" aria-label="Share our donation page" style="justify-content:center;margin:14px 0 0;">
+      <div class="share-bar" role="group" aria-label="Share our donation page" style="justify-content:center;margin:14px 0 0;">
         <span class="share-label">Share:</span>
         <a class="share-btn" href="https://wa.me/?text=Help%20strengthen%20healthcare%20in%20Zambia%20%E2%80%94%20support%20GAZHP%20https%3A%2F%2Fgazhphealth.org%2Fdonate%2F" target="_blank" rel="noopener">WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
         <a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fgazhphealth.org%2Fdonate%2F" target="_blank" rel="noopener">Facebook<span class="sr-only"> (opens in a new tab)</span></a>
@@ -121,7 +126,7 @@
              <div class="social-links"><a href="https://www.linkedin.com/company/…" class="social-link" aria-label="GAZHP on LinkedIn" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg></a></div> -->
       </div>
       <nav class="footer-col" aria-label="Footer: site">
-        <h4>Navigation</h4>
+        <h2 class="footer-title">Navigation</h2>
         <ul>
           <li><a href="/">Home</a></li>
           <li><a href="/about/">About Us</a></li>
@@ -132,7 +137,7 @@
         </ul>
       </nav>
       <nav class="footer-col" aria-label="Footer: get involved">
-        <h4>Get Involved</h4>
+        <h2 class="footer-title">Get Involved</h2>
         <ul>
           <li><a href="/donate/">Donate</a></li>
           <li><a href="/join/">Become a Member</a></li>
@@ -141,7 +146,7 @@
         </ul>
       </nav>
       <div class="footer-col">
-        <h4>Contact</h4>
+        <h2 class="footer-title">Contact</h2>
         <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a></div>
         <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg><a href="/">gazhphealth.org</a></div>
         <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
@@ -159,6 +164,7 @@
     var q = new URLSearchParams(location.search);
     var member = q.get('purpose') === 'membership';
     var pending = q.get('status') === 'pending';
+    var submitted = q.get('status') === 'submitted'; // card: paid now; US bank: clears in a few days
     var t = document.getElementById('thanks-title'), p = document.getElementById('thanks-text');
     var next = document.getElementById('thanks-next');
     if (member) {
@@ -166,14 +172,16 @@
       next.href = '/donate/';
       next.textContent = 'Make a gift';
       t.textContent = pending ? 'Thank you — almost there' : 'Welcome to GAZHP!';
-      p.textContent = pending
-        ? 'Your membership payment is being processed. We\'ll email you as soon as it clears.'
-        : 'Your membership payment was received. A receipt is on its way to your email, and we\'ll be in touch with next steps.';
+      p.textContent = pending || submitted
+        ? 'Your membership payment is being processed. We\'ll email you once it clears.'
+        : 'Your membership payment was received. We\'ll email you your membership confirmation.';
+    } else if (submitted) {
+      p.textContent = 'Your donation has been submitted. We\'ll email your receipt once it\'s confirmed (card payments right away, bank payments within a few days). Thank you for helping strengthen healthcare in Zambia.';
     } else if (pending) {
       t.textContent = 'Thank you — almost there';
       p.textContent = 'Your donation is being processed (bank payments can take a few days). We\'ll email your receipt once it clears.';
     } else {
-      p.textContent = 'Your donation was received and a receipt is on its way to your email. Thank you for helping strengthen healthcare in Zambia.';
+      p.textContent = 'Your donation was received, and we\'ll send a receipt to your email. Thank you for helping strengthen healthcare in Zambia.';
     }
   })();
 </script>

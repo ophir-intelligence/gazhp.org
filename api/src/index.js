@@ -43,8 +43,11 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     try {
       const res = await route(request, env, ctx, url);
-      for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
-      return res;
+      if (!Object.keys(cors).length) return res;
+      // Some responses (e.g. Response.redirect) have immutable headers — copy before adding CORS.
+      const out = new Response(res.body, res);
+      for (const [k, v] of Object.entries(cors)) out.headers.set(k, v);
+      return out;
     } catch (err) {
       if (err instanceof HttpError) return json({ error: err.message }, err.status, { ...cors, ...err.headers });
       console.error(err && err.stack || err);
@@ -244,8 +247,11 @@ async function savePayment(env, p) {
   return { row, isNew: !!(ins && ins.meta && ins.meta.changes) };
 }
 async function recordPayment(env, ctx, p) {
+  // Alert once, when a payment first becomes paid — new and paid, or pending (e.g. US bank) → paid.
+  const key = paymentRow(p).dedupe_key;
+  const prev = p.ref ? await env.DB.prepare('SELECT status FROM payments WHERE dedupe_key = ?').bind(key).first() : null;
   const { isNew } = await savePayment(env, p);
-  if (isNew && p.status === 'paid') {
+  if (p.status === 'paid' && (isNew || (prev && prev.status !== 'paid' && prev.status !== 'refunded'))) {
     const t = tierById(p.tier);
     alertAdmin(env, ctx, `New ${p.type === 'membership' ? 'membership' : 'donation'}: ${p.currency} ${Number(p.amount).toFixed(2)} via ${p.method}`,
       [`Name: ${p.name || '—'}`, `Email: ${p.email || '—'}`, t ? `Tier: ${tierName(t)}` : '', `Reference: ${p.ref || '—'}`].filter(Boolean).join('\n'));
@@ -397,7 +403,8 @@ async function stripeCreate(env, co, label) {
     mode: recurringMode ? 'subscription' : 'payment',
     customer_email: co.email,
     client_reference_id: co.id,
-    success_url: thanksUrl(env, 'stripe', co.purpose),
+    // Card payments settle at once, US bank (ACH) payments days later — the thank-you page words it neutrally.
+    success_url: thanksUrl(env, 'stripe', co.purpose, 'submitted'),
     cancel_url: cancelUrl(env, co.purpose),
     metadata: meta,
     line_items: [{
@@ -580,11 +587,17 @@ async function paypalRecordOrder(env, ctx, order, co) {
   if (!cap) return null;
   return recordPaypalCapture(env, ctx, cap, cap.custom_id || pu.custom_id, order.payer, co);
 }
-/* Captures an approved order. The return page, the webhook and the cron sweep
-   all use the same PayPal-Request-Id, so PayPal captures each order only once. */
+/* Captures an approved order. Deliberately sent without a PayPal-Request-Id:
+   a fixed id would make PayPal replay a stored INSTRUMENT_DECLINED after the
+   donor picks another funding source. Capture is still safe to repeat (return
+   page, webhook, cron sweep): PayPal moves money once per order and answers a
+   second capture with ORDER_ALREADY_CAPTURED, which the callers resolve by
+   reading the order (return page GET, sweep on its next run, or the
+   PAYMENT.CAPTURE.COMPLETED webhook), and savePayment's dedupe key
+   (paypal|<capture id>) records the capture only once. */
 async function paypalCapture(env, ctx, co) {
   const orderId = co.gateway_ref;
-  const r = await paypalApi(env, `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, { headers: { 'PayPal-Request-Id': `cap-${orderId}` } });
+  const r = await paypalApi(env, `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`);
   if (r.ok) return { rec: await paypalRecordOrder(env, ctx, r.data, co) };
   const issues = ((r.data && r.data.details) || []).map(d => d && d.issue);
   return { rec: null, declined: issues.includes('INSTRUMENT_DECLINED'), error: r.data || {} };
@@ -616,8 +629,9 @@ async function paypalReturn(env, ctx, url) {
 }
 async function paypalWebhook(request, env, ctx) {
   const body = await request.text();
-  const event = JSON.parse(body || '{}');
   if (!env.PAYPAL_WEBHOOK_ID) throw new HttpError(400, 'PayPal webhook not configured');
+  let event;
+  try { event = JSON.parse(body || '{}'); } catch { throw new HttpError(400, 'Invalid JSON'); }
   const h = k => request.headers.get(k);
   const v = await paypalApi(env, '/v1/notifications/verify-webhook-signature', { body: {
     auth_algo: h('paypal-auth-algo'), cert_url: h('paypal-cert-url'), transmission_id: h('paypal-transmission-id'),

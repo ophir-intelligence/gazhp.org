@@ -56,7 +56,9 @@
     : '';
   const referenceRow = () => row('Reference / note', refCode);
   const linkBtn = (url, label, cls = 'btn-teal') =>
-    `<a class="btn ${cls} pay-link-btn" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} <span aria-hidden="true">↗</span></a>`;
+    `<a class="btn ${cls} pay-link-btn" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}<span class="sr-only"> (opens in a new tab)</span> <span aria-hidden="true">↗</span></a>`;
+  // Smooth scrolling only when the visitor hasn't asked for reduced motion.
+  const scrollBehavior = () => (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth';
   const notifyBlock = (method) => {
     if (online()) return notifyForm(method);
     const subject = `${purpose === 'membership' ? 'Membership payment' : 'Donation'} sent — ${refCode}`;
@@ -89,7 +91,7 @@
         <label>Email*<input type="email" name="email" autocomplete="email" required value="${esc(st.email)}" /></label>
         <label>Amount sent*<input type="number" name="amount" min="1" step="0.01" inputmode="decimal" required value="${t && !isMomo ? t.amount : ''}" /></label>
         <label>Currency<select name="currency">${['USD', 'ZMW', 'GBP', 'EUR', 'CAD', 'AUD', 'ZAR'].map(c => `<option${c === (isMomo ? 'ZMW' : 'USD') ? ' selected' : ''}>${c}</option>`).join('')}</select></label>
-        <label>Date sent<input type="date" name="date" value="${new Date().toISOString().slice(0, 10)}" /></label>
+        <label>Date sent<input type="date" name="date" value="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}" /></label>
         <label>Phone<input name="phone" autocomplete="tel" value="${esc(st.phone)}" /></label>
       </div>
       <input type="text" name="website" class="pay-hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
@@ -115,7 +117,7 @@
       const campaign = purpose === 'membership' ? g.membershipCampaign : g.donationCampaign;
       if (!g.enabled || !has(campaign)) return null;
       return {
-        id: 'donorbox', title: 'Card, Apple Pay, Google Pay, PayPal', sub: 'Secure checkout by Donorbox · US & international cards',
+        id: 'donorbox', title: 'Card, Apple Pay, Google Pay, PayPal', sub: 'Secure checkout by Donorbox',
         body: `<div class="donorbox-wrap" style="margin-top:0;">
           <dbox-widget campaign="${esc(campaign)}" type="donation_form" enable-auto-scroll="true"></dbox-widget></div>`,
         onShow() {
@@ -189,7 +191,7 @@
     function zelle() {
       const g = G.zelle || {};
       if (!g.enabled || !has(g.emailOrPhone)) return null;
-      return { id: 'zelle', title: 'Zelle', sub: 'From most US bank apps, no fees', body: amountHint() + row('Send to', g.emailOrPhone) + row('Recipient name', g.recipientName) + referenceRow() + notifyBlock('Zelle') };
+      return { id: 'zelle', title: 'Zelle', sub: 'From most US bank apps', body: amountHint() + row('Send to', g.emailOrPhone) + row('Recipient name', g.recipientName) + referenceRow() + notifyBlock('Zelle') };
     },
     function cashApp() {
       const g = G.cashApp || {};
@@ -375,14 +377,24 @@
     const heading = single ? (purpose === 'membership' && !donorboxOnly ? '<h3 class="pay-step">2. Pay securely</h3>' : '') : headingMulti;
     // Links / Donorbox mode can't prefill the amount, so tell the donor what they picked on the homepage.
     const chosen = qAmount ? `<p class="pay-amount" style="margin-bottom:16px;${donorboxOnly ? 'text-align:center;' : ''}">Your chosen gift: <strong>${money(Number(qAmount), 'USD')}</strong>. Enter this amount when you complete your payment.</p>` : '';
-    root.innerHTML = cancelledNote() + chosen + tierPicker + heading + methodsHtml(list, single) + secureNote(list, true);
+    // Same for /join/?tier=<id>: the tier picker is hidden in Donorbox-only mode, so name the tier they chose.
+    // The Donorbox form's own options aren't known here, so point to email if the tier isn't in it.
+    const qt = purpose === 'membership' && donorboxOnly && qTier ? tiers.find(t => t.id === qTier) : null;
+    const qtPrice = qt ? (qt.currency === 'USD' ? 'US' : '') + money(qt.amount, qt.currency) : '';
+    const tierNote = qt ? `<p class="pay-amount" style="margin-bottom:16px;text-align:center;">You chose: <strong>${esc(qt.name)} — ${esc(qt.region)} (${qtPrice} / year)</strong>. Please select the same membership in the form below. If it isn't listed, email <a href="mailto:${esc(CFG.org.email)}">${esc(CFG.org.email)}</a>.</p>` : '';
+    root.innerHTML = cancelledNote() + chosen + tierNote + tierPicker + heading + methodsHtml(list, single) + secureNote(list, true);
     const active = list.find(m => m.id === activeId);
     if (active.onShow) active.onShow();
   }
 
   /* ---------- Events ---------- */
   async function post(path, body) {
-    const res = await fetch(API + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    let res;
+    try {
+      res = await fetch(API + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    } catch {
+      throw new Error("We couldn't reach the payment service. Please check your connection and try again.");
+    }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
     return data;
@@ -442,7 +454,7 @@
     const tab = e.target.closest('.pay-method');
     if (tab) {
       activeId = tab.dataset.id; render(`[data-id="${cssEsc(activeId)}"]`);
-      if (window.innerWidth < 700) document.getElementById('pay-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (window.innerWidth < 700) document.getElementById('pay-panel').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
       return;
     }
     const amt = e.target.closest('.pay-amt');

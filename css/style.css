@@ -445,7 +445,7 @@ body.nav-open { overflow: hidden; }   /* no page scrolling behind the open menu 
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; text-align: center; }
 .stat-item { color: var(--white); }
 .stat-number { font-family: var(--font-head); font-size: clamp(2.4rem, 5vw, 3.2rem); font-weight: 700; color: var(--white); line-height: 1; margin-bottom: 8px; }
-.stat-label { font-size: .8rem; color: rgba(255,255,255,.75); text-transform: uppercase; letter-spacing: .08em; }
+.stat-label { font-size: .8rem; color: rgba(255,255,255,.85); text-transform: uppercase; letter-spacing: .08em; }   /* 6.6:1 on --green-dark */
 
 /* ========================================
    DONATE
@@ -484,6 +484,7 @@ body.nav-open { overflow: hidden; }   /* no page scrolling behind the open menu 
   transition: var(--transition);
 }
 .amount-btn:hover { border-color: var(--green-mid); color: var(--green-mid); }
+.amount-btn:focus-visible { outline: 2px solid var(--teal-ink); outline-offset: 2px; border-color: var(--teal-ink); color: var(--teal-ink); }
 .donate-cta { text-align: center; margin-top: 40px; }
 .donate-note { font-size: .84rem; color: var(--gray-400); margin-top: 10px; }
 .donate-note span { color: var(--green-mid); font-weight: 600; }
@@ -555,7 +556,7 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
   transition: var(--transition); font-size: .88rem; color: rgba(255,255,255,.7);
 }
 .social-link:hover { background: var(--teal); color: var(--white); }
-.footer-col h4 { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--white); margin-bottom: 18px; }
+.footer-col h4, .footer-col .footer-title { font-family: var(--font-body); line-height: 1.6; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--white); margin-bottom: 18px; }
 .footer-col ul { display: flex; flex-direction: column; gap: 9px; }
 .footer-col ul li a { font-size: .86rem; color: rgba(255,255,255,.55); transition: var(--transition); }
 .footer-col ul li a:hover { color: var(--teal); }
@@ -568,6 +569,16 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
 }
 .footer-bottom p { font-size: .8rem; }
 .footer-bottom a { color: var(--teal); }
+/* Privacy Policy · Terms & Refunds, after the copyright line in every footer.
+   Underlined because the teal alone is too close to the surrounding footer text (1.3:1). */
+.footer-legal { display: inline-block; margin-left: 10px; }
+.footer-legal a {
+  display: inline-block; padding: 4px 3px;          /* keeps each label on one line, 24px+ tap target */
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  transition: color var(--transition);
+}
+.footer-legal a:hover { color: var(--white); }
+.footer-legal a:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; border-radius: 2px; }
 .nonprofit-badge {
   background: rgba(46,139,87,.15);
   border: 1px solid rgba(46,139,87,.3);
@@ -675,6 +686,10 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
   outline: 2px solid var(--teal-ink); outline-offset: 2px;
 }
 .form-group textarea { resize: vertical; min-height: 110px; }
+/* Inline validation (js/contact.js): message under the field + red border on the field itself */
+.field-error { color: var(--red-cta); font-size: .8rem; font-weight: 600; line-height: 1.45; margin-top: 5px; }
+.form-group [aria-invalid="true"],
+.form-group [aria-invalid="true"]:focus { border-color: var(--red-cta); }
 .form-submit { width: 100%; justify-content: center; font-size: .95rem; }
 .form-note { font-size: .78rem; color: var(--gray-400); text-align: center; margin-top: 10px; }
 
@@ -816,10 +831,17 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
   background: var(--green-light); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   font-style: italic; color: var(--gray-800); font-size: 1.05rem; line-height: 1.7;
 }
-.article-source { font-size: .82rem; color: var(--gray-400); margin-top: 8px; }
+/* .article-body p (0,1,1) would otherwise win over a bare .article-source and render it full-size */
+.article-source, .article-body .article-source { font-size: .82rem; line-height: 1.6; color: var(--gray-400); margin-top: 8px; }
 .article-back { display: inline-flex; align-items: center; gap: 7px; font-size: .88rem; font-weight: 600; color: var(--green-mid); margin-bottom: 8px; }
 .article-back .icon { width: 16px; height: 16px; }
 .article-nav { border-top: 1px solid var(--gray-200); margin-top: 48px; padding-top: 28px; display: flex; justify-content: center; }
+/* "Related stories" aside at the end of each article: a .grid-auto of compact .news-cards */
+.related { margin-top: 48px; padding-top: 36px; border-top: 1px solid var(--gray-200); }
+.related h2 { font-family: var(--font-head); font-size: 1.5rem; line-height: 1.25; color: var(--black); margin-bottom: 20px; }
+.related .news-card-body { padding: 20px; }
+.related .news-card-title { font-size: 1rem; }
+.related .news-card-excerpt { font-size: .85rem; margin-bottom: 14px; }
 
 /* ========================================
    SHARED COMPONENTS (reusable on any page)
@@ -918,7 +940,7 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
   .hero-inner { grid-template-columns: 1fr; gap: 40px; }
   .hero::before { display: none; }
   .hero { background: var(--green-light); }
-  .about-grid { grid-template-columns: 1fr; }
+  .about-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
   .about-visual { display: none; }
   .programs-grid { grid-template-columns: repeat(2, 1fr); }
   .team-grid { grid-template-columns: repeat(2, 1fr); }
@@ -933,11 +955,14 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
   .hero { min-height: auto; }
   .hero-inner { padding: 48px 28px 64px; }
   .hero-img-wrap { max-width: 560px; width: 100%; margin: 0 auto; }
+  /* Footer: legal links get their own line under the copyright instead of wrapping mid-sentence */
+  .footer-legal { display: block; margin: 6px 0 0; }
 }
-/* Two-column tablet grids with 3 cards: centre the orphaned third card */
+/* Two-column tablet grids with an odd number of cards: centre the orphaned last card */
 @media (min-width: 769px) and (max-width: 1024px) {
   .membership-grid > :last-child:nth-child(odd),
   .donate-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 12px); }
+  .news-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 14px); }   /* gap is 28px */
 }
 @media (max-width: 768px) {
   .section-pad { padding: 60px 0; }

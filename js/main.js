@@ -247,22 +247,5 @@
   if (!navigator.share) {
     document.querySelectorAll('[data-share-native]').forEach(btn => { btn.hidden = true; });
   }
-
-  // ---------- Donate button interactions ----------
-  // Only for <button class="amount-btn">; amount links (/donate/?amount=…) just navigate.
-  document.querySelectorAll('button.amount-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const card = this.closest('.donate-card');
-      if (card) card.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
-      this.classList.add('selected');
-      this.style.background = 'var(--teal-ink)';
-      this.style.color = 'white';
-      this.style.borderColor = 'var(--teal-ink)';
-      setTimeout(() => {
-        this.style.background = '';
-        this.style.color = '';
-        this.style.borderColor = '';
-      }, 400);
-    });
-  });
+  // (.amount-btn elements are plain /donate/?amount=… links now, so they need no script.)
 })();

@@ -20,10 +20,12 @@ The API lives in [`api/`](api/). It's a Cloudflare Worker (free tier: 100k reque
 **What it does**
 - Creates checkouts server-side with prices from [`api/src/config.js`](api/src/config.js), so nobody can change the price in their browser.
 - **Stripe:** cards, Apple Pay, Google Pay and US bank (ACH), plus **monthly donations** and **auto-renewing yearly memberships**.
-- **PayPal:** one-time payments in USD.
+- **PayPal:** one-time payments in USD. If a donor approves a payment but closes the tab before returning to the site, the payment is still captured (immediately via the webhook, or by the 15-minute check).
 - **DPO Pay (Zambia):** MTN / Airtel / Zamtel mobile money and Visa/Mastercard in **ZMW**. Memberships are converted with `ZMW_PER_USD` in `wrangler.toml`. Mobile-money payments that the donor approves on their phone after leaving the page are picked up by an automatic check every 15 minutes.
 - Receives webhooks, verifies their signatures, and records each payment once. Renewals, refunds and failed bank debits update automatically.
-- Optional email alert for every new payment or "I've paid" report (via resend.com).
+- **Contact form:** messages are saved to the database and appear in **Dashboard → Messages**. They are also emailed to you, with Reply-To set to the sender, once email alerts are set up. Without the API, the contact form opens the visitor's email app instead.
+- **Abuse protection:** the public forms (checkout, "I've paid", contact) and the admin login are rate-limited per visitor, with no extra setup or paid features.
+- Optional email alert for every new payment, "I've paid" report or contact message (via resend.com).
 - If the API is ever unreachable, /donate/ and /join/ fall back to Donorbox and the offline options automatically.
 
 ### Step 1. Deploy the API (about 15 minutes, one time)
@@ -55,13 +57,14 @@ Each gateway switches on as soon as its key is set, with no redeploy needed. Set
 2. Go to **Developers → Webhooks → Add endpoint**:
    - URL: `<API>/webhooks/stripe`
    - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `invoice.paid`, `charge.refunded`
+   - API version: choose **2025-03-31.basil or later**. The Worker uses that version for its own calls and understands both older and newer webhook formats.
    - Copy the signing secret (`whsec_…`) into `STRIPE_WEBHOOK_SECRET`.
 3. **Settings → Payment methods:** turn on Apple Pay, Google Pay and ACH Direct Debit (US bank account).
 4. Apply for Stripe's discounted nonprofit rate by emailing Stripe support with your 501(c)(3) letter.
 
 **PayPal**
 1. At developer.paypal.com, go to **Apps & Credentials → Live → Create App**. Copy the client ID and secret into `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`.
-2. Optional, for refund tracking: in the same app, add a webhook with URL `<API>/webhooks/paypal` and events `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.DENIED` and `PAYMENT.CAPTURE.REFUNDED`. Copy its ID into `PAYPAL_WEBHOOK_ID`.
+2. Recommended: in the same app, add a webhook with URL `<API>/webhooks/paypal` and events `CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.DENIED` and `PAYMENT.CAPTURE.REFUNDED`. Copy its ID into `PAYPAL_WEBHOOK_ID`. This records refunds and captures approved payments straight away. Without it, approved payments are still picked up by the 15-minute check.
 3. Apply for PayPal's confirmed-nonprofit rate.
 
 **DPO Pay (Zambia)**
@@ -70,7 +73,7 @@ Each gateway switches on as soon as its key is set, with no redeploy needed. Set
 3. Optional: ask DPO to send payment notifications ("push") to `<API>/webhooks/dpo`. Payments are recorded without this too, when the donor returns to the site and through the 15-minute check.
 4. For testing, DPO provides test credentials and a sandbox URL. Put the URL in `DPO_API_URL` in `wrangler.toml`, then run `npx wrangler deploy`.
 
-**Email alerts (optional):** set `RESEND_API_KEY`, `NOTIFY_EMAIL` (e.g. info@gazhphealth.org) and `FROM_EMAIL` (an address on a domain you've verified in Resend).
+**Email alerts (optional, covers payments and contact messages):** set `RESEND_API_KEY`, `NOTIFY_EMAIL` (e.g. info@gazhphealth.org) and `FROM_EMAIL` (an address on a domain you've verified in Resend).
 
 ### Step 3. Test before going live
 Use test keys first:
@@ -82,6 +85,12 @@ Make a donation and a membership payment, check that they appear in /dashboard/ 
 
 ### Step 4. Retire Donorbox
 The Donorbox form is hidden automatically once the API is live. Import your Donorbox history in **Dashboard → Import data** (Donations → Export CSV in Donorbox) so past members and donors carry over, then cancel the Donorbox plan.
+
+### Upgrading an existing database
+No database has been created yet, so a new install only needs `npm run db:init`. If you created the database before this version, run `npm run db:init` again (safe to repeat; it adds the `messages` and `rate_limits` tables), then once:
+```bash
+npx wrangler d1 execute gazhp-payments --remote --command "ALTER TABLE checkouts ADD COLUMN checked_at TEXT; ALTER TABLE checkouts ADD COLUMN settled_at TEXT;"
+```
 
 ### Changing prices
 Edit [`api/src/config.js`](api/src/config.js) and run `npx wrangler deploy`. The website reads prices from the API.
