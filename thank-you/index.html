@@ -87,6 +87,19 @@
       <div class="thanks-actions">
         <a href="/" class="btn btn-green">Back to home</a>
         <a href="/news/" class="btn btn-outline-dark">See our impact</a>
+        <a href="/membership/" class="btn btn-outline-dark" id="thanks-next">Become a member</a>
+      </div>
+      <p style="margin-top:40px;font-size:.98rem;">
+        Help us reach more supporters: share our donation page with friends and colleagues.
+      </p>
+      <div class="share-bar" aria-label="Share our donation page" style="justify-content:center;margin:14px 0 0;">
+        <span class="share-label">Share:</span>
+        <a class="share-btn" href="https://wa.me/?text=Help%20strengthen%20healthcare%20in%20Zambia%20%E2%80%94%20support%20GAZHP%20https%3A%2F%2Fgazhphealth.org%2Fdonate%2F" target="_blank" rel="noopener">WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
+        <a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fgazhphealth.org%2Fdonate%2F" target="_blank" rel="noopener">Facebook<span class="sr-only"> (opens in a new tab)</span></a>
+        <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fgazhphealth.org%2Fdonate%2F" target="_blank" rel="noopener">LinkedIn<span class="sr-only"> (opens in a new tab)</span></a>
+        <a class="share-btn" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fgazhphealth.org%2Fdonate%2F&amp;text=Help%20strengthen%20healthcare%20in%20Zambia%20%E2%80%94%20support%20GAZHP" target="_blank" rel="noopener">X<span class="sr-only"> (opens in a new tab)</span></a>
+        <a class="share-btn" href="mailto:?subject=Help%20strengthen%20healthcare%20in%20Zambia%20%E2%80%94%20support%20GAZHP&amp;body=https%3A%2F%2Fgazhphealth.org%2Fdonate%2F">Email</a>
+        <button type="button" class="share-btn" data-share-copy="https://gazhphealth.org/donate/">Copy link</button>
       </div>
     </div>
   </div>
@@ -147,7 +160,11 @@
     var member = q.get('purpose') === 'membership';
     var pending = q.get('status') === 'pending';
     var t = document.getElementById('thanks-title'), p = document.getElementById('thanks-text');
+    var next = document.getElementById('thanks-next');
     if (member) {
+      // Members get a "make a gift" follow-up; donors keep the default "Become a member" link.
+      next.href = '/donate/';
+      next.textContent = 'Make a gift';
       t.textContent = pending ? 'Thank you — almost there' : 'Welcome to GAZHP!';
       p.textContent = pending
         ? 'Your membership payment is being processed. We\'ll email you as soon as it clears.'

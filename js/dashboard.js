@@ -30,7 +30,7 @@
 
   const fmt = (n, cur = REPORT_CUR, digits = 0) => {
     try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: cur, maximumFractionDigits: digits, minimumFractionDigits: digits }).format(n || 0); }
-    catch { return cur + ' ' + (n || 0).toFixed(digits); }
+    catch { return esc(cur) + ' ' + (Number(n) || 0).toFixed(digits); } // unknown code (e.g. from a bad backup) — never raw HTML
   };
   const fmtCompact = n => {
     const a = Math.abs(n);
@@ -71,6 +71,7 @@
   }
 
   const getToken = () => { try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } };
+  let signingOut = false;
   async function api(path, { method = 'GET', body } = {}) {
     const res = await fetch(API + path, {
       method,
@@ -79,9 +80,12 @@
     });
     const data = await res.json().catch(() => ({}));
     if (res.status === 401) {
-      try { sessionStorage.removeItem(TOKEN_KEY); } catch {}
-      alert(data.error || 'Please sign in again.');
-      location.reload();
+      if (!signingOut) { // payments and messages load together: tell the admin only once
+        signingOut = true;
+        try { sessionStorage.removeItem(TOKEN_KEY); } catch {}
+        alert(data.error || 'Please sign in again.');
+        location.reload();
+      }
       throw new Error('signed out');
     }
     if (!res.ok) throw new Error(data.error || 'The payments server returned an error.');
@@ -438,7 +442,7 @@
   }
   function banner(kind, html) {
     const icon = kind === 'warn' ? '#i-alert' : '#i-check';
-    $('#dash-banner').innerHTML = html ? `<div class="dash-banner ${kind}"><svg class="icon"><use href="${icon}"/></svg><div>${html}</div></div>` : '';
+    $('#dash-banner').innerHTML = html ? `<div class="dash-banner ${kind}"><svg class="icon" aria-hidden="true"><use href="${icon}"/></svg><div>${html}</div></div>` : '';
   }
   function statusBanner() {
     const missingFx = [...new Set(all().map(r => (r.currency || '').toUpperCase()).filter(c => c && FX[c] == null))];
@@ -668,9 +672,9 @@
   const payStatus = r => !r.status || r.status === 'paid' ? '' : `<div><span class="pill st-${esc(r.status)}">${esc(r.status[0].toUpperCase() + r.status.slice(1))}</span></div>`;
   const typePill = r => r.type === 'membership' ? '<span class="pill m">Membership</span>' : '<span class="pill d">Donation</span>';
   const statusCell = s => ({
-    active: '<span class="status active"><svg class="icon"><use href="#i-check"/></svg>Active</span>',
-    expiring: '<span class="status expiring"><svg class="icon"><use href="#i-alert"/></svg>Expiring soon</span>',
-    expired: '<span class="status expired"><svg class="icon"><use href="#i-x"/></svg>Expired</span>',
+    active: '<span class="status active"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Active</span>',
+    expiring: '<span class="status expiring"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Expiring soon</span>',
+    expired: '<span class="status expired"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Expired</span>',
   }[s]);
 
   /* =====================================================================
@@ -766,9 +770,9 @@
     const cell = (gw, parts) => {
       const ok = parts.filter(Boolean);
       if (API && apiConfig && gw === g.donorbox && gw && gw.enabled) return `<span class="check-off">Replaced by own API (hidden)</span>`;
-      if (gw && gw.enabled && ok.length) return `<span class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Live on site</span>`;
-      if (gw && gw.enabled) return `<span class="check-miss"><svg class="icon"><use href="#i-alert"/></svg>Enabled, but details missing — hidden</span>`;
-      if (ok.length) return `<span class="check-miss"><svg class="icon"><use href="#i-alert"/></svg>Filled in — set enabled: true</span>`;
+      if (gw && gw.enabled && ok.length) return `<span class="check-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Live on site</span>`;
+      if (gw && gw.enabled) return `<span class="check-miss"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Enabled, but details missing — hidden</span>`;
+      if (ok.length) return `<span class="check-miss"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Filled in — set enabled: true</span>`;
       return `<span class="check-off">Off</span>`;
     };
     const extra = [
@@ -777,9 +781,9 @@
       ['Fundraising goal', +DC.annualFundraisingGoal > 0], ['Google Sheet (optional)', has(DC.googleSheetCsvUrl)],
     ];
     const gw = apiConfig && apiConfig.gateways;
-    const on = v => v ? '<span class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Live — automatic</span>' : '<span class="check-off">Key not set on server</span>';
+    const on = v => v ? '<span class="check-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Live — automatic</span>' : '<span class="check-off">Key not set on server</span>';
     const apiHtml = API ? `<table class="dtable" style="margin-bottom:18px;"><thead><tr><th>Automated payments (own API)</th><th>What it covers</th><th>Status</th></tr></thead><tbody>
-      <tr><td><strong>Payments API</strong></td><td class="muted">${esc(API)}</td><td>${gw ? '<span class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Connected</span>' : '<span class="check-miss"><svg class="icon"><use href="#i-alert"/></svg>Checking… / unreachable</span>'}</td></tr>
+      <tr><td><strong>Payments API</strong></td><td class="muted">${esc(API)}</td><td>${gw ? '<span class="check-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Connected</span>' : '<span class="check-miss"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Checking… / unreachable</span>'}</td></tr>
       <tr><td><strong>Stripe</strong></td><td class="muted">Cards, Apple Pay, Google Pay, US bank · monthly & yearly</td><td>${gw ? on(gw.stripe) : '—'}</td></tr>
       <tr><td><strong>PayPal</strong></td><td class="muted">PayPal balance & cards (one-time)</td><td>${gw ? on(gw.paypal) : '—'}</td></tr>
       <tr><td><strong>DPO Pay</strong></td><td class="muted">Zambia: MTN, Airtel, Zamtel mobile money & cards</td><td>${gw ? on(gw.dpo) : '—'}</td></tr>
@@ -789,9 +793,138 @@
       ${rows.map(([name, what, gw, parts]) => `<tr><td><strong>${esc(name)}</strong></td><td class="muted">${esc(what)}</td><td class="muted">${esc(parts.filter(Boolean).join(', ') || '—')}</td><td>${cell(gw, parts)}</td></tr>`).join('')}
       </tbody></table>
       <table class="dtable" style="margin-top:18px;"><thead><tr><th>Other settings</th><th>Status</th></tr></thead><tbody>
-      ${extra.map(([n, ok]) => `<tr><td>${esc(n)}</td><td>${ok ? '<span class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Done</span>' : '<span class="check-off">Not set</span>'}</td></tr>`).join('')}
+      ${extra.map(([n, ok]) => `<tr><td>${esc(n)}</td><td>${ok ? '<span class="check-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Done</span>' : '<span class="check-off">Not set</span>'}</td></tr>`).join('')}
       </tbody></table>`;
   }
+
+  /* =====================================================================
+     MESSAGES (Contact page form — automated/API mode only)
+     { id, created_at, name, email, subject, message, profession?, status:'new'|'read'|'archived' }
+     ===================================================================== */
+  let messages = [];
+  let msgLoaded = false;
+  let msgError = '';
+  let msgRenderKey = '';
+  let msgAlertN = -1;
+  const MSG_STATUSES = ['new', 'read', 'archived'];
+  const MSG_LABEL = { new: 'New', read: 'Read', archived: 'Archived' };
+  const msgStatus = m => MSG_STATUSES.includes(m.status) ? m.status : 'new';
+  const msgById = id => messages.find(m => String(m.id) === String(id));
+  const unreadCount = () => messages.filter(m => msgStatus(m) === 'new').length;
+  const fmtDateTime = s => {
+    const t = Date.parse(s);
+    return isNaN(t) ? String(s || '') : new Date(t).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  };
+
+  async function loadMessages() {
+    if (!API) return;
+    try {
+      const data = await api('/admin/messages');
+      messages = Array.isArray(data.messages) ? data.messages : [];
+      msgLoaded = true;
+      msgError = '';
+    } catch (err) {
+      if (err.message === 'signed out') throw err;
+      msgError = err.message || 'Could not load messages.';
+    }
+    updateMsgBadge();
+  }
+  async function setMsgStatus(id, status) {
+    await api('/admin/messages/' + encodeURIComponent(id), { method: 'PATCH', body: { status } });
+    const m = msgById(id);
+    if (m) m.status = status;
+    updateMsgBadge();
+  }
+  async function deleteMessage(id) {
+    await api('/admin/messages/' + encodeURIComponent(id), { method: 'DELETE' });
+    messages = messages.filter(m => String(m.id) !== String(id));
+    updateMsgBadge();
+  }
+
+  function updateMsgBadge() {
+    const n = API ? unreadCount() : 0;
+    const badge = $('#msg-badge');
+    if (badge) { badge.hidden = !n; badge.innerHTML = n ? `${n}<span class="sr-only"> new</span>` : ''; }
+    const alertEl = $('#msg-alert');
+    if (alertEl && n !== msgAlertN) alertEl.innerHTML = n ?`<div class="dash-banner info"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><div>You have <strong>${n} new message${n === 1 ? '' : 's'}</strong> from the Contact page. <a href="#messages" data-goto="messages">Read ${n === 1 ? 'it' : 'them'} ›</a></div></div>` : '';
+    msgAlertN = n; // only rebuilt when the count changes, so the 60 s refresh never steals focus from the link
+  }
+
+  // Basic shape check before putting an address in a mailto: link.
+  const SAFE_EMAIL = /^[^\s@<>()"',;:?&\\]+@[^\s@<>()"',;:?&\\]+\.[^\s@<>()"',;:?&\\]+$/;
+  function replyHref(m) {
+    const to = String(m.email || '').trim();
+    if (!SAFE_EMAIL.test(to)) return '';
+    const subj = String(m.subject || '').trim() || 'Your message to GAZHP';
+    const text = String(m.message || '');
+    const quoted = text.slice(0, 600).split(/\r?\n/).map(l => '> ' + l).join('\n') + (text.length > 600 ? '\n> …' : '');
+    const body = `\n\n\nOn ${fmtDateTime(m.created_at)}, ${m.name || to} wrote:\n${quoted}`;
+    return `mailto:${to}?subject=${encodeURIComponent(/^re:/i.test(subj) ? subj : 'Re: ' + subj)}&body=${encodeURIComponent(body)}`;
+  }
+
+  function filteredMessages() {
+    const q = $('#msg-search').value.trim().toLowerCase();
+    const show = $('#msg-status').value;
+    return messages.filter(m => {
+      const s = msgStatus(m);
+      if (show === 'inbox' ? s === 'archived' : show !== 'all' && s !== show) return false;
+      return !q || [m.name, m.email, m.subject, m.message, m.profession].join(' ').toLowerCase().includes(q);
+    }).sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  }
+
+  function renderMessages(force) {
+    const list = $('#msg-list');
+    if (!API) { list.innerHTML = ''; return; }
+    const counts = { new: 0, read: 0, archived: 0 };
+    messages.forEach(m => { counts[msgStatus(m)]++; });
+    const shown = msgLoaded ? filteredMessages() : [];
+    // Skip identical re-renders (auto-refresh) so keyboard focus isn't lost while reading.
+    const key = JSON.stringify([msgLoaded, msgError, $('#msg-status').value, $('#msg-search').value, shown]);
+    if (!force && key === msgRenderKey) return;
+    msgRenderKey = key;
+    $('#msg-summary').textContent = messages.length ? `${counts.new} new · ${counts.read} read · ${counts.archived} archived` : '';
+    if (!msgLoaded) {
+      list.innerHTML = msgError
+        ? `<div class="dash-card"><div class="empty-state">Could not load messages: ${esc(msgError)}<br><button class="btn btn-teal btn-sm" type="button" data-msg-retry>Try again</button></div></div>`
+        : '<div class="dash-card"><p class="chart-empty">Loading messages…</p></div>';
+      return;
+    }
+    const stale = msgError ? `<div class="dash-banner warn"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg><div>Could not refresh messages (${esc(msgError)}). Showing the last ones loaded.</div></div>` : '';
+    if (!shown.length) {
+      list.innerHTML = stale + `<div class="dash-card"><div class="empty-state">${messages.length ? 'No messages match these filters.' : 'No messages yet. Messages people send from the Contact page appear here.'}</div></div>`;
+      return;
+    }
+    const btn = (m, status, label) => `<button class="link-btn" type="button" data-msg-id="${esc(m.id)}" data-msg-status="${status}">${label}</button>`;
+    list.innerHTML = stale + shown.map((m, i) => {
+      const s = msgStatus(m);
+      const reply = replyHref(m);
+      const email = String(m.email || '');
+      return `<article class="dash-card msg msg-${s}" tabindex="-1" data-msg-card="${esc(m.id)}" aria-labelledby="msg-subj-${i}">
+        <div class="msg-head">
+          <div class="msg-from"><strong>${esc(m.name || '—')}</strong>${email ? ` <span class="msg-email">${reply ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : esc(email)}</span>` : ''}</div>
+          <div class="msg-meta"><span class="pill msg-st-${s}">${MSG_LABEL[s]}</span><time datetime="${esc(m.created_at || '')}">${esc(fmtDateTime(m.created_at))}</time></div>
+        </div>
+        <h3 class="msg-subject" id="msg-subj-${i}">${esc(m.subject || '(no subject)')}</h3>
+        ${m.profession ? `<p class="msg-prof">Profession / role: ${esc(m.profession)}</p>` : ''}
+        <p class="msg-text">${esc(m.message || '')}</p>
+        <div class="msg-actions">
+          ${reply ? `<a class="btn btn-green btn-xs" href="${esc(reply)}" data-msg-reply="${esc(m.id)}">Reply by email</a>` : ''}
+          ${s === 'new' ? btn(m, 'read', 'Mark as read') : s === 'read' ? btn(m, 'new', 'Mark as unread') : ''}
+          ${s === 'archived' ? btn(m, 'read', 'Move back to inbox') : btn(m, 'archived', 'Archive')}
+          <button class="row-del" type="button" data-msg-del="${esc(m.id)}">Delete</button>
+        </div>
+      </article>`;
+    }).join('');
+  }
+  // After an action re-renders the list, put focus back on the same message (or its neighbour).
+  function refocusMessage(id, index, within) {
+    const cards = $$('[data-msg-card]');
+    const card = cards.find(c => c.dataset.msgCard === String(id)) || cards[Math.min(Math.max(index, 0), cards.length - 1)];
+    if (!card) { $('#msg-search').focus(); return; }
+    const target = (within && card.dataset.msgCard === String(id) && $(within, card)) || card;
+    target.focus();
+  }
+  function msgSay(text) { const el = $('#msg-live'); el.textContent = ''; setTimeout(() => { el.textContent = text; }, 50); }
 
   function renderStoreInfo() {
     const n = local.length, s = sheet.length;
@@ -806,6 +939,7 @@
     if (tab === 'overview') renderOverview();
     else if (tab === 'members') renderMembers();
     else if (tab === 'donations') renderTx();
+    else if (tab === 'messages') renderMessages();
     else if (tab === 'setup') renderSetup();
     else if (tab === 'import') renderStoreInfo();
   }
@@ -813,9 +947,36 @@
   /* =====================================================================
      ACTIONS
      ===================================================================== */
-  const EXPORT_COLS = ['date', 'type', 'tier', 'name', 'email', 'phone', 'country', 'amount', 'currency', 'method', 'ref', 'notes', 'source'];
+  // status is exported so failed / refunded / pending rows never come back as money received.
+  const EXPORT_COLS = ['date', 'status', 'type', 'tier', 'name', 'email', 'phone', 'country', 'profession', 'amount', 'currency', 'method', 'ref', 'recurring', 'notes', 'source'];
+  // Backups made before status/profession/recurring were added still restore.
+  const BACKUP_REQUIRED = ['date', 'type', 'tier', 'name', 'email', 'phone', 'country', 'amount', 'currency', 'method', 'ref', 'notes', 'source'];
+  const STATUSES = ['paid', 'pending', 'failed', 'refunded'];
   function exportRecords(recs, filename) {
-    download(filename, toCSV([EXPORT_COLS, ...recs.map(r => EXPORT_COLS.map(c => r[c]))]));
+    download(filename, toCSV([EXPORT_COLS, ...recs.map(r => EXPORT_COLS.map(c => c === 'status' ? (r.status || 'paid') : r[c]))]));
+  }
+  // Turn one backup row into a clean record, or null if it can't be trusted.
+  const clip = (v, n) => String(v ?? '').trim().slice(0, n);
+  function restoredRecord(r) {
+    const date = clip(r.date, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) return null;
+    const amount = Math.round(parseFloat(r.amount) * 100) / 100;
+    if (!(amount > 0) || !isFinite(amount)) return null;
+    const cur = clip(r.currency, 3).toUpperCase();
+    const type = r.type === 'membership' ? 'membership' : 'donation';
+    const status = clip(r.status, 10).toLowerCase();
+    const recurring = clip(r.recurring, 10).toLowerCase();
+    const rec = {
+      date, amount, type,
+      currency: /^[A-Z]{3}$/.test(cur) ? cur : REPORT_CUR,
+      tier: type === 'membership' ? clip(r.tier, 60) : '',
+      status: STATUSES.includes(status) ? status : 'paid',
+      name: clip(r.name, 120), email: clip(r.email, 160).toLowerCase(), phone: clip(r.phone, 40),
+      country: clip(r.country, 80), profession: clip(r.profession, 160),
+      method: clip(r.method, 60) || 'Other', ref: clip(r.ref, 120), notes: clip(r.notes, 1000),
+    };
+    if (['once', 'month', 'year'].includes(recurring)) rec.recurring = recurring;
+    return rec;
   }
 
   function bindActions() {
@@ -832,7 +993,33 @@
         stBtn.disabled = true;
         setStatus(stBtn.dataset.id, stBtn.dataset.status).then(render, err => { alert(err.message); stBtn.disabled = false; });
       }
+      // Messages tab
+      const cardIndex = el => $$('[data-msg-card]').indexOf(el.closest('[data-msg-card]'));
+      const msBtn = e.target.closest('[data-msg-status]');
+      if (msBtn) {
+        const id = msBtn.dataset.msgId, to = msBtn.dataset.msgStatus, idx = cardIndex(msBtn);
+        msBtn.disabled = true;
+        setMsgStatus(id, to).then(() => {
+          renderMessages(true); refocusMessage(id, idx);
+          msgSay(to === 'archived' ? 'Message archived.' : to === 'read' ? 'Marked as read.' : 'Marked as unread.');
+        }, err => { alert(err.message); msBtn.disabled = false; });
+      }
+      const mdBtn = e.target.closest('[data-msg-del]');
+      if (mdBtn && confirm('Delete this message permanently? This cannot be undone. (Archive keeps it out of the inbox instead.)')) {
+        const id = mdBtn.dataset.msgDel, idx = cardIndex(mdBtn);
+        mdBtn.disabled = true;
+        deleteMessage(id).then(() => { renderMessages(true); refocusMessage(id, idx); msgSay('Message deleted.'); },
+          err => { alert(err.message); mdBtn.disabled = false; });
+      }
+      const mrLink = e.target.closest('[data-msg-reply]');
+      if (mrLink) { // the mailto: link opens as normal; a new message also counts as read
+        const m = msgById(mrLink.dataset.msgReply);
+        const idx = cardIndex(mrLink);
+        if (m && msgStatus(m) === 'new') setMsgStatus(m.id, 'read').then(() => { renderMessages(true); refocusMessage(m.id, idx, '[data-msg-reply]'); }, () => {});
+      }
+      if (e.target.closest('[data-msg-retry]')) loadMessages().then(() => renderMessages(true), () => {});
     });
+    ['#msg-search', '#msg-status'].forEach(s => $(s).addEventListener('input', () => renderMessages()));
     $('#ov-year').addEventListener('change', render);
     let rt;
     addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (tab === 'overview') renderOverview(); }, 150); });
@@ -904,7 +1091,7 @@
         let added, dup;
         try { ({ added, dup } = await addRecords(res.records, 'import')); } catch (err) { out.push(`<p><strong>${esc(file.name)}:</strong> ${esc(err.message)}</p>`); continue; }
         const m = res.records.filter(r => r.type === 'membership').length;
-        out.push(`<p class="check-ok"><svg class="icon"><use href="#i-check"/></svg><span><strong>${esc(file.name)}</strong> (${esc(res.source)}): ${added} added (${m} membership, ${res.records.length - m} donation)${dup ? `, ${dup} duplicates skipped` : ''}${res.skipped ? `, ${res.skipped} rows ignored (failed, refunded or not a payment)` : ''}.</span></p>`);
+        out.push(`<p class="check-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span><strong>${esc(file.name)}</strong> (${esc(res.source)}): ${added} added (${m} membership, ${res.records.length - m} donation)${dup ? `, ${dup} duplicates skipped` : ''}${res.skipped ? `, ${res.skipped} rows ignored (failed, refunded or not a payment)` : ''}.</span></p>`);
       }
       $('#imp-result').innerHTML = out.join('');
       renderStoreInfo(); statusBanner();
@@ -919,12 +1106,14 @@
       if (!file) return;
       const rows = parseCSV(await file.text());
       const [h, ...body] = rows;
-      if (!h || !EXPORT_COLS.every(c => h.includes(c))) { alert('This does not look like a dashboard backup file.'); return; }
-      const recs = body.map(r => Object.fromEntries(h.map((c, i) => [c, (r[i] || '').replace(/^'(?=[=+\-@])/, '')])))
-        .map(r => ({ ...r, amount: parseFloat(r.amount) || 0, source: undefined })).filter(r => r.date && r.amount > 0);
+      const cols = (h || []).map(c => c.trim());
+      if (!h || !BACKUP_REQUIRED.every(c => cols.includes(c))) { alert('This does not look like a dashboard backup file.'); return; }
+      const raw = body.map(r => Object.fromEntries(cols.filter(c => EXPORT_COLS.includes(c)).map(c => [c, (r[cols.indexOf(c)] || '').replace(/^'(?=[=+\-@])/, '')])));
+      const recs = raw.map(restoredRecord).filter(Boolean);
+      const bad = raw.length - recs.length;
       let added, dup;
-      try { ({ added, dup } = await addRecords(recs.map(({ source, ...r }) => r), 'import')); } catch (err) { alert(err.message); return; }
-      $('#imp-result').innerHTML = `<p class="check-ok"><svg class="icon"><use href="#i-check"/></svg>Restored ${added} payments${dup ? ` (${dup} already present)` : ''}.</p>`;
+      try { ({ added, dup } = await addRecords(recs, 'import')); } catch (err) { alert(err.message); return; }
+      $('#imp-result').innerHTML = `<p class="check-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Restored ${added} payments${dup ? ` (${dup} already present)` : ''}${bad ? `; ${bad} row${bad === 1 ? '' : 's'} skipped (missing or invalid date or amount)` : ''}.</p>`;
       renderStoreInfo(); statusBanner();
     });
     $('#clear-btn').addEventListener('click', () => {
@@ -1004,9 +1193,10 @@
   async function init() {
     bindActions();
     document.body.classList.toggle('api-mode', !!API);
-    try { await load(); } catch (err) { if (err.message !== 'signed out') banner('warn', `Could not load payments: ${esc(err.message)}`); }
+    try { await Promise.all([load(), loadMessages()]); } catch (err) { if (err.message !== 'signed out') banner('warn', `Could not load payments: ${esc(err.message)}`); }
     const start = location.hash.slice(1);
-    showTab(['overview', 'members', 'donations', 'record', 'import', 'setup'].includes(start) ? start : 'overview');
+    const tabs = ['overview', 'members', 'donations', 'record', 'import', 'setup'].concat(API ? ['messages'] : []);
+    showTab(tabs.includes(start) ? start : 'overview');
     syncLabel();
     loadSheet(false);
     if (API) {
@@ -1022,7 +1212,7 @@
   async function refresh() {
     if (refreshing) return;
     refreshing = true;
-    try { await load(); render(); } catch (err) { if (err.message !== 'signed out') banner('warn', `Could not refresh: ${esc(err.message)}`); }
+    try { await Promise.all([load(), loadMessages()]); render(); } catch (err) { if (err.message !== 'signed out') banner('warn', `Could not refresh: ${esc(err.message)}`); }
     refreshing = false;
     syncLabel();
   }

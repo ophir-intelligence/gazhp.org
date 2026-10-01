@@ -26,6 +26,15 @@
   // Form state for automated mode (survives re-renders).
   const st = { amount: '', currency: 'USD', freq: 'once', autoRenew: false, name: '', email: '', phone: '', country: '', profession: '' };
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const cssEsc = s => (window.CSS && CSS.escape) ? CSS.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
+  const joinOr = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' or ' + a[a.length - 1];
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // One polite live region, outside the re-rendered widget, for short announcements (e.g. "Account number copied").
+  const live = document.createElement('p');
+  live.className = 'sr-only';
+  live.setAttribute('role', 'status');
+  root.insertAdjacentElement('afterend', live);
+  const announce = text => { live.textContent = ''; setTimeout(() => { live.textContent = text; }, 50); };
   const money = (n, cur = 'USD') => {
     try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(n); }
     catch { return cur + ' ' + n; }
@@ -43,7 +52,7 @@
 
   /* ---------- Row helpers ---------- */
   const row = (label, value) => has(value)
-    ? `<div class="pay-detail"><span class="pay-detail-label">${esc(label)}</span><span class="pay-detail-value">${esc(value)}</span><button type="button" class="pay-copy" data-copy="${esc(value)}" aria-label="Copy ${esc(label)}">Copy</button></div>`
+    ? `<div class="pay-detail"><span class="pay-detail-label">${esc(label)}</span><span class="pay-detail-value">${esc(value)}</span><button type="button" class="pay-copy" data-copy="${esc(value)}" data-label="${esc(label)}" aria-label="Copy ${esc(label)}">Copy</button></div>`
     : '';
   const referenceRow = () => row('Reference / note', refCode);
   const linkBtn = (url, label, cls = 'btn-teal') =>
@@ -85,7 +94,7 @@
       </div>
       <input type="text" name="website" class="pay-hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
       <button type="submit" class="btn btn-green pay-link-btn">I've paid — notify GAZHP</button>
-      <p class="pay-form-msg" role="status"></p>
+      <p class="pay-form-msg" id="pay-notify-msg" role="status"></p>
     </form>`;
   };
   const tierLink = gw => (selectedTier && gw.membershipLinks && has(gw.membershipLinks[selectedTier.id])) ? gw.membershipLinks[selectedTier.id] : '';
@@ -223,16 +232,33 @@
       </div>
     </fieldset>`;
 
-  // Tabs + panel for a list of methods.
+  // Method picker (toggle buttons) + the panel for the chosen method.
   function methodsHtml(list, single) {
     if (!list.some(m => m.id === activeId)) activeId = list[0].id;
-    return `<div class="pay-methods" role="tablist" aria-label="Payment methods"${single ? ' hidden' : ''}>
-        ${list.map(m => `<button type="button" role="tab" class="pay-method${m.id === activeId ? ' active' : ''}" aria-selected="${m.id === activeId}" aria-controls="pay-panel" data-id="${esc(m.id)}">
+    const active = list.find(m => m.id === activeId);
+    return `<div class="pay-methods" role="group" aria-label="Payment methods"${single ? ' hidden' : ''}>
+        ${list.map(m => `<button type="button" class="pay-method${m.id === activeId ? ' active' : ''}" aria-pressed="${m.id === activeId}" aria-controls="pay-panel" data-id="${esc(m.id)}">
           <span class="pay-method-title">${esc(m.title)}</span><span class="pay-method-sub">${esc(m.sub)}</span></button>`).join('')}
       </div>
-      <div class="pay-panel${single ? ' pay-panel-single' : ''}" id="pay-panel" role="tabpanel">${list.find(m => m.id === activeId).body}</div>`;
+      <div class="pay-panel${single ? ' pay-panel-single' : ''}" id="pay-panel" role="region" aria-label="${esc(active.title)} details">${active.body}</div>`;
   }
-  const secureNote = () => `<p class="pay-secure"><svg class="icon" style="width:13px;height:13px;"><use href="#i-lock"/></svg>Card and mobile-money payments are completed on Stripe, PayPal or DPO Pay's secure pages — GAZHP never sees your card details.${has(CFG.org.ein) ? ` EIN ${esc(CFG.org.ein)}.` : ''}</p>`;
+  // Names only the processors actually offered right now (API gateways, or the configured link/Donorbox methods).
+  const PROCESSORS = { donorbox: 'Donorbox', stripe: 'Stripe', paypal: 'PayPal', dpo: 'DPO Pay' };
+  const processorNames = list => online()
+    ? ['stripe', 'paypal', 'dpo'].filter(k => apiCfg.gateways[k]).map(k => PROCESSORS[k])
+    : list.map(m => PROCESSORS[m.id]).filter(Boolean);
+  const legalLine = (style = '') => `<p class="pay-secure pay-legal prose-links"${style ? ` style="${style}"` : ''}><span>By continuing you agree to our <a href="/terms/">Terms &amp; Refund Policy</a> and <a href="/privacy/">Privacy Policy</a>.</span></p>`;
+  // The 501(c)(3) / tax-deductibility sentence lives in the /donate/ and /join/ page copy right above
+  // this widget, so it isn't repeated here; the EIN is added automatically once org.ein is filled in.
+  const secureNote = (list, withLegal) => {
+    const names = processorNames(list);
+    const text = [
+      names.length ? `Card payments are processed securely by ${joinOr(names)} — GAZHP never sees your card details.` : '',
+      has(CFG.org.ein) ? `GAZHP's US EIN: ${esc(CFG.org.ein)}.` : '',
+    ].filter(Boolean).join(' ');
+    return (text ? `<p class="pay-secure"><svg class="icon" style="width:13px;height:13px;" aria-hidden="true" focusable="false"><use href="#i-lock"/></svg><span>${text}</span></p>` : '')
+      + (withLegal ? legalLine(text ? 'margin-top:6px;' : '') : '');
+  };
   const cancelledNote = () => new URLSearchParams(location.search).get('cancelled')
     ? '<p class="pay-cancelled" role="status">Payment cancelled — no money was taken. You can try again below.</p>' : '';
 
@@ -254,7 +280,7 @@
           <label class="${st.freq === 'once' ? 'on' : ''}"><input type="radio" name="freq" value="once"${st.freq === 'once' ? ' checked' : ''} />Give once</label>
           <label class="${st.freq === 'month' ? 'on' : ''}"><input type="radio" name="freq" value="month"${st.freq === 'month' ? ' checked' : ''} />Give monthly</label>
         </div>` : ''}
-        <div class="pay-amounts">${presets.map(a => `<button type="button" class="pay-amt${Number(st.amount) === a ? ' selected' : ''}" data-amt="${a}">${money(a, st.currency)}</button>`).join('')}</div>
+        <div class="pay-amounts" role="group" aria-label="Suggested amounts">${presets.map(a => `<button type="button" class="pay-amt${Number(st.amount) === a ? ' selected' : ''}" aria-pressed="${Number(st.amount) === a}" data-amt="${a}">${money(a, st.currency)}</button>`).join('')}</div>
         <div class="pay-grid">
           <label>Amount (${esc(st.currency)})<input type="number" name="amount" min="${(d.min && d.min[st.currency]) || 1}" step="1" inputmode="decimal" placeholder="Other amount" value="${esc(st.amount)}" /></label>
           ${g.dpo ? `<label>Currency<select name="currency"><option value="USD"${!zmw ? ' selected' : ''}>US dollars (USD)</option><option value="ZMW"${zmw ? ' selected' : ''}>Zambian kwacha (ZMW)</option></select></label>` : ''}
@@ -279,26 +305,61 @@
     html += `<fieldset class="pay-fs"><legend>3. Pay</legend>
       ${isM && g.stripe ? `<label class="pay-check"><input type="checkbox" name="autoRenew"${st.autoRenew ? ' checked' : ''} />Renew my membership automatically every year (card only)</label>` : ''}
       <div class="pay-gws">
-        ${g.stripe ? btn('stripe', 'Card, Apple Pay or Google Pay', 'Visa · Mastercard · Amex · US bank account', zmw, 'Choose USD to pay by card') : ''}
+        ${g.stripe ? btn('stripe', 'Card, Apple Pay or Google Pay', 'Visa · Mastercard · Amex', zmw, 'Choose USD to pay by card') : ''}
         ${g.paypal ? btn('paypal', 'PayPal', 'PayPal balance or card', zmw || recurring, zmw ? 'Choose USD to use PayPal' : 'Recurring payments use card') : ''}
         ${g.dpo ? btn('dpo', 'Mobile Money (Zambia)', 'MTN · Airtel · Zamtel · Zambian cards — via DPO Pay' + momoAmt, recurring, 'Recurring payments use card') : ''}
       </div>
-      <p class="pay-form-err" role="alert"></p>
+      ${legalLine('text-align:left;justify-content:flex-start;margin-top:12px;')}
+      <p class="pay-form-err" id="pay-err" role="alert"></p>
     </fieldset></form>`;
     return html;
   }
 
-  function render() {
+  // A selector for the focused control, so focus can go back to its replacement after a re-render.
+  function focusSelector() {
+    const a = document.activeElement;
+    if (!a || a === root || !root.contains(a)) return null;
+    const scope = a.closest('#pay-form') ? '#pay-form ' : a.closest('#pay-panel') ? '#pay-panel ' : '';
+    const d = a.dataset;
+    const key = d.id ? `[data-id="${cssEsc(d.id)}"]`
+      : d.amt ? `[data-amt="${cssEsc(d.amt)}"]`
+      : d.gw ? `[data-gw="${cssEsc(d.gw)}"]`
+      : d.copy ? `.pay-copy[data-copy="${cssEsc(d.copy)}"]`
+      : a.name ? `[name="${cssEsc(a.name)}"]${a.type === 'radio' ? `[value="${cssEsc(a.value)}"]` : ''}`
+      : null;
+    return key ? scope + key : null;
+  }
+
+  // Re-render the widget, keeping keyboard / screen-reader focus on the equivalent control.
+  function render(focusSel) {
+    const sel = focusSel || focusSelector();
+    paint();
+    if (!sel) return;
+    const el = root.querySelector(sel);
+    if (el && !el.disabled) el.focus({ preventScroll: true });
+  }
+
+  // Homepage hand-off, e.g. /donate/?amount=50 (whole USD; anything else is ignored).
+  let qAmount = '';
+  if (purpose === 'donation') {
+    const q = (new URLSearchParams(location.search).get('amount') || '').trim();
+    if (/^\d{1,6}$/.test(q) && Number(q) > 0) qAmount = String(Number(q));
+    st.amount = qAmount; // used by the automated form; checked against the API's min/max once /config loads
+  }
+
+  function paint() {
     const list = methods.map(fn => fn()).filter(Boolean);
 
     if (online()) {
       let html = onlineHtml();
       if (list.length) {
+        const ways = list.map(m => ({ mobile: 'direct mobile money', bank: 'bank transfer', check: 'a check by mail' }[m.id] || m.title));
+        const offline = list.some(m => ['mobile', 'bank', 'zelle', 'cashapp', 'venmo', 'check'].includes(m.id));
         html += `<div class="pay-other"><h3 class="pay-step">Other ways to pay</h3>
-          <p class="pay-other-sub">Prefer a bank transfer${G.zelle && G.zelle.enabled ? ', Zelle' : ''} or direct mobile money? Send it, then tell us below — we'll confirm it and send your ${purpose === 'membership' ? 'membership confirmation' : 'receipt'}.</p>
+          <p class="pay-other-sub">Prefer ${esc(joinOr(ways))}?${offline ? ` Send it, then tell us below — we'll confirm it and send your ${purpose === 'membership' ? 'membership confirmation' : 'receipt'}.` : ' Choose it below.'}</p>
           ${methodsHtml(list, false)}</div>`;
       }
-      root.innerHTML = html + secureNote();
+      root.innerHTML = html + secureNote(list, false);
       return;
     }
 
@@ -312,7 +373,9 @@
     const tierPicker = purpose === 'membership' && tiers.length && !donorboxOnly ? tierPickerHtml('1. Choose your membership') : '';
     const headingMulti = purpose === 'membership' ? '<h3 class="pay-step">2. Choose how to pay</h3>' : '<h3 class="pay-step">Choose how to give</h3>';
     const heading = single ? (purpose === 'membership' && !donorboxOnly ? '<h3 class="pay-step">2. Pay securely</h3>' : '') : headingMulti;
-    root.innerHTML = cancelledNote() + tierPicker + heading + methodsHtml(list, single) + secureNote();
+    // Links / Donorbox mode can't prefill the amount, so tell the donor what they picked on the homepage.
+    const chosen = qAmount ? `<p class="pay-amount" style="margin-bottom:16px;${donorboxOnly ? 'text-align:center;' : ''}">Your chosen gift: <strong>${money(Number(qAmount), 'USD')}</strong>. Enter this amount when you complete your payment.</p>` : '';
+    root.innerHTML = cancelledNote() + chosen + tierPicker + heading + methodsHtml(list, single) + secureNote(list, true);
     const active = list.find(m => m.id === activeId);
     if (active.onShow) active.onShow();
   }
@@ -325,14 +388,35 @@
     return data;
   }
 
+  // Field-level error state: aria-invalid + aria-describedby pointing at the form's message.
+  const markInvalid = (field, msgId) => { field.setAttribute('aria-invalid', 'true'); field.setAttribute('aria-describedby', msgId); };
+  const clearInvalid = field => {
+    if (!field || field.getAttribute('aria-invalid') !== 'true') return;
+    const msg = document.getElementById(field.getAttribute('aria-describedby'));
+    field.removeAttribute('aria-invalid'); field.removeAttribute('aria-describedby');
+    if (msg && !(field.form && field.form.querySelector('[aria-invalid="true"]'))) msg.textContent = '';
+  };
+  // Preset amount buttons: keep the visual state and aria-pressed in step with st.amount.
+  const syncPresets = () => root.querySelectorAll('.pay-amt').forEach(b => {
+    const on = st.amount !== '' && Number(b.dataset.amt) === Number(st.amount);
+    b.classList.toggle('selected', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+
   async function startCheckout(gw, button) {
     const form = document.getElementById('pay-form');
     const err = form.querySelector('.pay-form-err');
     err.textContent = '';
+    form.querySelectorAll('[aria-invalid]').forEach(f => { f.removeAttribute('aria-invalid'); f.removeAttribute('aria-describedby'); });
     const isM = purpose === 'membership';
-    if (!isM && !(Number(st.amount) > 0)) { err.textContent = 'Please choose or enter an amount.'; form.elements.amount.focus(); return; }
-    if (!st.name.trim()) { err.textContent = 'Please enter your name.'; form.elements.name.focus(); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(st.email.trim())) { err.textContent = 'Please enter a valid email address.'; form.elements.email.focus(); return; }
+    const fail = (name, text) => {
+      err.textContent = text;
+      const f = form.elements[name];
+      if (f) { markInvalid(f, 'pay-err'); f.focus(); }
+    };
+    if (!isM && !(Number(st.amount) > 0)) return fail('amount', 'Please choose or enter an amount.');
+    if (!st.name.trim()) return fail('name', 'Please enter your name.');
+    if (!EMAIL_RE.test(st.email.trim())) return fail('email', 'Please enter a valid email address.');
     const label = button.querySelector('.pay-gw-title').textContent;
     form.querySelectorAll('.pay-gw').forEach(b => { b.disabled = true; });
     button.querySelector('.pay-gw-title').textContent = 'Opening secure checkout…';
@@ -347,9 +431,9 @@
       });
       location.href = url;
     } catch (e) {
-      err.textContent = e.message;
       button.querySelector('.pay-gw-title').textContent = label;
-      render();
+      // Rebuild (re-enables the buttons) and keep focus on the button the donor pressed.
+      render(`#pay-form [data-gw="${cssEsc(gw)}"]`);
       document.querySelector('#pay-form .pay-form-err').textContent = e.message;
     }
   }
@@ -357,29 +441,51 @@
   root.addEventListener('click', e => {
     const tab = e.target.closest('.pay-method');
     if (tab) {
-      activeId = tab.dataset.id; render();
+      activeId = tab.dataset.id; render(`[data-id="${cssEsc(activeId)}"]`);
       if (window.innerWidth < 700) document.getElementById('pay-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     const amt = e.target.closest('.pay-amt');
-    if (amt) { st.amount = amt.dataset.amt; render(); return; }
+    if (amt) {
+      // Update in place — no re-render, so focus stays on the pressed button.
+      st.amount = amt.dataset.amt;
+      const input = document.querySelector('#pay-form input[name="amount"]');
+      if (input) { input.value = st.amount; clearInvalid(input); }
+      syncPresets();
+      return;
+    }
     const gw = e.target.closest('.pay-gw');
     if (gw && !gw.disabled) { startCheckout(gw.dataset.gw, gw); return; }
     const copy = e.target.closest('.pay-copy');
     if (copy) {
-      const done = () => { copy.textContent = 'Copied'; setTimeout(() => { copy.textContent = 'Copy'; }, 1500); };
-      if (navigator.clipboard) navigator.clipboard.writeText(copy.dataset.copy).then(done, done); else done();
+      const what = copy.dataset.label || 'Detail';
+      const done = () => {
+        copy.textContent = 'Copied'; announce(`${what} copied`);
+        setTimeout(() => { copy.textContent = 'Copy'; }, 1500);
+      };
+      // No clipboard access: select the value so it can be copied by hand, and say so visibly and to screen readers.
+      const failed = () => {
+        const val = copy.closest('.pay-detail') && copy.closest('.pay-detail').querySelector('.pay-detail-value');
+        let ok = false;
+        if (val && window.getSelection) {
+          const range = document.createRange(); range.selectNodeContents(val);
+          const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+          try { ok = document.execCommand('copy'); } catch { ok = false; }
+        }
+        if (ok) { done(); return; }
+        copy.textContent = 'Selected'; announce(`${what}: couldn't copy automatically. The text is selected, so you can copy it yourself.`);
+        setTimeout(() => { copy.textContent = 'Copy'; }, 2500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(copy.dataset.copy).then(done, failed); else failed();
     }
   });
 
   root.addEventListener('input', e => {
     const f = e.target;
+    clearInvalid(f);
     if (!f.closest('#pay-form')) return;
     if (['name', 'email', 'phone', 'country', 'profession'].includes(f.name)) st[f.name] = f.value;
-    if (f.name === 'amount') {
-      st.amount = f.value;
-      root.querySelectorAll('.pay-amt').forEach(b => b.classList.toggle('selected', Number(b.dataset.amt) === Number(f.value)));
-    }
+    if (f.name === 'amount') { st.amount = f.value; syncPresets(); }
   });
 
   root.addEventListener('change', e => {
@@ -396,8 +502,13 @@
     e.preventDefault();
     const msg = form.querySelector('.pay-form-msg');
     const v = n => (form.elements[n] ? form.elements[n].value.trim() : '');
-    if (!v('name') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email')) || !(Number(v('amount')) > 0)) {
-      msg.textContent = 'Please fill in your name, email and the amount you sent.'; return;
+    form.querySelectorAll('[aria-invalid]').forEach(f => { f.removeAttribute('aria-invalid'); f.removeAttribute('aria-describedby'); });
+    const bad = [!v('name') && 'name', !EMAIL_RE.test(v('email')) && 'email', !(Number(v('amount')) > 0) && 'amount'].filter(Boolean);
+    if (bad.length) {
+      bad.forEach(n => markInvalid(form.elements[n], msg.id));
+      msg.textContent = 'Please fill in your name, email and the amount you sent.';
+      form.elements[bad[0]].focus();
+      return;
     }
     const btn = form.querySelector('button[type=submit]');
     btn.disabled = true; msg.textContent = 'Sending…';
@@ -407,7 +518,9 @@
         name: v('name'), email: v('email'), phone: v('phone'), amount: Number(v('amount')), currency: v('currency'),
         date: v('date'), ref: refCode, country: st.country, website: v('website'),
       });
-      form.innerHTML = `<p class="pay-done"><strong>Thank you!</strong> We've received your notice (reference <code>${esc(refCode)}</code>). We'll confirm by email once the payment arrives.</p>`;
+      // The submit button and live region are replaced, so move focus to the confirmation (read out by screen readers).
+      form.innerHTML = `<p class="pay-done" tabindex="-1"><strong>Thank you!</strong> We've received your notice (reference <code>${esc(refCode)}</code>). We'll confirm by email once the payment arrives.</p>`;
+      form.querySelector('.pay-done').focus();
     } catch (err) {
       msg.textContent = err.message; btn.disabled = false;
     }
@@ -417,6 +530,10 @@
   const qTier = new URLSearchParams(location.search).get('tier');
   const pickTier = () => { if (qTier) selectedTier = tiers.find(t => t.id === qTier) || selectedTier; };
   pickTier();
+
+  // Back button from Stripe / PayPal / DPO restores this page from the back-forward cache with the
+  // pay buttons still disabled ("Opening secure checkout…"). Rebuild them from the saved form state.
+  window.addEventListener('pageshow', e => { if (e.persisted && online()) render(); });
 
   if (!API) { render(); return; }
   root.innerHTML = '<p class="pay-loading">Loading payment options…</p>';
@@ -432,6 +549,12 @@
       tiers = apiCfg.tiers;
       selectedTier = tiers.find(t => selectedTier && t.id === selectedTier.id) || tiers[0];
       pickTier();
+    }
+    // Drop a ?amount= that is outside the server's donation limits (USD) rather than guess.
+    if (online() && qAmount && st.amount === qAmount) {
+      const d = apiCfg.donation || {}, n = Number(qAmount);
+      const min = (d.min && d.min.USD) || 1, max = (d.max && d.max.USD) || Infinity;
+      if (n < min || n > max) st.amount = '';
     }
     render();
   })();

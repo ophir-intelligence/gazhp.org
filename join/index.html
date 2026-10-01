@@ -20,6 +20,9 @@
   <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/playfair-latin.woff2" as="font" type="font/woff2" crossorigin />
   <!-- /gazhp:head -->
+  <!-- Warm up the connection to the Donorbox form (its widget script loads in CORS mode, its form iframe without) -->
+  <link rel="preconnect" href="https://donorbox.org" />
+  <link rel="preconnect" href="https://donorbox.org" crossorigin />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="icon" type="image/png" href="/images/logo.png" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
@@ -82,13 +85,13 @@
 <section class="page-hero">
   <div class="container">
     <div class="page-hero-inner">
-      <div class="breadcrumb">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
-        <span>›</span>
+        <span aria-hidden="true">›</span>
         <a href="/membership/">Membership</a>
-        <span>›</span>
-        <span>Join</span>
-      </div>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Join</span>
+      </nav>
       <h1>Become a Member</h1>
       <p>
         Join a global community of Zambian healthcare professionals committed to leadership,
@@ -98,19 +101,31 @@
   </div>
 </section>
 
-<!-- ========== APPLY (Donorbox membership form) ========== -->
+<!-- ========== APPLY (payment options rendered by js/payments.js) ========== -->
 <section class="section-pad" id="apply">
   <div class="container">
     <div class="center fade-up" style="max-width:720px;margin:0 auto;">
       <p class="section-sub">
-        Pick your tier, then choose how to pay — card, PayPal, mobile money, bank transfer and more.
-        GAZHP is a registered 501(c)(3) nonprofit, so dues may be tax-deductible — check with your local tax advisor.
+        Pick your tier, then choose a secure payment method.
+        GAZHP is a registered US 501(c)(3) nonprofit. Membership dues paid by US taxpayers may be tax-deductible to the extent allowed by law.
       </p>
     </div>
     <div class="pay-wrap fade-up">
+      <!-- Benefits summary, taken from the tier cards on /membership/ (footer "Become a Member" links skip that page) -->
+      <div class="faq prose-links" style="margin-bottom:28px;">
+        <details>
+          <summary>What do members get?</summary>
+          <ul style="list-style:disc;padding-left:20px;">
+            <li><strong>Professional:</strong> full voting rights, access to all GAZHP programs, CME and training opportunities, and the members-only online community.</li>
+            <li><strong>Student:</strong> the GAZHP member network, educational webinars and events, mentorship, and career guidance.</li>
+            <li><strong>Corporate:</strong> recognition across GAZHP, sponsorship and engagement opportunities, and program partnership access.</li>
+          </ul>
+          <p><a href="/membership/">Compare tiers, prices &amp; benefits</a></p>
+        </details>
+      </div>
       <div id="payment-options" data-purpose="membership"></div>
       <p style="text-align:center;margin-top:24px;">
-        <a href="/membership/" style="font-size:.88rem;color:var(--teal);font-weight:600;">‹ Back to membership tiers &amp; benefits</a>
+        <a href="/membership/" style="font-size:.88rem;color:var(--teal-ink);font-weight:600;">‹ Back to membership tiers &amp; benefits</a>
       </p>
     </div>
   </div>

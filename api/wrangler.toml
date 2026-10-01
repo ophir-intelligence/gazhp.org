@@ -21,7 +21,9 @@ ZMW_PER_USD = "27"
 # DPO Pay API server. Use the sandbox URL DPO gives you while testing.
 DPO_API_URL = "https://secure.3gdirectpay.com"
 
-# Re-check pending DPO Pay payments every 15 minutes (mobile money approved later on the phone).
+# Every 15 minutes: re-check pending DPO Pay payments (mobile money approved later
+# on the phone), capture PayPal orders approved by donors who never came back to
+# the site, and clear expired rate-limit counters.
 [triggers]
 crons = ["*/15 * * * *"]
 
@@ -33,11 +35,16 @@ crons = ["*/15 * * * *"]
 #   STRIPE_WEBHOOK_SECRET  whsec_…
 #   PAYPAL_CLIENT_ID       PayPal REST app client ID
 #   PAYPAL_CLIENT_SECRET   PayPal REST app secret
-#   PAYPAL_WEBHOOK_ID      optional — enables PayPal refund webhooks
+#   PAYPAL_WEBHOOK_ID      optional — enables PayPal webhooks (refunds, and instant
+#                          capture of approved orders via CHECKOUT.ORDER.APPROVED)
 #   DPO_COMPANY_TOKEN      Company token from DPO Pay
 #   DPO_SERVICE_TYPE       Service type number DPO assigns to your account
-#   RESEND_API_KEY         optional — email alerts for new payments (resend.com)
+#   RESEND_API_KEY         optional — email alerts for new payments and contact-form
+#                          messages (resend.com)
 #   NOTIFY_EMAIL           optional — where alerts go, e.g. info@gazhphealth.org
 #   FROM_EMAIL             optional — verified sender, e.g. payments@gazhphealth.org
 #
 # A gateway switches on automatically once its secret key is set.
+#
+# Rate limiting needs no binding or paid plan: per-IP counters live in the D1
+# table rate_limits (see schema.sql and RATE_LIMITS in src/index.js).

@@ -37,6 +37,7 @@
     <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
     <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
     <symbol id="i-graduation-cap" viewBox="0 0 24 24"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></symbol>
+    <symbol id="i-hospital" viewBox="0 0 24 24"><path d="M12 6v4"/><path d="M14 14h-4"/><path d="M14 18h-4"/><path d="M14 8h-4"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h2"/><path d="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18"/></symbol>
     <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
     <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></symbol>
     <symbol id="i-twitter" viewBox="0 0 24 24"><path d="M4 4l11.733 16h4.267L8.267 4z"/><path d="M4 20l6.768-6.768m2.46-2.46l6.772-6.772"/></symbol>
@@ -86,11 +87,11 @@
 <section class="page-hero">
   <div class="container">
     <div class="page-hero-inner">
-      <div class="breadcrumb">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
-        <span>›</span>
-        <span>Membership</span>
-      </div>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Membership</span>
+      </nav>
       <h1>Join the Alliance</h1>
       <p>
         GAZHP welcomes Zambian healthcare professionals, students, and supporters from every corner of the globe.
@@ -159,7 +160,7 @@
       <div class="membership-card recommended fade-up">
         <div class="membership-tag">For Professionals</div>
         <div class="membership-icon"><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg></div>
-        <div class="membership-type">Professional Member</div>
+        <h3 class="membership-type">Professional Member</h3>
         <div class="membership-fee-tiers">
           <div class="fee-row"><span class="fee-amount">US$200</span><span class="fee-note">/ year — developed countries</span></div>
           <div class="fee-row"><span class="fee-amount">US$100</span><span class="fee-note">/ year — Zambia &amp; developing countries</span></div>
@@ -173,11 +174,11 @@
           <li>Members-only online community</li>
           <li>Member directory listing</li>
         </ul>
-        <a href="/join/" class="btn btn-teal membership-apply">Apply Now</a>
+        <a href="/join/?tier=professional-developed" class="btn btn-teal membership-apply">Apply Now<span class="sr-only"> for Professional membership</span></a>
       </div>
       <div class="membership-card fade-up">
         <div class="membership-icon"><svg class="icon" aria-hidden="true"><use href="#i-graduation-cap"/></svg></div>
-        <div class="membership-type">Student Member</div>
+        <h3 class="membership-type">Student Member</h3>
         <div class="membership-fee-tiers">
           <div class="fee-row"><span class="fee-amount">US$75</span><span class="fee-note">/ year — developed countries</span></div>
           <div class="fee-row"><span class="fee-amount">US$40</span><span class="fee-note">/ year — Zambia &amp; developing countries</span></div>
@@ -190,11 +191,11 @@
           <li>Career guidance and support</li>
           <li>Members-only online community</li>
         </ul>
-        <a href="/join/" class="btn btn-teal membership-apply">Apply Now</a>
+        <a href="/join/?tier=student-developed" class="btn btn-teal membership-apply">Apply Now<span class="sr-only"> for Student membership</span></a>
       </div>
       <div class="membership-card fade-up">
         <div class="membership-icon"><svg class="icon" aria-hidden="true"><use href="#i-hospital"/></svg></div>
-        <div class="membership-type">Corporate Member</div>
+        <h3 class="membership-type">Corporate Member</h3>
         <div class="membership-fee-tiers">
           <div class="fee-row"><span class="fee-amount">US$1,000</span><span class="fee-note">/ year — all corporations</span></div>
         </div>
@@ -206,15 +207,16 @@
           <li>Recognition in annual report</li>
           <li>Co-branded initiative options</li>
         </ul>
-        <a href="/join/?tier=corporate" class="btn btn-green membership-apply">Apply Now</a>
+        <a href="/join/?tier=corporate" class="btn btn-green membership-apply">Apply Now<span class="sr-only"> for Corporate membership</span></a>
       </div>
     </div>
 
     <!-- Sponsors & Partners -->
-    <div style="margin-top:48px;background:var(--navy);border-radius:var(--radius-lg);padding:48px 40px;display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;" class="fade-up">
-      <div>
+    <!-- Wraps on its own: text and button share a row when there is room, and stack on phones -->
+    <div style="margin-top:48px;background:var(--navy);border-radius:var(--radius-lg);padding:clamp(28px,6vw,48px) clamp(20px,5vw,40px);display:flex;flex-wrap:wrap;align-items:center;gap:24px 40px;" class="fade-up">
+      <div style="flex:1 1 380px;min-width:0;">
         <span class="tag" style="color:var(--gold);">Sponsors &amp; Partners</span>
-        <h3 style="font-family:var(--font-head);font-size:1.8rem;color:var(--white);margin-bottom:12px;">Collaborate With GAZHP</h3>
+        <h3 style="font-family:var(--font-head);font-size:clamp(1.45rem,4.5vw,1.8rem);line-height:1.25;color:var(--white);margin-bottom:12px;">Collaborate With GAZHP</h3>
         <p style="color:rgba(255,255,255,.72);font-size:.95rem;line-height:1.7;margin-bottom:0;">
           For individuals, healthcare providers or agencies, colleges or universities who want to collaborate with
           GAZHP or stay current with the healthcare profession and our activities. Sponsors &amp; Partners enjoy
@@ -222,8 +224,8 @@
           tier may not vote or hold office, and does not include access to the members-only online community.
         </p>
       </div>
-      <div style="flex-shrink:0;text-align:center;">
-        <a href="/contact/" class="btn btn-primary btn-lg">Get in Touch</a>
+      <div style="flex:0 1 auto;max-width:100%;">
+        <a href="/contact/" class="btn btn-primary btn-lg">Get in Touch<span class="sr-only"> about Sponsors &amp; Partners</span></a>
       </div>
     </div>
   </div>
@@ -238,7 +240,7 @@
     </div>
     <div style="max-width:720px;margin:48px auto 0;display:flex;flex-direction:column;gap:16px;">
       <div class="fade-up" style="border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:24px 28px;">
-        <h4 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;">Do I need to be Zambian to join?</h4>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;">Do I need to be Zambian to join?</h3>
         <p style="font-size:.9rem;color:var(--gray-600);line-height:1.65;">
           Professional and Student membership is open to all Zambian health professionals — doctors, nurses,
           administration, technical and support staff — as well as Zambian students in advanced programs.
@@ -247,24 +249,26 @@
         </p>
       </div>
       <div class="fade-up" style="border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:24px 28px;">
-        <h4 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;">I'm based in Zambia, can I still join?</h4>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;">I'm based in Zambia, can I still join?</h3>
         <p style="font-size:.9rem;color:var(--gray-600);line-height:1.65;">
           Absolutely! GAZHP welcomes both diaspora and locally-based Zambian healthcare professionals.
           Local members are essential to everything we do.
         </p>
       </div>
       <div class="fade-up" style="border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:24px 28px;">
-        <h4 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;">Are membership fees tax-deductible?</h4>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;">Are membership fees tax-deductible?</h3>
         <p style="font-size:.9rem;color:var(--gray-600);line-height:1.65;">
-          GAZHP is a registered 501(c)(3) nonprofit. Please consult your tax advisor regarding the deductibility
-          of membership fees in your country of residence.
+          GAZHP is a registered US 501(c)(3) nonprofit. Membership dues paid by US taxpayers may be
+          tax-deductible to the extent allowed by law. Because membership comes with benefits, dues may be
+          treated differently from a donation, and rules in other countries differ, so please check with your tax advisor.
         </p>
       </div>
       <div class="fade-up" style="border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:24px 28px;">
-        <h4 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;">How do I apply?</h4>
-        <p style="font-size:.9rem;color:var(--gray-600);line-height:1.65;">
-          Click the "Apply Now" button on your chosen membership tier, or visit our Contact page and
-          select "Membership Application" as your inquiry type. Our team will reach out within 5 business days.
+        <h3 style="font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:8px;">How do I apply?</h3>
+        <p class="prose-links" style="font-size:.9rem;color:var(--gray-600);line-height:1.65;">
+          Click "Apply Now" on your chosen tier to go to our <a href="/join/">Join page</a>, where you can
+          confirm your membership and pay your annual dues securely online. Questions first? Email
+          <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a> — we typically respond within 2–3 business days.
         </p>
       </div>
     </div>
@@ -277,7 +281,7 @@
     <h2>Ready to Join?</h2>
     <p>Take the first step toward making a real difference in Zambia's healthcare future.</p>
     <div class="cta-actions">
-      <a href="/contact/" class="btn btn-primary btn-lg">Apply for Membership</a>
+      <a href="/join/" class="btn btn-primary btn-lg">Apply for Membership</a>
       <a href="/donate/" class="btn btn-outline-white btn-lg"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg>Donate Instead</a>
     </div>
   </div>

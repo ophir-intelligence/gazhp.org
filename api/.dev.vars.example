@@ -6,3 +6,8 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 # PAYPAL_CLIENT_SECRET=
 # DPO_COMPANY_TOKEN=
 # DPO_SERVICE_TYPE=
+# PAYPAL_WEBHOOK_ID=
+# Optional email alerts (new payments, "I've paid" reports, contact-form messages):
+# RESEND_API_KEY=
+# NOTIFY_EMAIL=
+# FROM_EMAIL=

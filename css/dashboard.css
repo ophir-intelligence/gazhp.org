@@ -56,7 +56,7 @@
 .dash-grid-2 > .dash-card { margin-bottom: 20px; }
 .dash-muted { font-size: .86rem; color: var(--gray-600); line-height: 1.6; margin-bottom: 14px; }
 .dash-muted code, .dash-main code { background: var(--gray-100); padding: 1px 6px; border-radius: 4px; font-size: .82em; }
-.link-btn { background: none; color: var(--teal); font-weight: 600; font-size: .84rem; }
+.link-btn { background: none; color: var(--teal-ink, #00786f);font-weight: 600; font-size: .84rem; }
 .dash-list { font-size: .86rem; color: var(--gray-600); margin: 0 0 16px 18px; list-style: disc; }
 .dash-list li { margin-bottom: 4px; }
 .dash-btn-col { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
@@ -176,3 +176,22 @@
 .pill.st-pending { background: #fff3cd; color: #7a5200; }
 .pill.st-failed { background: #fdecea; color: var(--bad); }
 .pill.st-refunded { background: var(--gray-100); color: var(--gray-600); }
+
+/* ---------- Messages (Contact page form, API mode) ---------- */
+.dash-tabs button { position: relative; } /* keeps the badge's sr-only text inside the scrolling tab bar (no page-wide overflow on phones) */
+.tab-badge { display: inline-block; min-width: 20px; margin-left: 2px;padding: 0 6px; border-radius: 99px; background: var(--red-cta); color: var(--white); font-size: .72rem; font-weight: 700; line-height: 1.6; text-align: center; vertical-align: 1px; }
+#msg-alert .dash-banner a { font-weight: 700; text-decoration: underline; }
+.msg { margin-bottom: 14px; }
+.msg:focus { outline: 2px solid var(--teal-ink, #00786f); outline-offset: 2px; }
+.msg-new { border-left: 4px solid var(--series-1); }
+.msg-archived { background: var(--gray-50); }
+.msg-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; margin-bottom: 6px; font-size: .88rem; color: var(--black); }
+.msg-email { color: var(--gray-600); font-size: .84rem; overflow-wrap: anywhere; }
+.msg-email a { color: var(--teal-ink, #00786f); }
+.msg-meta { display: inline-flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--gray-600); white-space: nowrap; }
+.dash-card h3.msg-subject { font-size: 1rem; margin: 4px 0 8px; }
+.msg-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; line-height: 1.6; color: var(--gray-800); max-width: 75ch; }
+.msg-prof { font-size: .82rem; color: var(--gray-600); margin: -4px 0 8px; }
+.msg-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 14px; }
+.pill.msg-st-new { background: #e8f1fc; color: #1d4f8f; }
+.pill.msg-st-read, .pill.msg-st-archived { background: var(--gray-100); color: var(--gray-600); }

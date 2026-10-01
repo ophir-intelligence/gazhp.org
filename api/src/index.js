@@ -5,26 +5,37 @@
      GET  /config                     tiers + which gateways are switched on
      POST /checkout                   start a Stripe / PayPal / DPO Pay payment
      POST /notify                     donor reports an offline payment (Zelle, bank…)
+     POST /contact                    contact form { name, email, subject, message, website }
      GET  /paypal/return | /paypal/cancel
      GET  /dpo/return
    Webhooks (gateways → us):
      POST /webhooks/stripe | /webhooks/paypal | /webhooks/dpo
-   Scheduled (cron): re-checks recent DPO Pay payments, e.g. mobile money
-   approved on the donor's phone after they left the page.
+   Scheduled (cron, every 15 minutes):
+     - re-checks unsettled DPO Pay payments, e.g. mobile money approved on the
+       donor's phone after they left the page;
+     - captures PayPal orders the donor approved but never returned from;
+     - deletes expired rate-limit counters.
    Admin (Bearer token from /admin/login):
      POST   /admin/login
      GET    /admin/payments
      POST   /admin/payments           { records: [...] }  manual entry / CSV import
      PATCH  /admin/payments/:id       { status, type, tier, notes, … }
      DELETE /admin/payments/:id
+     GET    /admin/messages           contact-form messages
+     PATCH  /admin/messages/:id       { status: new | read | archived }
+     DELETE /admin/messages/:id
+   Abuse protection: per-IP rate limits on the public POST routes (RATE_LIMITS
+   below), counted in the D1 table rate_limits. No paid Cloudflare feature needed.
    ============================================================================= */
 import { TIERS, DONATION, OFFLINE_METHODS } from './config.js';
 
 const enc = new TextEncoder();
+const MINUTE = 60 * 1000, HOUR = 60 * MINUTE;
+const isoAgo = ms => new Date(Date.now() - ms).toISOString();
 
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(dpoSweep(env, ctx));
+    ctx.waitUntil(scheduledJobs(env, ctx));
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -35,11 +46,21 @@ export default {
       for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
       return res;
     } catch (err) {
-      if (err instanceof HttpError) return json({ error: err.message }, err.status, cors);
+      if (err instanceof HttpError) return json({ error: err.message }, err.status, { ...cors, ...err.headers });
       console.error(err && err.stack || err);
       return json({ error: 'Something went wrong. Please try again.' }, 500, cors);
     }
   },
+};
+
+/* Per-IP limits for the public POST routes: [max requests, per window in seconds].
+   Carrier-grade NAT puts many Zambian mobile users behind one IP, so the payment
+   limits stay generous; the login and contact limits are tighter. */
+const RATE_LIMITS = {
+  '/checkout': [20, 60],
+  '/notify': [10, 600],
+  '/contact': [5, 600],
+  '/admin/login': [10, 900],
 };
 
 async function route(request, env, ctx, url) {
@@ -48,8 +69,10 @@ async function route(request, env, ctx, url) {
 
   if (m === 'GET' && (p === '/' || p === '/health')) return json({ ok: true });
   if (m === 'GET' && p === '/config') return json(publicConfig(env));
+  if (m === 'POST' && RATE_LIMITS[p]) await rateLimit(request, env, p);
   if (m === 'POST' && p === '/checkout') return checkout(request, env, url);
   if (m === 'POST' && p === '/notify') return notify(request, env, ctx);
+  if (m === 'POST' && p === '/contact') return contact(request, env, ctx);
 
   if (m === 'GET' && p === '/paypal/return') return paypalReturn(env, ctx, url);
   if (m === 'GET' && p === '/paypal/cancel') return Response.redirect(cancelUrl(env, url.searchParams.get('purpose')), 302);
@@ -67,6 +90,10 @@ async function route(request, env, ctx, url) {
     const idMatch = p.match(/^\/admin\/payments\/([\w-]+)$/);
     if (idMatch && m === 'PATCH') return adminUpdate(request, env, idMatch[1]);
     if (idMatch && m === 'DELETE') return adminDelete(env, idMatch[1]);
+    if (m === 'GET' && p === '/admin/messages') return adminMessages(env);
+    const msgMatch = p.match(/^\/admin\/messages\/([\w-]+)$/);
+    if (msgMatch && m === 'PATCH') return adminMessageUpdate(request, env, msgMatch[1]);
+    if (msgMatch && m === 'DELETE') return adminMessageDelete(env, msgMatch[1]);
   }
   throw new HttpError(404, 'Not found');
 }
@@ -75,7 +102,7 @@ async function route(request, env, ctx, url) {
    Helpers
    ============================================================================= */
 class HttpError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
+  constructor(status, message, headers = {}) { super(message); this.status = status; this.headers = headers; }
 }
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', ...headers } });
@@ -95,9 +122,12 @@ function corsHeaders(request, env) {
 async function readJson(request, maxBytes = 20000) {
   const text = await request.text();
   if (text.length > maxBytes) throw new HttpError(413, 'Request too large');
-  try { return JSON.parse(text || '{}'); } catch { throw new HttpError(400, 'Invalid JSON'); }
+  let data;
+  try { data = JSON.parse(text || '{}'); } catch { throw new HttpError(400, 'Invalid JSON'); }
+  return data && typeof data === 'object' && !Array.isArray(data) ? data : {}; // null / arrays / numbers → {}
 }
 const str = (v, max = 200) => String(v ?? '').trim().slice(0, max);
+const oneLine = (v, max = 200) => str(String(v ?? '').replace(/\s+/g, ' '), max);
 const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const today = () => new Date().toISOString().slice(0, 10);
 const isoDate = v => {
@@ -110,6 +140,7 @@ const cancelUrl = (env, purpose) => `${siteUrl(env)}/${purpose === 'membership' 
 const thanksUrl = (env, gw, purpose, status = 'paid') => `${siteUrl(env)}/thank-you/?gw=${gw}&purpose=${purpose === 'membership' ? 'membership' : 'donation'}&status=${status}`;
 const tierById = id => TIERS.find(t => t.id === id);
 const tierName = t => t ? `${t.name} — ${t.region}` : '';
+const GATEWAYS = ['stripe', 'paypal', 'dpo'];
 const gatewaysOn = env => ({
   stripe: !!env.STRIPE_SECRET_KEY,
   paypal: !!(env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET),
@@ -130,6 +161,42 @@ function safeEqual(a, b) {
 }
 const b64url = s => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const unb64url = s => atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+
+/* Fixed-window rate limit kept in D1 (table rate_limits, see schema.sql).
+   One atomic upsert per request. Only a keyed hash of the IP is stored, never
+   the IP itself, and the cron job deletes counters once their window is over.
+   If the table is missing or D1 hiccups, the request is let through (logged):
+   a donation should never fail because of the limiter. */
+async function rateLimit(request, env, path) {
+  const [max, seconds] = RATE_LIMITS[path];
+  const windowMs = seconds * 1000;
+  const start = Math.floor(Date.now() / windowMs) * windowMs;
+  let hits = 0;
+  try {
+    const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+    const who = (await hmacHex(env.ADMIN_PASSWORD || 'gazhp-rate-limit', `rate-limit|${ip}`)).slice(0, 32);
+    const row = await env.DB.prepare(
+      `INSERT INTO rate_limits (key, hits, expires_at) VALUES (?, 1, ?)
+       ON CONFLICT(key) DO UPDATE SET hits = hits + 1
+       RETURNING hits`).bind(`${path}|${who}|${start}`, start + windowMs).first();
+    hits = (row && row.hits) || 0;
+  } catch (err) {
+    console.error('rate limit unavailable', err);
+    return;
+  }
+  if (hits > max) {
+    const wait = Math.max(1, Math.ceil((start + windowMs - Date.now()) / 1000));
+    throw new HttpError(429, `Too many attempts. Please wait ${wait > 90 ? `${Math.ceil(wait / 60)} minutes` : 'a minute'} and try again.`, { 'retry-after': String(wait) });
+  }
+}
+async function cleanupRateLimits(env, ctx, budget) {
+  budget.left -= 1;
+  await env.DB.prepare('DELETE FROM rate_limits WHERE expires_at < ?').bind(Date.now()).run();
+}
+async function recentCount(env, sql, ms) {
+  const row = await env.DB.prepare(sql).bind(isoAgo(ms)).first();
+  return (row && row.n) || 0;
+}
 
 /* =============================================================================
    Database
@@ -157,21 +224,28 @@ function paymentRow(p) {
   return row;
 }
 
-/* Insert, or — for a payment we already know — update its status.
-   Never downgrades a paid payment back to pending. */
-function upsertStmt(env, p) {
+/* Saves a payment in one atomic batch: insert it if it's new, otherwise update
+   only its status. Webhooks are retried and can arrive out of order, so:
+   a refund is final, and a late or repeated 'pending'/'failed' event never
+   undoes a confirmed payment. (Admins can still change any status in the
+   dashboard.) Returns isNew so callers alert exactly once per payment. */
+async function savePayment(env, p) {
   const row = paymentRow(p);
-  return env.DB.prepare(
-    `INSERT INTO payments (${PAY_COLS.join(',')}) VALUES (${PAY_COLS.map(() => '?').join(',')})
-     ON CONFLICT(dedupe_key) DO UPDATE SET status =
-       CASE WHEN payments.status = 'paid' AND excluded.status = 'pending' THEN payments.status ELSE excluded.status END`
-  ).bind(...PAY_COLS.map(c => row[c]));
+  const [ins] = await env.DB.batch([
+    env.DB.prepare(`INSERT OR IGNORE INTO payments (${PAY_COLS.join(',')}) VALUES (${PAY_COLS.map(() => '?').join(',')})`)
+      .bind(...PAY_COLS.map(c => row[c])),
+    env.DB.prepare(
+      `UPDATE payments SET status = CASE
+         WHEN status = 'refunded' THEN 'refunded'
+         WHEN status = 'paid' AND ? IN ('pending', 'failed') THEN 'paid'
+         ELSE ? END
+       WHERE dedupe_key = ?`).bind(row.status, row.status, row.dedupe_key),
+  ]);
+  return { row, isNew: !!(ins && ins.meta && ins.meta.changes) };
 }
 async function recordPayment(env, ctx, p) {
-  const before = await env.DB.prepare('SELECT status FROM payments WHERE dedupe_key = ?')
-    .bind(paymentRow(p).dedupe_key).first();
-  await upsertStmt(env, p).run();
-  if (!before && p.status === 'paid') {
+  const { isNew } = await savePayment(env, p);
+  if (isNew && p.status === 'paid') {
     const t = tierById(p.tier);
     alertAdmin(env, ctx, `New ${p.type === 'membership' ? 'membership' : 'donation'}: ${p.currency} ${Number(p.amount).toFixed(2)} via ${p.method}`,
       [`Name: ${p.name || '—'}`, `Email: ${p.email || '—'}`, t ? `Tier: ${tierName(t)}` : '', `Reference: ${p.ref || '—'}`].filter(Boolean).join('\n'));
@@ -187,13 +261,31 @@ async function getCheckout(env, id) {
   if (!id) return null;
   return env.DB.prepare('SELECT * FROM checkouts WHERE id = ?').bind(id).first();
 }
+async function checkoutByRef(env, gateway, ref) {
+  ref = str(ref, 100);
+  if (!/^[\w-]+$/.test(ref)) return null;
+  return env.DB.prepare('SELECT * FROM checkouts WHERE gateway = ? AND gateway_ref = ?').bind(gateway, ref).first();
+}
+/* Bookkeeping for the cron sweeps: checked_at on every look at the gateway,
+   settled_at once the outcome is final so the checkout is never polled again.
+   Never lets a bookkeeping error break a donor's redirect. */
+async function markCheckout(env, id, settled) {
+  if (!id) return;
+  const now = new Date().toISOString();
+  try {
+    await env.DB.prepare('UPDATE checkouts SET checked_at = ?, settled_at = COALESCE(settled_at, ?) WHERE id = ?')
+      .bind(now, settled ? now : null, id).run();
+  } catch (err) { console.error('mark checkout', err); }
+}
 
-function alertAdmin(env, ctx, subject, text) {
+function alertAdmin(env, ctx, subject, text, replyTo) {
   if (!env.RESEND_API_KEY || !env.NOTIFY_EMAIL || !env.FROM_EMAIL) return;
+  const msg = { from: env.FROM_EMAIL, to: env.NOTIFY_EMAIL.split(',').map(s => s.trim()), subject: `[GAZHP] ${subject}`, text };
+  if (replyTo && isEmail(replyTo)) msg.reply_to = replyTo;
   const send = fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ from: env.FROM_EMAIL, to: env.NOTIFY_EMAIL.split(',').map(s => s.trim()), subject: `[GAZHP] ${subject}`, text }),
+    body: JSON.stringify(msg),
   }).catch(err => console.error('email alert failed', err));
   if (ctx && ctx.waitUntil) ctx.waitUntil(send);
 }
@@ -219,7 +311,8 @@ async function checkout(request, env, url) {
   const b = await readJson(request);
   const gateway = str(b.gateway, 20);
   const on = gatewaysOn(env);
-  if (!on[gateway]) throw new HttpError(400, 'That payment method is not available.');
+  // Explicit allow-list: on['constructor'] etc. are truthy object properties.
+  if (!GATEWAYS.includes(gateway) || !on[gateway]) throw new HttpError(400, 'That payment method is not available.');
 
   const purpose = b.purpose === 'membership' ? 'membership' : 'donation';
   const name = str(b.name, 120), email = str(b.email, 160).toLowerCase();
@@ -266,7 +359,8 @@ async function checkout(request, env, url) {
   let redirect, gatewayRef;
   if (gateway === 'stripe') ({ redirect, gatewayRef } = await stripeCreate(env, co, label));
   else if (gateway === 'paypal') ({ redirect, gatewayRef } = await paypalCreate(env, co, label, apiBase));
-  else ({ redirect, gatewayRef } = await dpoCreate(env, co, label, apiBase));
+  else if (gateway === 'dpo') ({ redirect, gatewayRef } = await dpoCreate(env, co, label, apiBase));
+  else throw new HttpError(400, 'That payment method is not available.');
 
   await env.DB.prepare('UPDATE checkouts SET gateway_ref = ? WHERE id = ?').bind(gatewayRef || '', co.id).run();
   return json({ url: redirect });
@@ -282,10 +376,14 @@ function formEncode(obj, prefix = '', out = []) {
   }
   return out.join('&');
 }
+/* Pinned so request/response shapes don't change with the account's default
+   version. (Webhook payloads follow the version chosen on the webhook endpoint;
+   the handlers below accept both the older and the basil shapes.) */
+const STRIPE_API_VERSION = '2025-03-31.basil';
 async function stripeApi(env, path, params, method = 'POST') {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
     method,
-    headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'content-type': 'application/x-www-form-urlencoded' },
+    headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'content-type': 'application/x-www-form-urlencoded', 'stripe-version': STRIPE_API_VERSION },
     body: method === 'POST' ? formEncode(params) : undefined,
   });
   const data = await res.json();
@@ -379,7 +477,29 @@ async function stripeWebhook(request, env, ctx) {
       break;
     }
     case 'charge.refunded': {
-      if (o.amount_refunded >= o.amount) await setStatusByRef(env, 'stripe', [o.payment_intent, o.invoice], 'refunded');
+      if (!(o.amount_refunded > 0)) break;
+      // One-time gifts are stored by payment intent, monthly/renewal charges by
+      // invoice id. Since API 2025-03-31.basil a Charge has no `invoice` field,
+      // so look the invoice up through the Invoice Payments API.
+      const refs = [o.payment_intent, o.invoice];
+      if (o.payment_intent && !o.invoice) {
+        try {
+          const ip = await stripeApi(env, `invoice_payments?payment[type]=payment_intent&payment[payment_intent]=${encodeURIComponent(o.payment_intent)}&limit=1`, null, 'GET');
+          if (ip.data && ip.data[0] && ip.data[0].invoice) refs.push(ip.data[0].invoice);
+        } catch (err) { console.error('stripe invoice lookup', err); }
+      }
+      const ids = refs.filter(Boolean);
+      if (!ids.length) break;
+      if (o.amount_refunded >= o.amount) {
+        await setStatusByRef(env, 'stripe', ids, 'refunded');
+      } else {
+        // Partial refund: keep it as paid, but note it so totals can be corrected.
+        const note = `Partially refunded ${(o.currency || 'usd').toUpperCase()} ${(o.amount_refunded / 100).toFixed(2)}`;
+        await env.DB.prepare(
+          `UPDATE payments SET notes = CASE WHEN COALESCE(notes, '') = '' THEN ? ELSE notes || ' · ' || ? END
+           WHERE source = 'stripe' AND ref IN (${ids.map(() => '?').join(',')}) AND instr(COALESCE(notes, ''), ?) = 0`)
+          .bind(note, note, ...ids, note).run();
+      }
       break;
     }
   }
@@ -388,23 +508,31 @@ async function stripeWebhook(request, env, ctx) {
 
 /* ------------------------------ PayPal ------------------------------------ */
 const paypalBase = env => env.PAYPAL_ENV === 'sandbox' ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+/* PayPal asks integrations to reuse access tokens until they expire (about 9h).
+   Cached per Worker isolate, keyed so sandbox and live never share a token. */
+let paypalTokenCache = null;
 async function paypalToken(env) {
+  const key = `${env.PAYPAL_ENV}|${env.PAYPAL_CLIENT_ID}`;
+  const c = paypalTokenCache;
+  if (c && c.key === key && c.exp > Date.now() + MINUTE) return c.token;
   const res = await fetch(`${paypalBase(env)}/v1/oauth2/token`, {
     method: 'POST',
     headers: { authorization: 'Basic ' + btoa(`${env.PAYPAL_CLIENT_ID}:${env.PAYPAL_CLIENT_SECRET}`), 'content-type': 'application/x-www-form-urlencoded' },
     body: 'grant_type=client_credentials',
   });
-  const data = await res.json();
-  if (!res.ok) { console.error('paypal auth', JSON.stringify(data)); throw new HttpError(502, 'PayPal is unavailable. Please try another method.'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.access_token) { console.error('paypal auth', JSON.stringify(data)); throw new HttpError(502, 'PayPal is unavailable. Please try another method.'); }
+  paypalTokenCache = { key, token: data.access_token, exp: Date.now() + (Number(data.expires_in) || 300) * 1000 };
   return data.access_token;
 }
 async function paypalApi(env, path, { method = 'POST', body, headers = {} } = {}) {
-  const token = await paypalToken(env);
-  const res = await fetch(`${paypalBase(env)}${path}`, {
+  const send = async token => fetch(`${paypalBase(env)}${path}`, {
     method,
     headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json', ...headers },
     body: body ? JSON.stringify(body) : undefined,
   });
+  let res = await send(await paypalToken(env));
+  if (res.status === 401) { paypalTokenCache = null; res = await send(await paypalToken(env)); } // token revoked early
   const data = await res.json().catch(() => ({}));
   return { ok: res.ok, status: res.status, data };
 }
@@ -431,8 +559,8 @@ function paypalCaptureFromOrder(order) {
   const cap = (pu.payments && pu.payments.captures || [])[0];
   return { pu, cap };
 }
-async function recordPaypalCapture(env, ctx, cap, customId, payer) {
-  const co = await getCheckout(env, customId);
+async function recordPaypalCapture(env, ctx, cap, customId, payer, co = null) {
+  co = co || await getCheckout(env, customId);
   if (!co) return null;
   const status = cap.status === 'COMPLETED' ? 'paid' : ['DECLINED', 'FAILED'].includes(cap.status) ? 'failed' : cap.status === 'REFUNDED' ? 'refunded' : 'pending';
   const payerName = payer && payer.name ? [payer.name.given_name, payer.name.surname].filter(Boolean).join(' ') : '';
@@ -442,18 +570,49 @@ async function recordPaypalCapture(env, ctx, cap, customId, payer) {
     type: co.purpose, tier: co.tier, name: co.name || payerName, email: co.email || (payer && payer.email_address),
     phone: co.phone, country: co.country, profession: co.profession,
   });
+  // A pending capture (e.g. under review) is still re-checked by the sweep.
+  await markCheckout(env, co.id, status !== 'pending');
   return { co, status };
 }
+/* Records the capture inside an order returned by the capture call or a GET. */
+async function paypalRecordOrder(env, ctx, order, co) {
+  const { pu, cap } = paypalCaptureFromOrder(order || {});
+  if (!cap) return null;
+  return recordPaypalCapture(env, ctx, cap, cap.custom_id || pu.custom_id, order.payer, co);
+}
+/* Captures an approved order. The return page, the webhook and the cron sweep
+   all use the same PayPal-Request-Id, so PayPal captures each order only once. */
+async function paypalCapture(env, ctx, co) {
+  const orderId = co.gateway_ref;
+  const r = await paypalApi(env, `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, { headers: { 'PayPal-Request-Id': `cap-${orderId}` } });
+  if (r.ok) return { rec: await paypalRecordOrder(env, ctx, r.data, co) };
+  const issues = ((r.data && r.data.details) || []).map(d => d && d.issue);
+  return { rec: null, declined: issues.includes('INSTRUMENT_DECLINED'), error: r.data || {} };
+}
+/* Where to send a donor whose funding source was declined, so they can pick
+   another one on PayPal (PayPal's recommended handling of INSTRUMENT_DECLINED). */
+function paypalRetryLink(data) {
+  const link = ((data && data.links) || []).find(l => ['redirect', 'payer-action', 'approve'].includes(l.rel));
+  return link && /^https:\/\/([\w-]+\.)*paypal\.com\//.test(link.href) ? link.href : '';
+}
 async function paypalReturn(env, ctx, url) {
-  const orderId = url.searchParams.get('token');
-  if (!orderId) return Response.redirect(cancelUrl(env, 'donation'), 302);
-  let r = await paypalApi(env, `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, { headers: { 'PayPal-Request-Id': `cap-${orderId}` } });
-  if (!r.ok) r = await paypalApi(env, `/v2/checkout/orders/${encodeURIComponent(orderId)}`, { method: 'GET' }); // e.g. already captured
-  const { pu, cap } = paypalCaptureFromOrder(r.data || {});
-  if (!cap) return Response.redirect(cancelUrl(env, 'donation'), 302);
-  const rec = await recordPaypalCapture(env, ctx, cap, cap.custom_id || pu.custom_id, r.data.payer);
-  const purpose = rec ? rec.co.purpose : 'donation';
-  return Response.redirect(thanksUrl(env, 'paypal', purpose, rec && rec.status === 'paid' ? 'paid' : 'pending'), 302);
+  // The order id is saved before the donor is ever sent to PayPal, so an
+  // unknown id is not one of ours: don't call PayPal for it.
+  const co = await checkoutByRef(env, 'paypal', url.searchParams.get('token'));
+  if (!co) return Response.redirect(cancelUrl(env, 'donation'), 302);
+  const orderPath = `/v2/checkout/orders/${encodeURIComponent(co.gateway_ref)}`;
+  const out = await paypalCapture(env, ctx, co);
+  let rec = out.rec;
+  if (!rec && out.declined) {
+    const retry = paypalRetryLink(out.error) || paypalRetryLink((await paypalApi(env, orderPath, { method: 'GET' })).data);
+    if (retry) return Response.redirect(retry, 302);
+  }
+  if (!rec) { // e.g. already captured by the webhook or the sweep
+    const r = await paypalApi(env, orderPath, { method: 'GET' });
+    if (r.ok) rec = await paypalRecordOrder(env, ctx, r.data, co);
+  }
+  if (!rec || rec.status === 'failed' || rec.status === 'refunded') return Response.redirect(cancelUrl(env, co.purpose), 302);
+  return Response.redirect(thanksUrl(env, 'paypal', co.purpose, rec.status === 'paid' ? 'paid' : 'pending'), 302);
 }
 async function paypalWebhook(request, env, ctx) {
   const body = await request.text();
@@ -467,7 +626,11 @@ async function paypalWebhook(request, env, ctx) {
   } });
   if (!v.ok || v.data.verification_status !== 'SUCCESS') throw new HttpError(400, 'Invalid signature');
   const res = event.resource || {};
-  if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED' || event.event_type === 'PAYMENT.CAPTURE.DENIED') {
+  if (event.event_type === 'CHECKOUT.ORDER.APPROVED') {
+    // Donor approved on PayPal: capture now, even if they never come back to the site.
+    const co = await checkoutByRef(env, 'paypal', res.id);
+    if (co && !co.settled_at) await paypalCapture(env, ctx, co);
+  } else if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED' || event.event_type === 'PAYMENT.CAPTURE.DENIED') {
     await recordPaypalCapture(env, ctx, res, res.custom_id, null);
   } else if (event.event_type === 'PAYMENT.CAPTURE.REFUNDED') {
     const up = (res.links || []).find(l => l.rel === 'up');
@@ -475,6 +638,30 @@ async function paypalWebhook(request, env, ctx) {
     await setStatusByRef(env, 'paypal', [capId], 'refunded');
   }
   return json({ received: true });
+}
+/* Cron: capture PayPal orders that were approved but never captured because
+   the donor closed the tab before returning (PayPal moves no money until we
+   capture, and approved orders expire). Oldest-checked first, so a few
+   abandoned orders can't starve the others; small LIMIT for the subrequest budget. */
+async function paypalSweep(env, ctx, budget) {
+  if (!gatewaysOn(env).paypal) return;
+  budget.left -= 1;
+  const { results } = await env.DB.prepare(
+    `SELECT * FROM checkouts
+     WHERE gateway = 'paypal' AND gateway_ref <> '' AND settled_at IS NULL AND created_at > ? AND created_at < ?
+     ORDER BY checked_at IS NOT NULL, checked_at ASC LIMIT 4`).bind(isoAgo(3 * HOUR), isoAgo(5 * MINUTE)).all();
+  for (const co of results) {
+    if (budget.left < 6) break; // token + GET + capture + save + email + mark
+    budget.left -= 6;
+    try {
+      const r = await paypalApi(env, `/v2/checkout/orders/${encodeURIComponent(co.gateway_ref)}`, { method: 'GET' });
+      const status = r.ok ? r.data.status : '';
+      let rec = null;
+      if (status === 'APPROVED') rec = (await paypalCapture(env, ctx, co)).rec;
+      else if (status === 'COMPLETED') rec = await paypalRecordOrder(env, ctx, r.data, co);
+      if (!rec) await markCheckout(env, co.id, status === 'VOIDED'); // CREATED / PAYER_ACTION_REQUIRED: donor hasn't approved yet
+    } catch (err) { console.error('paypal sweep', err); }
+  }
 }
 
 /* ------------------------------ DPO Pay ------------------------------------
@@ -526,12 +713,12 @@ async function dpoCreate(env, co, label, apiBase) {
   }
   return { redirect: `${dpoBase(env)}/payv2.php?ID=${encodeURIComponent(token)}`, gatewayRef: token };
 }
-/* Asks DPO for the real status — the redirect and push alone are never trusted. */
-async function verifyDpo(env, ctx, token) {
-  token = str(token, 100);
-  if (!/^[\w-]+$/.test(token)) return null;
-  const co = await env.DB.prepare(`SELECT * FROM checkouts WHERE gateway = 'dpo' AND gateway_ref = ?`).bind(token).first();
+/* Asks DPO for the real status — the redirect and push alone are never trusted.
+   The cron sweep passes the checkout row it already has, saving a query. */
+async function verifyDpo(env, ctx, token, co = null) {
+  co = co || await checkoutByRef(env, 'dpo', token);
   if (!co) return null;
+  token = co.gateway_ref;
   const xml = await dpoApi(env, `<Request>verifyToken</Request><TransactionToken>${xmlEsc(token)}</TransactionToken>`);
   const result = xmlTag(xml, 'Result');
   if (result === '000') {
@@ -549,16 +736,25 @@ async function verifyDpo(env, ctx, token) {
       profession: co.profession,
       notes: [method, ok ? '' : 'Amount/currency did not match — check in DPO before confirming.'].filter(Boolean).join(' · '),
     });
+    await markCheckout(env, co.id, true);
     return { co, status: ok ? 'paid' : 'pending' };
   }
-  // 900 = not paid yet (e.g. waiting for mobile-money approval on the phone)
-  if (result === '900') return { co, status: 'waiting' };
-  // 901 declined, 904 cancelled, 902/903 expired or invalid
-  if (['901', '902', '903', '904'].includes(result)) {
-    await setStatusByRef(env, 'dpo', [token], 'failed');
+  // No payments row exists for an unpaid token (one is only written on 000),
+  // so the outcome is kept on the checkout instead.
+  // 900 = not paid yet (e.g. waiting for mobile-money approval on the phone).
+  // 901 = declined, but not final: the donor can retry on DPO's page until the
+  //       24-hour payment time limit passes.
+  if (result === '900' || result === '901') {
+    await markCheckout(env, co.id, false);
+    return { co, status: result === '901' ? 'failed' : 'waiting' };
+  }
+  // 902 data mismatch, 903 payment time limit passed, 904 cancelled → final.
+  if (['902', '903', '904'].includes(result)) {
+    await markCheckout(env, co.id, true);
     return { co, status: 'failed' };
   }
   console.error('dpo verifyToken', xml);
+  await markCheckout(env, co.id, false);
   return { co, status: 'waiting' };
 }
 async function dpoReturn(env, ctx, url) {
@@ -576,17 +772,30 @@ async function dpoWebhook(request, env, ctx) {
   if (token) await verifyDpo(env, ctx, token);
   return new Response('<?xml version="1.0" encoding="utf-8"?><API3G><Response>OK</Response></API3G>', { headers: { 'content-type': 'application/xml' } });
 }
-/* Every 15 minutes: re-check DPO checkouts from the last 3 days that aren't settled yet. */
-async function dpoSweep(env, ctx) {
+/* Cron: re-check DPO checkouts that aren't settled yet. Tokens expire after the
+   24-hour payment time limit (PTL in dpoCreate), so only the last 26 hours are
+   checked. Least-recently-checked first (round robin), so newer abandoned or
+   bot-created checkouts can't push a real pending mobile-money payment out. */
+async function dpoSweep(env, ctx, budget) {
   if (!gatewaysOn(env).dpo) return;
-  const since = new Date(Date.now() - 3 * 86400000).toISOString();
+  budget.left -= 1;
   const { results } = await env.DB.prepare(
-    `SELECT c.gateway_ref FROM checkouts c
-     WHERE c.gateway = 'dpo' AND c.gateway_ref <> '' AND c.created_at > ?
-       AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.source = 'dpo' AND p.ref = c.gateway_ref AND p.status IN ('paid', 'failed', 'refunded'))
-     ORDER BY c.created_at DESC LIMIT 50`).bind(since).all();
-  for (const r of results) {
-    try { await verifyDpo(env, ctx, r.gateway_ref); } catch (err) { console.error('dpo sweep', err); }
+    `SELECT * FROM checkouts
+     WHERE gateway = 'dpo' AND gateway_ref <> '' AND settled_at IS NULL AND created_at > ? AND created_at < ?
+     ORDER BY checked_at IS NOT NULL, checked_at ASC LIMIT 10`).bind(isoAgo(26 * HOUR), isoAgo(5 * MINUTE)).all();
+  for (const co of results) {
+    if (budget.left < 4) break; // DPO call + save + email + mark
+    budget.left -= 4;
+    try { await verifyDpo(env, ctx, co.gateway_ref, co); } catch (err) { console.error('dpo sweep', err); }
+  }
+}
+/* Every 15 minutes. A free-plan Worker run may make about 50 subrequests
+   (gateway calls, emails and D1 queries count), so the jobs share a budget and
+   each sweep uses a small LIMIT; whatever is left over is picked up next run. */
+async function scheduledJobs(env, ctx) {
+  const budget = { left: 45 };
+  for (const [name, job] of [['rate-limit cleanup', cleanupRateLimits], ['paypal sweep', paypalSweep], ['dpo sweep', dpoSweep]]) {
+    try { await job(env, ctx, budget); } catch (err) { console.error(name, err); }
   }
 }
 
@@ -607,13 +816,53 @@ async function notify(request, env, ctx) {
   const tier = purpose === 'membership' && tierById(b.tier) ? b.tier : '';
   const ref = str(b.ref, 60);
   const date = /^\d{4}-\d{2}-\d{2}$/.test(b.date || '') ? b.date : today();
-  await upsertStmt(env, {
+  // Resubmitting the same reference puts a 'failed' report back to pending for
+  // review; a confirmed (paid) or refunded one is left as it is.
+  await savePayment(env, {
     source: 'notify', status: 'pending', method, ref, date, amount, currency, type: purpose, tier,
     name, email, phone: b.phone, country: b.country, profession: b.profession, notes: b.notes,
     dedupe_key: ref ? `notify|${ref}|${email}`.toLowerCase() : undefined,
-  }).run();
-  alertAdmin(env, ctx, `Payment reported — please confirm: ${currency} ${amount.toFixed(2)} via ${method}`,
-    `Name: ${name}\nEmail: ${email}\nReference: ${ref || '—'}\nDate sent: ${date}\n\nConfirm it in the dashboard once the money arrives.`);
+  });
+  // Flood guard: past 20 reports in an hour, stop emailing (they still appear
+  // in the dashboard) so a script can't fill the inbox or use up the email quota.
+  if (await recentCount(env, `SELECT COUNT(*) AS n FROM payments WHERE source = 'notify' AND created_at > ?`, HOUR) <= 20) {
+    alertAdmin(env, ctx, `Payment reported — please confirm: ${currency} ${amount.toFixed(2)} via ${method}`,
+      `Name: ${name}\nEmail: ${email}\nReference: ${ref || '—'}\nDate sent: ${date}\n\nConfirm it in the dashboard once the money arrives.`);
+  }
+  return json({ ok: true });
+}
+
+/* =============================================================================
+   Contact form → saved for the dashboard (Messages), plus an optional email
+   alert whose Reply-To is the sender, so admins can answer straight from it.
+   ============================================================================= */
+const MESSAGE_STATUSES = ['new', 'read', 'archived'];
+const MESSAGE_MAX = 5000;
+async function contact(request, env, ctx) {
+  const b = await readJson(request, 16000);
+  if (b.website) return json({ ok: true }); // honeypot field filled → bot (pretend it worked)
+  const name = oneLine(b.name || [b.fname, b.lname].filter(Boolean).join(' '), 120);
+  const email = str(b.email, 160).toLowerCase();
+  const subject = oneLine(b.subject, 150);
+  const profession = oneLine(b.profession, 160);
+  const message = String(b.message ?? '').replace(/\r\n?/g, '\n').trim();
+  if (!name) throw new HttpError(400, 'Please enter your name.');
+  if (!isEmail(email)) throw new HttpError(400, 'Please enter a valid email address.');
+  if (!subject) throw new HttpError(400, 'Please choose a subject.');
+  if (!message) throw new HttpError(400, 'Please write your message.');
+  if (message.length > MESSAGE_MAX) throw new HttpError(400, `Please keep your message under ${MESSAGE_MAX.toLocaleString('en-US')} characters.`);
+
+  const row = { id: crypto.randomUUID(), created_at: new Date().toISOString(), name, email, subject, message, profession, status: 'new' };
+  await env.DB.prepare('INSERT INTO messages (id, created_at, name, email, subject, message, profession, status) VALUES (?,?,?,?,?,?,?,?)')
+    .bind(row.id, row.created_at, name, email, subject, message, profession, row.status).run();
+
+  // Flood guard, as for payment reports: messages are always saved, emails stop past 30 an hour.
+  if (await recentCount(env, 'SELECT COUNT(*) AS n FROM messages WHERE created_at > ?', HOUR) <= 30) {
+    const head = [`From: ${name} <${email}>`, ...(profession ? [`Profession / role: ${profession}`] : []), `Subject: ${subject}`];
+    alertAdmin(env, ctx, `Contact form: ${subject} — ${name}`,
+      `${head.join('\n')}\n\n${message}\n\n—\nSent from the website contact form. Reply to this email to answer the sender directly.`,
+      email);
+  }
   return json({ ok: true });
 }
 
@@ -658,8 +907,14 @@ async function adminAdd(request, env) {
     const ref = str(r.ref, 120);
     const key = ref ? `${method}|${ref}` : `${r.date}|${str(r.email || r.name, 160)}|${amount}|${str(r.currency || 'USD', 3)}`;
     const row = paymentRow({ ...r, amount, method, ref, source, status: ['paid', 'pending', 'failed', 'refunded'].includes(r.status) ? r.status : 'paid', dedupe_key: key.toLowerCase() });
-    stmts.push(env.DB.prepare(`INSERT OR IGNORE INTO payments (${PAY_COLS.join(',')}) VALUES (${PAY_COLS.map(() => '?').join(',')})`)
-      .bind(...PAY_COLS.map(c => row[c])));
+    // Skip a row whose reference is already recorded from any source: gateway
+    // webhooks key rows as 'dpo|<token>' / 'notify|<ref>|<email>', so imports
+    // and backup restores would otherwise count those payments twice.
+    stmts.push(env.DB.prepare(
+      `INSERT OR IGNORE INTO payments (${PAY_COLS.join(',')})
+       SELECT ${PAY_COLS.map(() => '?').join(',')}
+       WHERE NOT EXISTS (SELECT 1 FROM payments WHERE ? <> '' AND ref = ? COLLATE NOCASE)`)
+      .bind(...PAY_COLS.map(c => row[c]), row.ref, row.ref));
   }
   let added = 0;
   for (let i = 0; i < stmts.length; i += 100) {
@@ -686,5 +941,23 @@ async function adminUpdate(request, env, id) {
 async function adminDelete(env, id) {
   const r = await env.DB.prepare('DELETE FROM payments WHERE id = ?').bind(id).run();
   if (!r.meta.changes) throw new HttpError(404, 'Payment not found.');
+  return json({ ok: true });
+}
+async function adminMessages(env) {
+  const { results } = await env.DB.prepare(
+    `SELECT id, created_at, name, email, subject, message, profession, status
+     FROM messages ORDER BY created_at DESC LIMIT 5000`).all();
+  return json({ messages: results });
+}
+async function adminMessageUpdate(request, env, id) {
+  const b = await readJson(request, 2000);
+  if (!MESSAGE_STATUSES.includes(b.status)) throw new HttpError(400, 'Status must be new, read or archived.');
+  const r = await env.DB.prepare('UPDATE messages SET status = ? WHERE id = ?').bind(b.status, id).run();
+  if (!r.meta.changes) throw new HttpError(404, 'Message not found.');
+  return json({ ok: true });
+}
+async function adminMessageDelete(env, id) {
+  const r = await env.DB.prepare('DELETE FROM messages WHERE id = ?').bind(id).run();
+  if (!r.meta.changes) throw new HttpError(404, 'Message not found.');
   return json({ ok: true });
 }

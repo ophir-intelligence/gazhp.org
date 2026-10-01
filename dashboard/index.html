@@ -17,6 +17,7 @@
     <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
   </defs>
 </svg>
 
@@ -42,12 +43,13 @@
         <button role="tab" data-tab="overview" class="active">Overview</button>
         <button role="tab" data-tab="members">Members</button>
         <button role="tab" data-tab="donations">Payments</button>
+        <button role="tab" data-tab="messages" data-api-only>Messages <span class="tab-badge" id="msg-badge" hidden></span></button>
         <button role="tab" data-tab="record">Record payment</button>
         <button role="tab" data-tab="import">Import data</button>
         <button role="tab" data-tab="setup">Setup</button>
       </nav>
       <span class="sync" data-api-only><span id="sync-label"></span><button class="link-btn" id="refresh-btn" type="button">Refresh</button></span>
-      <button class="dash-lockbtn" id="lock-btn" title="Lock dashboard"><svg class="icon"><use href="#i-lock"/></svg><span>Lock</span></button>
+      <button class="dash-lockbtn" id="lock-btn" title="Lock dashboard"><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg><span>Lock</span></button>
     </div>
   </header>
 
@@ -62,6 +64,7 @@
           <select id="ov-year"></select>
         </label>
       </div>
+      <div id="msg-alert"></div>
       <div id="pending"></div>
       <div class="kpi-grid" id="kpis"></div>
       <div id="goal"></div>
@@ -130,6 +133,29 @@
       </div>
       <p class="dash-muted" id="tx-summary"></p>
       <div class="dash-card"><div class="table-wrap" id="tx-table"></div></div>
+    </section>
+
+    <!-- MESSAGES (contact form — automated/API mode only) -->
+    <section data-panel="messages" hidden>
+      <div class="dash-toolbar">
+        <h2>Messages</h2>
+        <div class="dash-filters">
+          <label class="sr-only" for="msg-search">Search messages</label>
+          <input type="search" id="msg-search" placeholder="Search name, email, subject, text…" />
+          <label class="sr-only" for="msg-status">Show</label>
+          <select id="msg-status">
+            <option value="inbox">Inbox (new &amp; read)</option>
+            <option value="new">New only</option>
+            <option value="read">Read</option>
+            <option value="archived">Archived</option>
+            <option value="all">All messages</option>
+          </select>
+        </div>
+      </div>
+      <p class="dash-muted">Messages sent from the <a href="/contact/">Contact page</a>. Reply by email, then archive what's done.</p>
+      <p class="dash-muted" id="msg-summary"></p>
+      <p class="sr-only" id="msg-live" role="status"></p>
+      <div id="msg-list"></div>
     </section>
 
     <!-- RECORD PAYMENT -->
