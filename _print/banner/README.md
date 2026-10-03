@@ -2,7 +2,8 @@
 
 Print source for the event banner. This folder starts with `_`, so GitHub Pages does not publish it.
 
-- `banner.html` — **current design** (one website QR, homepage photo, large type).
+- `banner.html` — redesign (one website QR, homepage photo, large type).
+- `banner-original-revised.html` — the organisation's original banner style (flag ribbons, red headings) with the board feedback applied: fewer sections, larger text, website QR, photo.
 - `banner-v1.html`, `banner-a.html`, `banner-b.html`, `banner-c.html` — earlier version and the three design options it was chosen from.
 - `assets/` — logo, photos and QR codes (`qr-site.svg` → https://gazhphealth.org/, plus join/donate codes).
 
