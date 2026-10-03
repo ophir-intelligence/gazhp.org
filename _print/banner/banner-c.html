@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>GAZHP Roll-up Banner 85x200cm — c (balanced)</title>
+<style>
+  /* Trim size 850 x 2000 mm, plus 5 mm bleed on every side = 860 x 2010 mm. */
+  @font-face { font-family: 'Inter'; font-weight: 100 900; src: url('../../fonts/inter-latin.woff2') format('woff2'); }
+  @font-face { font-family: 'Playfair Display'; font-weight: 400 900; src: url('../../fonts/playfair-latin.woff2') format('woff2'); }
+  @page { size: 860mm 2010mm; margin: 0; }
+  :root {
+    --green: #1c5928; --green-deep: #154420;
+    --flag-green: #198a00; --flag-red: #de2010; --flag-orange: #ef7d00;
+    --ink: #111a15; --muted: #44564b; --red: #c0392b; --mint: #d7efdf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 860mm; height: 2010mm; background: #fff; }
+  body { font-variant-numeric: lining-nums; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Inter', Arial, sans-serif; color: var(--ink); }
+  .page { position: relative; width: 860mm; height: 2010mm; overflow: hidden; background: #fff; }
+  .trim { position: absolute; left: 5mm; top: 5mm; width: 850mm; height: 2000mm; }
+  .abs { position: absolute; left: 0; right: 0; text-align: center; }
+
+  /* Photo: full-bleed, 860 mm wide = 1536 px -> 1.79 px/mm (max allowed) */
+  .photo { position: absolute; left: -5mm; right: -5mm; top: -5mm; height: 525mm; overflow: hidden; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; display: block; }
+
+  .flagbar { position: absolute; left: -5mm; right: -5mm; display: flex; }
+  .flagbar span { display: block; height: 100%; }
+  .flagbar .g { flex: 1; background: var(--flag-green); }
+  .flagbar .r { width: 70mm; background: var(--flag-red); }
+  .flagbar .k { width: 70mm; background: #111; }
+  .flagbar .o { width: 70mm; background: var(--flag-orange); }
+  .stripe { top: 520mm; height: 16mm; }
+  .bottom { bottom: -5mm; height: 100mm; }
+
+  .badge { position: absolute; left: 285mm; top: 388mm; width: 280mm; height: 280mm; border-radius: 50%; background: #fff;
+           box-shadow: 0 4mm 14mm rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; }
+  .badge img { height: 240mm; width: auto; display: block; margin-top: 18mm; }
+
+  .org { top: 702mm; font-weight: 800; font-size: 42mm; line-height: 1.12; color: var(--green); letter-spacing: -0.3mm; }
+  .tagline { top: 800mm; font-weight: 700; font-size: 22mm; letter-spacing: 3.4mm; text-transform: uppercase; color: var(--red); }
+  .headline { top: 850mm; font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 102mm; line-height: 1.02; color: var(--ink); letter-spacing: -0.9mm; }
+  .headline em { font-style: normal; color: var(--green); }
+
+  .cta { position: absolute; top: 1205mm; left: 40mm; right: 40mm; height: 340mm; background: var(--green); border-radius: 26mm;
+         display: flex; align-items: center; padding: 0 30mm; gap: 34mm; color: #fff; }
+  .qr { flex: none; width: 280mm; height: 280mm; background: #fff; border-radius: 12mm; padding: 20mm; }
+  .qr img { width: 100%; height: 100%; display: block; }
+  .cta-text { flex: 1; }
+  .cta h2 { font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 64mm; line-height: 1.02; }
+  .cta .url { margin-top: 14mm; font-size: 40mm; font-weight: 800; color: #ffd08a; letter-spacing: -0.2mm; }
+  .cta .links { margin-top: 10mm; font-size: 28mm; font-weight: 700; color: var(--mint); }
+  .cta .links .dot { color: var(--flag-orange); padding: 0 4mm; }
+
+  .stats { position: absolute; top: 1592mm; left: 30mm; right: 30mm; display: grid; grid-template-columns: repeat(3, 1fr); }
+  .stat { text-align: center; }
+  .stat:first-child { border-left: 0; }
+  .num { font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 84mm; line-height: 1; color: var(--green); }
+  .lbl { margin-top: 6mm; font-size: 20mm; line-height: 1.22; font-weight: 700; letter-spacing: .15mm; white-space: nowrap; text-transform: uppercase; color: var(--muted); }
+
+  .contact { top: 1790mm; font-size: 34mm; font-weight: 800; color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="trim">
+    <div class="photo"><img src="assets/photo-hero-main.jpg" alt="Zambian healthcare professionals smiling around a meeting table" /></div>
+    <div class="flagbar stripe"><span class="g"></span><span class="r"></span><span class="k"></span><span class="o"></span></div>
+    <div class="badge"><img src="assets/logo.png" alt="GAZHP logo" /></div>
+    <div class="abs org">Global Alliance of Zambian<br />Healthcare Professionals</div>
+    <div class="abs headline">We Serve Where<br /><em>Care Is Needed</em><br />Most</div>
+    <div class="cta">
+      <div class="qr"><img src="assets/qr-site.svg" alt="QR code: gazhphealth.org" /></div>
+      <div class="cta-text">
+        <h2>Scan to visit<br />our website</h2>
+        <div class="url">gazhphealth.org</div>
+        <div class="links">Join us<span class="dot">•</span>Donate</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">60+</div><div class="lbl">Members</div></div>
+      <div class="stat"><div class="num">15+</div><div class="lbl">Countries</div></div>
+      <div class="stat"><div class="num">40</div><div class="lbl">Tonnes of equipment<br />shipped with partners</div></div>
+    </div>
+    <div class="abs contact">info@gazhphealth.org</div>
+    <div class="flagbar bottom"><span class="g"></span><span class="r"></span><span class="k"></span><span class="o"></span></div>
+  </div>
+</div>
+</body>
+</html>

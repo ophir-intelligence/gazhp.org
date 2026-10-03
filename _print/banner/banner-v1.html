@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>GAZHP Roll-up Banner 85x200cm — v1 (previous version)</title>
+<style>
+  /* Trim size 850 x 2000 mm, plus 5 mm bleed on every side = 860 x 2010 mm. */
+  @font-face { font-family: 'Inter'; font-weight: 100 900; src: url('../../fonts/inter-latin.woff2') format('woff2'); }
+  @font-face { font-family: 'Playfair Display'; font-weight: 400 900; src: url('../../fonts/playfair-latin.woff2') format('woff2'); }
+  @page { size: 860mm 2010mm; margin: 0; }
+  :root {
+    --green: #1c5928; --green-mid: #23693f;
+    --flag-green: #198a00; --flag-red: #de2010; --flag-orange: #ef7d00;
+    --ink: #111a15; --muted: #4a5e53; --red: #c94040; --mint: #e8f5ed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 860mm; height: 2010mm; background: #fff; }
+  body { font-variant-numeric: lining-nums; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Inter', Arial, sans-serif; color: var(--ink); }
+  .page { position: relative; width: 860mm; height: 2010mm; overflow: hidden; background: #fff; }
+  .trim { position: absolute; left: 5mm; top: 5mm; width: 850mm; height: 2000mm; }
+  .abs { position: absolute; left: 0; right: 0; text-align: center; }
+  .flagbar { position: absolute; left: -5mm; right: -5mm; display: flex; }
+  .flagbar span { display: block; height: 100%; }
+  .flagbar .g { flex: 1; background: var(--flag-green); }
+  .flagbar .r { width: 70mm; background: var(--flag-red); }
+  .flagbar .k { width: 70mm; background: #111; }
+  .flagbar .o { width: 70mm; background: var(--flag-orange); }
+  .top { top: -5mm; height: 45mm; }
+  .bottom { bottom: -5mm; height: 95mm; }
+  .logo { top: 80mm; }
+  .logo img { height: 265mm; width: auto; display: inline-block; }
+  .org { top: 368mm; font-weight: 800; font-size: 40mm; line-height: 1.12; color: var(--green); letter-spacing: -0.3mm; }
+  .tagline { top: 475mm; font-weight: 700; font-size: 19mm; letter-spacing: 3.2mm; text-transform: uppercase; color: var(--red); }
+  .rule { top: 530mm; left: 365mm; right: 365mm; height: 3mm; background: var(--flag-orange); border-radius: 2mm; }
+  .headline { top: 550mm; font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 92mm; line-height: 1.06; color: var(--ink); letter-spacing: -0.8mm; }
+  .headline em { font-style: normal; color: var(--green); }
+  .about-wrap { position: absolute; top: 862mm; left: 40mm; right: 40mm; display: flex; align-items: center; gap: 24mm; }
+  .about-text { flex: 1; text-align: left; }
+  .about-label { font-weight: 800; font-size: 16mm; letter-spacing: 3.2mm; text-transform: uppercase; color: var(--red); margin-bottom: 7mm; }
+  .about { font-size: 22.5mm; line-height: 1.36; color: var(--muted); font-weight: 500; }
+  .about strong { color: var(--green); font-weight: 800; }
+  .learn { width: 172mm; flex: none; text-align: center; }
+  .learn .qr-sm { width: 172mm; height: 172mm; padding: 10mm; border: 2.2mm solid var(--green); border-radius: 10mm; background: #fff; }
+  .learn .qr-sm img { width: 100%; height: 100%; display: block; }
+  .learn .scan-sm { margin-top: 6mm; font-size: 13.5mm; font-weight: 800; letter-spacing: 1.4mm; text-transform: uppercase; color: var(--green); line-height: 1.2; }
+  .cta { position: absolute; top: 1130mm; left: 40mm; right: 40mm; height: 400mm; background: var(--green); border-radius: 22mm; display: flex; padding: 30mm 26mm; gap: 26mm; }
+  .cta .col { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; color: #fff; }
+  .cta .divider { width: 1.5mm; background: rgba(255,255,255,.25); border-radius: 1mm; }
+  .cta h2 { font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 54mm; line-height: 1; margin-bottom: 8mm; }
+  .cta p { font-size: 19mm; line-height: 1.25; font-weight: 600; color: rgba(255,255,255,.92); margin-bottom: 14mm; }
+  .qr { background: #fff; border-radius: 10mm; padding: 11mm; width: 200mm; height: 200mm; }
+  .qr img { width: 100%; height: 100%; display: block; }
+  .scan { margin-top: 9mm; font-size: 15mm; font-weight: 700; letter-spacing: 1.8mm; text-transform: uppercase; color: rgba(255,255,255,.9); }
+  .stats { position: absolute; top: 1568mm; left: 40mm; right: 40mm; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .stat { text-align: center; padding: 0 6mm; border-left: 1.2mm solid #dde2df; }
+  .stat:first-child { border-left: 0; }
+  .num { font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 74mm; line-height: 1; color: var(--green); }
+  .lbl { margin-top: 6mm; font-size: 13.5mm; line-height: 1.25; font-weight: 700; letter-spacing: .8mm; text-transform: uppercase; color: var(--muted); }
+  .programs { top: 1742mm; display: flex; justify-content: center; gap: 10mm; }
+  .pill { background: var(--mint); color: var(--green); border-radius: 30mm; padding: 6mm 15mm; font-size: 17mm; font-weight: 700; white-space: nowrap; }
+  .contact { top: 1810mm; font-size: 32mm; font-weight: 800; color: var(--ink); letter-spacing: -.2mm; }
+  .contact .dot { color: var(--flag-orange); padding: 0 8mm; }
+  .contact .mail { color: var(--green); }
+  .legal { top: 1866mm; font-size: 13mm; font-weight: 600; color: var(--muted); letter-spacing: .5mm; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="trim">
+    <div class="flagbar top"><span class="g"></span><span class="r"></span><span class="k"></span><span class="o"></span></div>
+    <div class="abs logo"><img src="assets/logo.png" alt="GAZHP logo" /></div>
+    <div class="abs org">Global Alliance of Zambian<br />Healthcare Professionals</div>
+    <div class="abs tagline">Diaspora-led · Locally grounded</div>
+    <div class="abs rule"></div>
+    <div class="abs headline">We Serve Where<br /><em>Care Is Needed</em><br />Most</div>
+    <div class="about-wrap">
+      <div class="about-text">
+        <div class="about-label">About us</div>
+        <div class="about"><strong>It started in March 2019 with one question on a radio programme.</strong> Today GAZHP is a global movement of Zambian healthcare professionals, transforming Zambia's health through collaboration, expertise and continuous medical education.</div>
+      </div>
+      <div class="learn">
+        <div class="qr-sm"><img src="assets/qr-site.svg" alt="QR code: gazhphealth.org" /></div>
+        <div class="scan-sm">Scan to<br />learn more</div>
+      </div>
+    </div>
+    <div class="cta">
+      <div class="col">
+        <h2>Join Us</h2>
+        <p>Membership from US$40 / year<br />Professionals · Students · Corporate</p>
+        <div class="qr"><img src="assets/qr-join.svg" alt="QR code: gazhphealth.org/join" /></div>
+        <div class="scan">Scan to join</div>
+      </div>
+      <div class="divider"></div>
+      <div class="col">
+        <h2>Donate</h2>
+        <p>Support care where it's needed<br />most in Zambia</p>
+        <div class="qr"><img src="assets/qr-donate.svg" alt="QR code: gazhphealth.org/donate" /></div>
+        <div class="scan">Scan to give</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">60+</div><div class="lbl">Members</div></div>
+      <div class="stat"><div class="num">15+</div><div class="lbl">Countries</div></div>
+      <div class="stat"><div class="num">40</div><div class="lbl">Tonnes of equipment<br />shipped with partners</div></div>
+      <div class="stat"><div class="num">2019</div><div class="lbl">Founded</div></div>
+    </div>
+    <div class="abs programs">
+      <span class="pill">Addiction &amp; Mental Health</span>
+      <span class="pill">Cardiovascular Care</span>
+      <span class="pill">Primary Care</span>
+    </div>
+    <div class="abs contact">gazhphealth.org<span class="dot">•</span><span class="mail">info@gazhphealth.org</span></div>
+    <div class="abs legal">Registered 501(c)(3) nonprofit · Delaware, USA</div>
+    <div class="flagbar bottom"><span class="g"></span><span class="r"></span><span class="k"></span><span class="o"></span></div>
+  </div>
+</div>
+</body>
+</html>
