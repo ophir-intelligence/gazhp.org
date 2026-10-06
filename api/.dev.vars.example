@@ -8,7 +8,19 @@ ADMIN_PASSWORD=choose-a-local-password
 # DPO_COMPANY_TOKEN=
 # DPO_SERVICE_TYPE=
 # PAYPAL_WEBHOOK_ID=
-# Optional email alerts (new payments, "I've paid" reports, contact-form messages):
+# Optional email (new-payment alerts, "I've paid" reports, contact-form messages,
+# donor receipts and manage-giving links). Receipts need RESEND_API_KEY + FROM_EMAIL:
 # RESEND_API_KEY=
 # NOTIFY_EMAIL=
 # FROM_EMAIL=
+# Optional — GAZHP's US EIN, printed on donation receipts when set:
+# ORG_EIN=
+# Phone-prompt mobile money via DPO (POST /momo/start). Overrides the "false" in
+# wrangler.toml for local testing; needs DPO_COMPANY_TOKEN + DPO_SERVICE_TYPE too:
+# DPO_DIRECT_MOMO=true
+# Exact MNO / country strings for the DPO account (looked up from DPO when unset):
+# DPO_MNO_MTN=
+# DPO_MNO_AIRTEL=
+# DPO_MNO_COUNTRY=zambia
+# DPO_MNO_ZAMTEL=
+# DPO_MSISDN_FORMAT=intl

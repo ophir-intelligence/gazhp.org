@@ -10,6 +10,14 @@
      Zelle…) report through the API as "pending" for an admin to confirm.
    • Links — no API: every gateway enabled AND filled in inside
      js/payments-config.js (Donorbox, payment links, account details).
+
+   Automated mode extras (read from GET /config):
+   • designations — donations get a "Where should your gift go?" select;
+     the chosen id is sent to /checkout, /momo/start and /notify.
+   • momoDirect: true — "Mobile Money (Zambia)" opens an inline form instead
+     of DPO Pay's page: POST /momo/start sends a payment prompt to the donor's
+     phone, then GET /momo/status is polled every 5 s for up to 2 minutes.
+     When momoDirect is false or missing, the button goes to DPO's page as before.
    ============================================= */
 (function () {
   const root = document.getElementById('payment-options');
@@ -24,7 +32,7 @@
   let apiCfg = null;   // GET /config response once loaded
   const online = () => !!(apiCfg && Object.values(apiCfg.gateways || {}).some(Boolean));
   // Form state for automated mode (survives re-renders).
-  const st = { amount: '', currency: 'USD', freq: 'once', autoRenew: false, name: '', email: '', phone: '', country: '', profession: '' };
+  const st = { amount: '', currency: 'USD', freq: 'once', autoRenew: false, name: '', email: '', phone: '', country: '', profession: '', designation: '' };
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const cssEsc = s => (window.CSS && CSS.escape) ? CSS.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
   const joinOr = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' or ' + a[a.length - 1];
@@ -49,6 +57,71 @@
   })();
 
   let selectedTier = tiers[0] || null;
+
+  /* ---------- Gift designations (automated mode, donations only) ---------- */
+  const designations = () => (online() && purpose === 'donation' && Array.isArray(apiCfg.designations))
+    ? apiCfg.designations.filter(d => d && has(d.id)) : [];
+  const designationLabel = id => { const d = designations().find(x => x.id === id); return d ? (d.label || d.id) : ''; };
+  const designationSelect = (cls = 'full') => {
+    const list = designations();
+    if (!list.length) return '';
+    return `<label${cls ? ` class="${cls}"` : ''}>Where should your gift go?<select name="designation">${list.map(d =>
+      `<option value="${esc(d.id)}"${d.id === st.designation ? ' selected' : ''}>${esc(d.label || d.id)}</option>`).join('')}</select></label>`;
+  };
+
+  /* ---------- Direct mobile money (Zambia) ---------- */
+  const MOMO_OPS = [['mtn', 'MTN MoMo', 'MTN'], ['airtel', 'Airtel Money', 'Airtel'], ['zamtel', 'Zamtel Kwacha', 'Zamtel']];
+  const opName = id => (MOMO_OPS.find(o => o[0] === id) || [])[1] || '';
+  // Zambian mobile ranges (ZICTA numbering plan). National numbers are 9 digits after +260 / 260 / 0.
+  const ZM_PREFIX = { 96: 'mtn', 76: 'mtn', 97: 'airtel', 77: 'airtel', 57: 'airtel', 95: 'zamtel', 75: 'zamtel' };
+  const zmPhone = v => {
+    let d = String(v || '').replace(/\D/g, '');
+    if (d.startsWith('00260')) d = d.slice(5); else if (d.startsWith('260')) d = d.slice(3); else if (d.startsWith('0')) d = d.slice(1);
+    return { nsn: d, valid: /^[579]\d{8}$/.test(d), operator: ZM_PREFIX[d.slice(0, 2)] || '' };
+  };
+  const fmtZm = nsn => `0${nsn.slice(0, 2)} ${nsn.slice(2, 5)} ${nsn.slice(5)}`;
+  const momoOn = () => online() && apiCfg.momoDirect === true && !!apiCfg.gateways.dpo;
+  // Networks the API can prompt: all three unless /config lists fewer in `momoOperators`.
+  const momoOps = () => (apiCfg && Array.isArray(apiCfg.momoOperators)) ? apiCfg.momoOperators : MOMO_OPS.map(o => o[0]);
+  const MOMO_WAIT = 2 * 60000, MOMO_POLL = 5000;
+  // True while a /checkout or /momo/start request is in flight: further pay clicks are ignored,
+  // even after a re-render (e.g. a tier change) has rebuilt the buttons.
+  let busy = false;
+  // view: 'form' (inline form in step 3, shown while `open`) | 'processing' | 'success' | 'failed' | 'timeout'
+  // auto: mm.operator was picked from the number's prefix (not by the donor), so it may be dropped again.
+  const mm = { open: false, view: 'form', phone: '', operator: '', auto: false, detected: '', reference: '', message: '', instructions: '', note: '', fallback: '', prev: null, stopped: false, resumed: false, deadline: 0, window: MOMO_WAIT, snap: {} };
+  const httpsUrl = v => typeof v === 'string' && /^https:\/\/[^\s"'<>]+$/.test(v);
+  // The kwacha amount the donor approves: the gift itself, or the membership price at the API's rate.
+  const momoAmountText = () => {
+    if (purpose === 'membership') {
+      const t = selectedTier, rate = (apiCfg && apiCfg.zmwPerUsd) || 0;
+      if (!t) return '';
+      if (t.currency === 'ZMW') return money(t.amount, 'ZMW');
+      return rate ? '≈ ' + money(Math.ceil(t.amount * rate), 'ZMW') : '';
+    }
+    return st.currency === 'ZMW' && Number(st.amount) > 0 ? money(Number(st.amount), 'ZMW') : '';
+  };
+  const momoHint = ph => {
+    if (!ph.nsn) return 'A Zambian number, e.g. 097 123 4567. The payment request goes to this phone.';
+    if (ph.nsn.length >= 9 && !ph.valid) return "That doesn't look like a Zambian mobile number. Try the format 097 123 4567.";
+    if (ph.operator) {
+      return momoOps().includes(ph.operator)
+        ? `${opName(ph.operator)} number. Not right? Choose your network below.`
+        : `${opName(ph.operator)} number: payment prompts aren't available for this network yet. Please use another number or payment method.`;
+    }
+    return ph.valid ? 'Please choose your network below.' : 'A Zambian number, e.g. 097 123 4567.';
+  };
+  // Remembers a started request for this tab, so a reload (e.g. after switching to the phone's
+  // payment prompt) picks up the waiting screen instead of losing the payment.
+  const MOMO_KEY = 'gazhp-momo-' + purpose;
+  const saveMomo = () => { try { sessionStorage.setItem(MOMO_KEY, JSON.stringify({ ref: mm.reference, at: Date.now(), snap: mm.snap })); } catch { /* storage blocked */ } };
+  const forgetMomo = () => { try { sessionStorage.removeItem(MOMO_KEY); } catch { /* storage blocked */ } };
+  const loadMomo = () => {
+    try {
+      const s = JSON.parse(sessionStorage.getItem(MOMO_KEY) || 'null');
+      return s && typeof s.ref === 'string' && s.ref && Date.now() - Number(s.at) < 15 * 60000 ? s : null;
+    } catch { return null; }
+  };
 
   /* ---------- Row helpers ---------- */
   const row = (label, value) => has(value)
@@ -93,6 +166,7 @@
         <label>Currency<select name="currency">${['USD', 'ZMW', 'GBP', 'EUR', 'CAD', 'AUD', 'ZAR'].map(c => `<option${c === (isMomo ? 'ZMW' : 'USD') ? ' selected' : ''}>${c}</option>`).join('')}</select></label>
         <label>Date sent<input type="date" name="date" value="${new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}" /></label>
         <label>Phone<input name="phone" autocomplete="tel" value="${esc(st.phone)}" /></label>
+        ${purpose === 'donation' ? designationSelect() : ''}
       </div>
       <input type="text" name="website" class="pay-hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
       <button type="submit" class="btn btn-green pay-link-btn">I've paid — notify GAZHP</button>
@@ -164,7 +238,7 @@
       if (!g.enabled) return null;
       const url = purpose === 'membership' ? tierLink(g) : g.donationLink;
       if (!has(url)) return null;
-      return { id: 'dpo', title: 'Zambia: Mobile Money or Card', sub: 'DPO Pay · MTN, Airtel, Zamtel, Visa/Mastercard — ZMW or USD', body: amountHint(true) + linkBtn(url, 'Pay with DPO Pay') };
+      return { id: 'dpo', title: 'Zambia: Mobile Money or Card', sub: 'DPO Pay · MTN, Airtel, Visa/Mastercard — ZMW or USD', body: amountHint(true) + linkBtn(url, 'Pay with DPO Pay') };
     },
     function mobileMoney() {
       const g = G.mobileMoney || {};
@@ -256,6 +330,7 @@
     const names = processorNames(list);
     const text = [
       names.length ? `Card payments are processed securely by ${joinOr(names)} — GAZHP never sees your card details.` : '',
+      momoOn() ? 'Mobile money is approved with your PIN on your own phone, so GAZHP never sees it.' : '',
       has(CFG.org.ein) ? `GAZHP's US EIN: ${esc(CFG.org.ein)}.` : '',
     ].filter(Boolean).join(' ');
     return (text ? `<p class="pay-secure"><svg class="icon" style="width:13px;height:13px;" aria-hidden="true" focusable="false"><use href="#i-lock"/></svg><span>${text}</span></p>` : '')
@@ -286,6 +361,7 @@
         <div class="pay-grid">
           <label>Amount (${esc(st.currency)})<input type="number" name="amount" min="${(d.min && d.min[st.currency]) || 1}" step="1" inputmode="decimal" placeholder="Other amount" value="${esc(st.amount)}" /></label>
           ${g.dpo ? `<label>Currency<select name="currency"><option value="USD"${!zmw ? ' selected' : ''}>US dollars (USD)</option><option value="ZMW"${zmw ? ' selected' : ''}>Zambian kwacha (ZMW)</option></select></label>` : ''}
+          ${designationSelect()}
         </div>
       </fieldset>`;
     }
@@ -304,17 +380,119 @@
     const momoAmt = isM && t && t.currency === 'USD' && rate ? ` (≈ ${money(Math.ceil(t.amount * rate), 'ZMW')})` : '';
     const btn = (gw, title, sub, off, why) => `<button type="button" class="pay-gw" data-gw="${gw}"${off ? ` disabled title="${esc(why)}"` : ''}>
         <span class="pay-gw-title">${title}</span><span class="pay-gw-sub">${off ? esc(why) : sub}</span></button>`;
+    // Direct mobile money: the button opens the inline form (step 3) instead of DPO's page.
+    const direct = g.dpo && momoOn();
+    const open = direct && mm.open && !recurring;
+    const momoBtn = () => `<button type="button" class="pay-gw" data-gw="momo" aria-expanded="${open}"${open ? ' aria-controls="pay-momo"' : ''}${recurring ? ' disabled title="Recurring payments use card"' : ''}>
+        <span class="pay-gw-title">Mobile Money (Zambia)</span><span class="pay-gw-sub">${recurring ? 'Recurring payments use card'
+          : esc(MOMO_OPS.filter(o => momoOps().includes(o[0])).map(o => o[2]).join(' · ')) + ' — approve on your phone' + momoAmt}</span></button>`;
+    const manage = g.stripe
+      ? `<p class="pay-manage prose-links">${isM ? 'Membership renewing automatically? <a href="/manage-giving/">Manage your renewal</a>' : 'Already give monthly? <a href="/manage-giving/">Manage your monthly gift</a>'}</p>` : '';
     html += `<fieldset class="pay-fs"><legend>3. Pay</legend>
       ${isM && g.stripe ? `<label class="pay-check"><input type="checkbox" name="autoRenew"${st.autoRenew ? ' checked' : ''} />Renew my membership automatically every year (card only)</label>` : ''}
+      ${mm.stopped ? `<p class="pay-cancelled" role="status">We've stopped waiting for your mobile money approval. If you still approve that request on your phone, the payment will go through and be recorded, so please don't pay twice.</p>` : ''}
       <div class="pay-gws">
         ${g.stripe ? btn('stripe', 'Card, Apple Pay or Google Pay', 'Visa · Mastercard · Amex', zmw, 'Choose USD to pay by card') : ''}
         ${g.paypal ? btn('paypal', 'PayPal', 'PayPal balance or card', zmw || recurring, zmw ? 'Choose USD to use PayPal' : 'Recurring payments use card') : ''}
-        ${g.dpo ? btn('dpo', 'Mobile Money (Zambia)', 'MTN · Airtel · Zamtel · Zambian cards — via DPO Pay' + momoAmt, recurring, 'Recurring payments use card') : ''}
+        ${g.dpo ? (direct ? momoBtn() : btn('dpo', 'Mobile Money (Zambia)', 'MTN · Airtel · Zambian cards — via DPO Pay' + momoAmt, recurring, 'Recurring payments use card')) : ''}
       </div>
+      ${open ? momoFormHtml() : ''}
       ${legalLine('text-align:left;justify-content:flex-start;margin-top:12px;')}
+      ${manage}
       <p class="pay-form-err" id="pay-err" role="alert"></p>
     </fieldset></form>`;
     return html;
+  }
+
+  /* ----- Direct mobile money: inline form, then a waiting / result card ----- */
+  const momoSumHtml = () => {
+    const amt = momoAmountText();
+    if (purpose === 'membership') {
+      const t = selectedTier;
+      return `Membership: <strong>${amt ? esc(amt) : 'charged in Zambian kwacha'}</strong>${t ? ` <span>— ${esc(t.name)}, ${esc(t.region)}</span>` : ''}`;
+    }
+    if (!amt) return 'Choose or enter an amount in kwacha above.';
+    const where = designationLabel(st.designation);
+    return `Your gift: <strong>${esc(amt)}</strong>${where ? ` <span>— ${esc(where)}</span>` : ''}`;
+  };
+  function momoFormHtml() {
+    const avail = momoOps();
+    return `<div class="pay-momo" id="pay-momo" role="region" aria-labelledby="pay-momo-title">
+      <h3 class="pay-momo-title" id="pay-momo-title" tabindex="-1">Pay with mobile money</h3>
+      <p class="pay-amount" id="pay-momo-sum">${momoSumHtml()}</p>
+      ${mm.note ? `<p class="pay-momo-note" id="pay-momo-note">${esc(mm.note)}</p>` : ''}
+      <label class="pay-momo-phone">Mobile money number*
+        <input type="tel" name="momoPhone" inputmode="tel" autocomplete="tel" placeholder="e.g. 097 123 4567" required value="${esc(mm.phone)}" aria-describedby="pay-momo-hint" data-hint="pay-momo-hint" />
+      </label>
+      <p class="pay-momo-hint" id="pay-momo-hint">${esc(momoHint(zmPhone(mm.phone)))}</p>
+      <fieldset class="pay-ops"><legend>Network*</legend>
+        <div class="pay-op-grid">${MOMO_OPS.map(([id, name, short]) => {
+          const on = avail.includes(id), sel = on && mm.operator === id;
+          return `<label class="pay-op${sel ? ' selected' : ''}${on ? '' : ' off'}">
+            <input type="radio" name="momoOp" value="${id}"${sel ? ' checked' : ''}${on ? '' : ' disabled'} />
+            <span class="pay-op-badge" aria-hidden="true">${esc(short.charAt(0))}</span>
+            <span class="pay-op-name">${esc(name)}</span>${on ? '' : '<span class="pay-op-sub">Not available</span>'}</label>`;
+        }).join('')}</div>
+      </fieldset>
+      <button type="button" class="btn btn-green pay-momo-send" data-momo="send">Send payment prompt</button>
+      ${httpsUrl(mm.fallback) ? `<a class="btn btn-teal pay-momo-send" id="pay-momo-fallback" href="${esc(mm.fallback)}">Continue on DPO Pay's page</a>` : ''}
+      <p class="pay-momo-alt">You'll get a prompt on your phone to approve the payment with your PIN.${httpsUrl(mm.fallback) ? '' : ` No prompt, or paying with a Zambian card? <button type="button" class="pay-textbtn" data-momo="hosted">Pay on DPO Pay's secure page instead</button>`}</p>
+    </div>`;
+  }
+
+  const SVG = {
+    phone: '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+    ok: '<polyline points="20 6 9 17 4 12"/>',
+    bad: '<path d="M12 8v5"/><path d="M12 16.5h.01"/><circle cx="12" cy="12" r="10"/>',
+    wait: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  };
+  const svg = (name, cls = 'icon') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${SVG[name]}</svg>`;
+  const momoLeft = () => {
+    const secs = Math.ceil(Math.max(0, mm.deadline - Date.now()) / 1000);
+    return { text: `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`, done: Math.min(100, Math.max(0, 100 - (secs * 1000 / mm.window) * 100)) };
+  };
+  function momoStatusHtml() {
+    const s = mm.snap || {}, isM = purpose === 'membership';
+    const card = (kind, icon, title, body, actions) => `<div class="pay-momo-status is-${kind}" id="pay-momo-status">
+      ${icon}<h3 class="pay-momo-head" id="pay-momo-head" tabindex="-1">${title}</h3>${body}
+      ${actions ? `<div class="pay-momo-actions">${actions}</div>` : ''}</div>`;
+    const another = '<button type="button" class="btn btn-outline-dark" data-momo="stop">Use another method</button>';
+    const to = `${s.amount ? ` for <strong>${esc(String(s.amount).replace(/^≈ /, 'about '))}</strong>` : ''}${s.phone ? ` to <strong>${esc(s.phone)}</strong>` : ''}${s.op ? ` (${esc(s.op)})` : ''}`;
+    if (mm.view === 'processing') {
+      const left = momoLeft();
+      return card('wait', `<div class="pay-momo-visual" aria-hidden="true"><span class="pay-momo-ring"></span>${svg('phone')}</div>`,
+        mm.resumed ? 'Checking your payment' : 'Check your phone',
+        (mm.resumed
+          ? `<p>We're checking the mobile money request${to}.</p><p class="pay-momo-msg">If your phone is still showing the prompt, enter your PIN to approve it.</p>`
+          : `<p>We've sent a payment request${to}.</p><p class="pay-momo-msg">${esc(mm.message || 'Check your phone and enter your PIN to approve.')}</p>`
+            // The network's own steps (plain text from the API), e.g. how to approve by hand if no prompt shows.
+            // Skip the operator's instructions when they only repeat the message above.
+            + (mm.instructions && !(mm.message || '').includes(mm.instructions.trim()) ? `<p class="pay-momo-small pay-momo-msg">${esc(mm.instructions)}</p>` : ''))
+        + `<div class="pay-momo-bar" aria-hidden="true"><span id="pay-momo-bar" style="width:${left.done}%"></span></div>
+          <p class="pay-momo-small pay-momo-count">Waiting for approval · <span id="pay-momo-timer">${left.text}</span> left<span class="sr-only">. This page updates by itself.</span></p>
+          <p class="pay-momo-small">Keep this page open. No prompt after a minute? Check that your phone is on and has signal.</p>`,
+        another);
+    }
+    if (mm.view === 'success') {
+      const thanks = `/thank-you/?gw=dpo&purpose=${purpose}&status=paid`;
+      return card('ok', `<div class="pay-momo-icon">${svg('ok')}</div>`,
+        isM ? 'Payment received. Welcome to GAZHP!' : 'Payment received. Thank you!',
+        `<p>Your ${isM ? 'membership payment' : (s.amount ? esc(s.amount) + ' gift' : 'gift')}${s.op ? ` by ${esc(s.op)}` : ''} was approved.${s.email ? ` We'll email your ${isM ? 'membership confirmation' : 'receipt'} to <strong>${esc(s.email)}</strong>.` : ''}</p>
+         ${mm.message && !/^payment received/i.test(mm.message) ? `<p class="pay-momo-msg">${esc(mm.message)}</p>` : ''}
+         ${mm.reference ?`<p class="pay-momo-small pay-momo-ref">Reference: <code>${esc(mm.reference)}</code></p>` : ''}`,
+        `<a class="btn btn-green" href="${esc(thanks)}">Continue</a>`);
+    }
+    if (mm.view === 'failed') {
+      return card('bad', `<div class="pay-momo-icon">${svg('bad')}</div>`, 'Payment not completed',
+        `<p class="pay-momo-msg">${esc(mm.message || 'The request was declined, cancelled or timed out on your phone, so no money was taken.')}</p>
+         <p>You can send a new prompt, or choose another way to pay.</p>`,
+        `<button type="button" class="btn btn-green" data-momo="retry">Try again</button>${another}`);
+    }
+    // timeout: no answer yet. The API (and its 15-minute check) still records a late approval.
+    return card('late', `<div class="pay-momo-icon">${svg('wait')}</div>`, "We haven't received confirmation yet",
+      `<p>If you approved the request${s.phone ? ` on ${esc(s.phone)}` : ''}, it can take a little longer to reach us. It will still be recorded, so you don't need to pay again.</p>
+       <p>If no prompt arrived, or you declined it, you can send a new one.</p>`,
+      `<button type="button" class="btn btn-green" data-momo="check">Check again</button><button type="button" class="btn btn-outline-dark" data-momo="retry">Send a new prompt</button>${another}`);
   }
 
   // A selector for the focused control, so focus can go back to its replacement after a re-render.
@@ -326,6 +504,7 @@
     const key = d.id ? `[data-id="${cssEsc(d.id)}"]`
       : d.amt ? `[data-amt="${cssEsc(d.amt)}"]`
       : d.gw ? `[data-gw="${cssEsc(d.gw)}"]`
+      : d.momo ? `[data-momo="${cssEsc(d.momo)}"]`
       : d.copy ? `.pay-copy[data-copy="${cssEsc(d.copy)}"]`
       : a.name ? `[name="${cssEsc(a.name)}"]${a.type === 'radio' ? `[value="${cssEsc(a.value)}"]` : ''}`
       : null;
@@ -333,13 +512,22 @@
   }
 
   // Re-render the widget, keeping keyboard / screen-reader focus on the equivalent control.
-  function render(focusSel) {
+  // With `show`, also scroll that control into view (used when the layout changes a lot).
+  function render(focusSel, show = false) {
     const sel = focusSel || focusSelector();
     paint();
+    if (busy) lockPay();
     if (!sel) return;
     const el = root.querySelector(sel);
-    if (el && !el.disabled) el.focus({ preventScroll: true });
+    if (el && !el.disabled) {
+      el.focus({ preventScroll: true });
+      if (show) reveal(el);
+    }
   }
+  const reveal = el => {
+    const r = el.getBoundingClientRect();
+    if (r.top < 90 || r.bottom > window.innerHeight - 20) el.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
+  };
 
   // Homepage hand-off, e.g. /donate/?amount=50 (whole USD; anything else is ignored).
   let qAmount = '';
@@ -350,12 +538,16 @@
   }
 
   function paint() {
+    // Waiting for (or showing the result of) a mobile money approval: just that card, so
+    // nothing can be changed mid-payment. "Use another method" brings the form back.
+    if (online() && mm.view !== 'form') { root.innerHTML = momoStatusHtml(); return; }
+
     const list = methods.map(fn => fn()).filter(Boolean);
 
     if (online()) {
       let html = onlineHtml();
       if (list.length) {
-        const ways = list.map(m => ({ mobile: 'direct mobile money', bank: 'bank transfer', check: 'a check by mail' }[m.id] || m.title));
+        const ways = list.map(m => ({ mobile: momoOn() ? 'sending mobile money to our number yourself' : 'direct mobile money', bank: 'bank transfer', check: 'a check by mail' }[m.id] || m.title));
         const offline = list.some(m => ['mobile', 'bank', 'zelle', 'cashapp', 'venmo', 'check'].includes(m.id));
         html += `<div class="pay-other"><h3 class="pay-step">Other ways to pay</h3>
           <p class="pay-other-sub">Prefer ${esc(joinOr(ways))}?${offline ? ` Send it, then tell us below — we'll confirm it and send your ${purpose === 'membership' ? 'membership confirmation' : 'receipt'}.` : ' Choose it below.'}</p>
@@ -396,16 +588,26 @@
       throw new Error("We couldn't reach the payment service. Please check your connection and try again.");
     }
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+    if (!res.ok) throw Object.assign(new Error(data.error || 'Something went wrong. Please try again.'), { data });
     return data;
   }
 
-  // Field-level error state: aria-invalid + aria-describedby pointing at the form's message.
-  const markInvalid = (field, msgId) => { field.setAttribute('aria-invalid', 'true'); field.setAttribute('aria-describedby', msgId); };
+  // Field-level error state: aria-invalid + aria-describedby pointing at the form's message
+  // (ahead of the field's own hint, kept in data-hint, which comes back once it's fixed).
+  const markInvalid = (field, msgId) => {
+    field.setAttribute('aria-invalid', 'true');
+    field.dataset.errId = msgId;
+    field.setAttribute('aria-describedby', [msgId, field.dataset.hint].filter(Boolean).join(' '));
+  };
+  const unmark = field => {
+    field.removeAttribute('aria-invalid');
+    delete field.dataset.errId;
+    if (field.dataset.hint) field.setAttribute('aria-describedby', field.dataset.hint); else field.removeAttribute('aria-describedby');
+  };
   const clearInvalid = field => {
     if (!field || field.getAttribute('aria-invalid') !== 'true') return;
-    const msg = document.getElementById(field.getAttribute('aria-describedby'));
-    field.removeAttribute('aria-invalid'); field.removeAttribute('aria-describedby');
+    const msg = document.getElementById(field.dataset.errId);
+    unmark(field);
     if (msg && !(field.form && field.form.querySelector('[aria-invalid="true"]'))) msg.textContent = '';
   };
   // Preset amount buttons: keep the visual state and aria-pressed in step with st.amount.
@@ -415,23 +617,40 @@
     b.setAttribute('aria-pressed', String(on));
   });
 
-  async function startCheckout(gw, button) {
+  // Clears earlier errors on the automated form and returns a `fail(field, text)` that shows one.
+  function formErrors() {
     const form = document.getElementById('pay-form');
     const err = form.querySelector('.pay-form-err');
     err.textContent = '';
-    form.querySelectorAll('[aria-invalid]').forEach(f => { f.removeAttribute('aria-invalid'); f.removeAttribute('aria-describedby'); });
-    const isM = purpose === 'membership';
-    const fail = (name, text) => {
+    form.querySelectorAll('[aria-invalid]').forEach(unmark);
+    return (name, text) => {
       err.textContent = text;
       const f = form.elements[name];
-      if (f) { markInvalid(f, 'pay-err'); f.focus(); }
+      if (f && f.focus) { markInvalid(f, 'pay-err'); f.focus(); }
+      return false;
     };
-    if (!isM && !(Number(st.amount) > 0)) return fail('amount', 'Please choose or enter an amount.');
+  }
+  // Amount, name and email: needed by every gateway.
+  const checkDetails = fail => {
+    if (purpose !== 'membership' && !(Number(st.amount) > 0)) return fail('amount', 'Please choose or enter an amount.');
     if (!st.name.trim()) return fail('name', 'Please enter your name.');
     if (!EMAIL_RE.test(st.email.trim())) return fail('email', 'Please enter a valid email address.');
-    const label = button.querySelector('.pay-gw-title').textContent;
-    form.querySelectorAll('.pay-gw').forEach(b => { b.disabled = true; });
-    button.querySelector('.pay-gw-title').textContent = 'Opening secure checkout…';
+    return true;
+  };
+  // Disables the pay buttons while a request runs; the next render() rebuilds them enabled.
+  const lockPay = () => document.querySelectorAll('#pay-form .pay-gw, #pay-form [data-momo]').forEach(b => { b.disabled = true; });
+
+  async function startCheckout(gw, button) {
+    if (busy) return;
+    const fail = formErrors();
+    if (!checkDetails(fail)) return;
+    const isM = purpose === 'membership';
+    const labelEl = button.querySelector('.pay-gw-title') || button;
+    const focusSel = '#pay-form ' + (button.dataset.momo ? `[data-momo="${cssEsc(button.dataset.momo)}"]` : `[data-gw="${cssEsc(gw)}"]`);
+    const label = labelEl.textContent;
+    busy = true;
+    lockPay();
+    labelEl.textContent = 'Opening secure checkout…';
     try {
       const { url } = await post('/checkout', {
         gateway: gw, purpose, tier: isM && selectedTier ? selectedTier.id : '',
@@ -439,14 +658,203 @@
         // Mobile money in Zambia is charged in kwacha.
         currency: isM ? (gw === 'dpo' && apiCfg.zmwPerUsd ? 'ZMW' : 'USD') : st.currency,
         recurring: isM ? (st.autoRenew ? 'year' : 'once') : st.freq,
-        name: st.name, email: st.email, phone: st.phone, country: st.country, profession: st.profession,
+        designation: isM ? undefined : (st.designation || undefined),
+        // From the mobile money form's "pay on DPO's page instead", pass on the number typed there.
+        name: st.name, email: st.email, phone: st.phone || (gw === 'dpo' && zmPhone(mm.phone).valid ? '0' + zmPhone(mm.phone).nsn : ''),
+        country: st.country, profession: st.profession,
       });
-      location.href = url;
+      location.href = url; // stays busy while the browser leaves (pageshow resets it on Back)
     } catch (e) {
-      button.querySelector('.pay-gw-title').textContent = label;
+      busy = false;
+      labelEl.textContent = label;
       // Rebuild (re-enables the buttons) and keep focus on the button the donor pressed.
-      render(`#pay-form [data-gw="${cssEsc(gw)}"]`);
+      render(focusSel);
       document.querySelector('#pay-form .pay-form-err').textContent = e.message;
+    }
+  }
+
+  /* ----- Direct mobile money: open / send / poll ----- */
+  function openMomo() {
+    mm.open = true; mm.stopped = false; mm.note = ''; mm.prev = null; mm.fallback = '';
+    // Mobile money is charged in kwacha: switch a USD gift over (and back again if the panel is closed untouched).
+    if (purpose === 'donation' && st.currency !== 'ZMW') {
+      const rate = apiCfg.zmwPerUsd || 0, usd = Number(st.amount);
+      mm.prev = { currency: st.currency, amount: st.amount };
+      st.currency = 'ZMW';
+      st.amount = rate && usd > 0 ? String(Math.ceil(usd * rate)) : '';
+      mm.prev.converted = st.amount;
+      mm.note = st.amount
+        ? `Mobile money is paid in Zambian kwacha, so your ${money(usd, 'USD')} gift is now ${money(Number(st.amount), 'ZMW')} at our current exchange rate. You can change the amount above.`
+        : 'Mobile money is paid in Zambian kwacha. Please choose or enter a kwacha amount above.';
+    }
+    if (!has(mm.phone) && zmPhone(st.phone).valid) mm.phone = st.phone;
+    const ph = zmPhone(mm.phone);
+    mm.detected = ph.operator;
+    if (!mm.operator && ph.operator && momoOps().includes(ph.operator)) { mm.operator = ph.operator; mm.auto = true; }
+    render('#pay-momo-title', true);
+  }
+  function closeMomo() {
+    mm.open = false; mm.note = '';
+    if (mm.prev && st.currency === 'ZMW' && st.amount === mm.prev.converted) { st.currency = mm.prev.currency; st.amount = mm.prev.amount; }
+    mm.prev = null;
+  }
+  // Keeps the network cards in step with mm.operator without a re-render (focus stays in the phone field).
+  const syncOps = () => root.querySelectorAll('input[name="momoOp"]').forEach(r => {
+    r.checked = r.value === mm.operator;
+    r.closest('.pay-op').classList.toggle('selected', r.checked);
+  });
+  const syncMomoSum = () => { const el = document.getElementById('pay-momo-sum'); if (el) el.innerHTML = momoSumHtml(); };
+  // Live operator detection from the number's prefix. The donor can still pick another network
+  // (e.g. a ported number); a pick is only overridden when the number changes to another network.
+  function onMomoPhone(input) {
+    mm.phone = input.value;
+    const ph = zmPhone(mm.phone);
+    const hint = document.getElementById('pay-momo-hint');
+    if (hint) hint.textContent = momoHint(ph);
+    if (ph.operator === mm.detected) return;
+    mm.detected = ph.operator;
+    if (ph.operator && momoOps().includes(ph.operator)) {
+      if (mm.operator !== ph.operator) {
+        mm.operator = ph.operator; mm.auto = true;
+        syncOps();
+        announce(`${opName(ph.operator)} selected`);
+      }
+    } else if (ph.operator && mm.auto && mm.operator) {
+      // Now a number on a network we can't prompt: drop the network picked for the previous
+      // number, so the prompt can't go to that network by mistake. The hint explains why.
+      mm.operator = ''; mm.auto = false;
+      syncOps();
+    }
+  }
+  // Shows the waiting / result card, moves focus to its heading and says what happened.
+  function showMomo(view, message) {
+    mm.view = view;
+    if (message !== undefined) mm.message = has(message) ? String(message) : '';
+    if (view !== 'processing') stopPolling();
+    if (view === 'success' || view === 'failed') forgetMomo();
+    render('#pay-momo-head', true);
+    const s = mm.snap || {};
+    announce({
+      processing: mm.resumed ? 'Checking your mobile money payment.' : `Payment request sent${s.phone ? ' to ' + s.phone : ''}. ${mm.message || 'Check your phone and enter your PIN to approve.'}`,
+      success: 'Your payment was approved.',
+      failed: mm.message || 'The payment was not completed.',
+      timeout: 'If you approved the request it will still be recorded. You can check again, send a new prompt or use another method.',
+    }[view] || '');
+  }
+
+  async function startMomo(button) {
+    if (busy) return;
+    const fail = formErrors();
+    if (!checkDetails(fail)) return;
+    const ph = zmPhone(mm.phone);
+    if (!ph.valid) return fail('momoPhone', 'Please enter your Zambian mobile money number, e.g. 097 123 4567.');
+    if (!momoOps().includes(mm.operator)) {
+      if (ph.operator && !momoOps().includes(ph.operator)) return fail('momoPhone', momoHint(ph));
+      document.getElementById('pay-err').textContent = 'Please choose your mobile money network.';
+      const r = root.querySelector('input[name="momoOp"]:not(:disabled)');
+      if (r) r.focus();
+      return;
+    }
+    const isM = purpose === 'membership';
+    // Per-network limits from /config (the API enforces them too); bigger gifts go by card or bank.
+    const lim = !isM && apiCfg.momoLimits && apiCfg.momoLimits[mm.operator];
+    if (lim && Number(st.amount) > Number(lim.max)) {
+      return fail('amount', `${opName(mm.operator)} payments are limited to ${money(Number(lim.max), 'ZMW')} each. For a larger gift, please pay by card or bank transfer.`);
+    }
+    mm.fallback = '';
+    // What the donor is approving, captured now: the form can still change while the request runs.
+    const snap = { amount: momoAmountText(), phone: fmtZm(ph.nsn), op: opName(mm.operator), email: st.email.trim() };
+    busy = true;
+    lockPay();
+    button.textContent = 'Sending prompt…';
+    try {
+      const data = await post('/momo/start', {
+        purpose, tier: isM && selectedTier ? selectedTier.id : '',
+        amount: isM ? undefined : Number(st.amount),
+        currency: 'ZMW', recurring: 'once',
+        designation: isM ? undefined : (st.designation || undefined),
+        name: st.name, email: st.email, phone: '0' + ph.nsn, country: st.country, profession: st.profession,
+        operator: mm.operator,
+      });
+      if (!data.reference && httpsUrl(data.url)) { location.href = data.url; return; }
+      if (!has(String(data.reference || ''))) throw new Error('Something went wrong. Please try again.');
+      busy = false;
+      mm.reference = String(data.reference);
+      mm.instructions = has(data.instructions) ? data.instructions : '';
+      mm.snap = snap;
+      mm.resumed = false;
+      if (data.status === 'paid') { showMomo('success', data.message); return; }
+      saveMomo();
+      const first = Number(data.pollAfterMs);
+      startPolling(MOMO_WAIT, first >= 2000 && first <= 15000 ? first : MOMO_POLL);
+      showMomo('processing', data.message);
+    } catch (e) {
+      busy = false;
+      // The API couldn't send a prompt but opened DPO Pay's page for the same payment: offer it.
+      const d = e.data || {};
+      if (d.fallback && httpsUrl(d.url)) mm.fallback = d.url;
+      render(mm.fallback ? '#pay-momo-fallback' : '#pay-form [data-momo="send"]');
+      document.getElementById('pay-err').textContent = e.message;
+    }
+  }
+
+  // GET /momo/status → {status, message}; null when it couldn't be reached (polling just carries on).
+  async function momoStatus(ref) {
+    try {
+      const signal = (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(15000) : undefined;
+      const res = await fetch(`${API}/momo/status?reference=${encodeURIComponent(ref)}`, { cache: 'no-store', signal });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 429) return { status: 'pending', wait: 15000 };
+      if (res.status === 400 || res.status === 404) return { status: 'failed', message: data.error || "We couldn't find this payment request." };
+      return res.ok ? data : null;
+    } catch { return null; }
+  }
+  let pollTimer = 0, tickTimer = 0, pollRun = 0;
+  function stopPolling() { clearTimeout(pollTimer); clearInterval(tickTimer); pollRun++; }
+  function startPolling(windowMs, firstDelay) {
+    stopPolling();
+    const run = pollRun;
+    mm.window = windowMs;
+    mm.deadline = Date.now() + windowMs;
+    // Countdown + progress bar, updated in place (not announced: the live region only gets real changes).
+    tickTimer = setInterval(() => {
+      const left = momoLeft(), t = document.getElementById('pay-momo-timer'), bar = document.getElementById('pay-momo-bar');
+      if (t) t.textContent = left.text;
+      if (bar) bar.style.width = left.done + '%';
+    }, 1000);
+    const check = async () => {
+      if (run !== pollRun) return;
+      const r = await momoStatus(mm.reference);
+      if (run !== pollRun) return;
+      if (r && r.status === 'paid') return showMomo('success', r.message);
+      if (r && r.status === 'failed') return showMomo('failed', r.message);
+      if (Date.now() >= mm.deadline) return showMomo('timeout', '');
+      // One last look right after the deadline, so a just-in-time approval isn't missed.
+      pollTimer = setTimeout(check, Math.min((r && r.wait) || MOMO_POLL, Math.max(1000, mm.deadline - Date.now() + 500)));
+    };
+    pollTimer = setTimeout(check, firstDelay);
+  }
+
+  function momoAction(what, button) {
+    if (what === 'send') return startMomo(button);
+    if (what === 'hosted') return startCheckout('dpo', button);
+    if (what === 'check') {
+      mm.resumed = true;
+      startPolling(30000, 0);
+      return showMomo('processing', '');
+    }
+    if (what === 'retry') {
+      stopPolling(); forgetMomo();
+      Object.assign(mm, { view: 'form', open: true, resumed: false, stopped: false, note: '', fallback: '', instructions: '' });
+      return render('#pay-form [data-momo="send"]', true);
+    }
+    if (what === 'stop') {
+      const waiting = mm.view === 'processing' || mm.view === 'timeout';
+      stopPolling(); forgetMomo();
+      Object.assign(mm, { view: 'form', resumed: false });
+      closeMomo();
+      mm.stopped = waiting;
+      render('#pay-form .pay-gw:not([disabled])', true);
     }
   }
 
@@ -464,10 +872,18 @@
       const input = document.querySelector('#pay-form input[name="amount"]');
       if (input) { input.value = st.amount; clearInvalid(input); }
       syncPresets();
+      amountChanged();
       return;
     }
+    const act = e.target.closest('[data-momo]');
+    if (act && !act.disabled) { momoAction(act.dataset.momo, act); return; }
     const gw = e.target.closest('.pay-gw');
-    if (gw && !gw.disabled) { startCheckout(gw.dataset.gw, gw); return; }
+    if (gw && !gw.disabled) {
+      if (gw.dataset.gw !== 'momo') { startCheckout(gw.dataset.gw, gw); return; }
+      if (!mm.open) { openMomo(); return; }
+      closeMomo(); render('#pay-form [data-gw="momo"]');
+      return;
+    }
     const copy = e.target.closest('.pay-copy');
     if (copy) {
       const what = copy.dataset.label || 'Detail';
@@ -492,20 +908,44 @@
     }
   });
 
+  // The donor changed the gift amount: refresh the mobile money summary; the
+  // "we switched you to kwacha" note no longer applies.
+  function amountChanged() {
+    syncMomoSum();
+    if (!mm.note) return;
+    mm.note = '';
+    const n = document.getElementById('pay-momo-note');
+    if (n) n.remove();
+  }
+
   root.addEventListener('input', e => {
     const f = e.target;
     clearInvalid(f);
     if (!f.closest('#pay-form')) return;
     if (['name', 'email', 'phone', 'country', 'profession'].includes(f.name)) st[f.name] = f.value;
-    if (f.name === 'amount') { st.amount = f.value; syncPresets(); }
+    if (f.name === 'amount') { st.amount = f.value; syncPresets(); amountChanged(); }
+    if (f.name === 'momoPhone') onMomoPhone(f);
   });
 
   root.addEventListener('change', e => {
     const f = e.target;
     if (f.name === 'pay-tier') { selectedTier = tiers.find(t => t.id === f.value) || selectedTier; render(); return; }
-    if (f.name === 'freq') { st.freq = f.value; render(); return; }
-    if (f.name === 'currency' && f.closest('#pay-form')) { st.currency = f.value; st.amount = ''; render(); return; }
-    if (f.name === 'autoRenew') { st.autoRenew = f.checked; render(); }
+    // Mobile money is one-time only, so switching to a recurring payment closes its form.
+    if (f.name === 'freq') { st.freq = f.value; if (st.freq !== 'once' && mm.open) closeMomo(); render(); return; }
+    if (f.name === 'currency' && f.closest('#pay-form')) {
+      st.currency = f.value; st.amount = '';
+      mm.prev = null; mm.note = '';
+      if (st.currency !== 'ZMW') mm.open = false; // mobile money is kwacha only
+      render(); return;
+    }
+    if (f.name === 'autoRenew') { st.autoRenew = f.checked; if (st.autoRenew && mm.open) closeMomo(); render(); return; }
+    if (f.name === 'designation' && f.closest('#pay-form')) { st.designation = f.value; syncMomoSum(); return; }
+    if (f.name === 'momoOp') {
+      mm.operator = f.value; mm.auto = false;
+      syncOps();
+      const err = document.getElementById('pay-err');
+      if (err && !root.querySelector('#pay-form [aria-invalid="true"]')) err.textContent = '';
+    }
   });
 
   root.addEventListener('submit', async e => {
@@ -514,7 +954,7 @@
     e.preventDefault();
     const msg = form.querySelector('.pay-form-msg');
     const v = n => (form.elements[n] ? form.elements[n].value.trim() : '');
-    form.querySelectorAll('[aria-invalid]').forEach(f => { f.removeAttribute('aria-invalid'); f.removeAttribute('aria-describedby'); });
+    form.querySelectorAll('[aria-invalid]').forEach(unmark);
     const bad = [!v('name') && 'name', !EMAIL_RE.test(v('email')) && 'email', !(Number(v('amount')) > 0) && 'amount'].filter(Boolean);
     if (bad.length) {
       bad.forEach(n => markInvalid(form.elements[n], msg.id));
@@ -529,6 +969,7 @@
         method: v('network') || form.dataset.method, purpose, tier: purpose === 'membership' && selectedTier ? selectedTier.id : '',
         name: v('name'), email: v('email'), phone: v('phone'), amount: Number(v('amount')), currency: v('currency'),
         date: v('date'), ref: refCode, country: st.country, website: v('website'),
+        designation: purpose === 'donation' ? (v('designation') || undefined) : undefined,
       });
       // The submit button and live region are replaced, so move focus to the confirmation (read out by screen readers).
       form.innerHTML = `<p class="pay-done" tabindex="-1"><strong>Thank you!</strong> We've received your notice (reference <code>${esc(refCode)}</code>). We'll confirm by email once the payment arrives.</p>`;
@@ -545,7 +986,7 @@
 
   // Back button from Stripe / PayPal / DPO restores this page from the back-forward cache with the
   // pay buttons still disabled ("Opening secure checkout…"). Rebuild them from the saved form state.
-  window.addEventListener('pageshow', e => { if (e.persisted && online()) render(); });
+  window.addEventListener('pageshow', e => { if (!e.persisted) return; busy = false; if (online()) render(); });
 
   if (!API) { render(); return; }
   root.innerHTML = '<p class="pay-loading">Loading payment options…</p>';
@@ -567,6 +1008,18 @@
       const d = apiCfg.donation || {}, n = Number(qAmount);
       const min = (d.min && d.min.USD) || 1, max = (d.max && d.max.USD) || Infinity;
       if (n < min || n > max) st.amount = '';
+    }
+    // Default designation: ?designation=<id> when it's a real one, else the first ("where it's needed most").
+    const ds = designations();
+    if (ds.length) {
+      const q = new URLSearchParams(location.search).get('designation');
+      st.designation = (ds.find(d => d.id === q) || ds[0]).id;
+    }
+    // A mobile money request started in this tab moments ago (e.g. before a reload): keep checking it.
+    const saved = momoOn() ? loadMomo() : null;
+    if (saved) {
+      Object.assign(mm, { reference: saved.ref, snap: saved.snap || {}, resumed: true, view: 'processing' });
+      startPolling(60000, 0);
     }
     render();
   })();

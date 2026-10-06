@@ -1111,6 +1111,87 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
   .pay-amounts { display: flex; flex-wrap: wrap; }
   .pay-amt { flex: 1 0 auto; min-width: 84px; white-space: nowrap; padding: 12px 10px; }
 }
+.pay-manage { font-size: .82rem; color: var(--gray-600); margin-top: 8px; }
+
+/* ----- Direct mobile money (js/payments.js, API mode with momoDirect) ----- */
+.pay-gw[aria-expanded="true"] { background: var(--teal-ink); box-shadow: 0 0 0 3px rgba(0,168,156,.25); }
+.pay-gw[aria-expanded="true"]:hover:not(:disabled) { background: #00665e; }
+.pay-momo { margin-top: 14px; padding: 22px; border: 1.5px solid var(--teal); border-radius: var(--radius-lg); background: #f0fbfa; display: flex; flex-direction: column; gap: 12px; }
+.pay-momo-title { font-size: 1.05rem; font-weight: 700; color: var(--navy); }
+.pay-momo-title:focus, .pay-momo-head:focus { outline: none; }   /* focused by script to move screen readers, not a control */
+.pay-momo-note { font-size: .85rem; color: #6b4a00; background: #fff8e6; border: 1px solid #f0d68a; border-radius: var(--radius-sm); padding: 8px 12px; }
+.pay-momo-phone { display: flex; flex-direction: column; gap: 5px; font-size: .8rem; font-weight: 600; color: var(--gray-600); }
+.pay-wrap .pay-momo-phone input:not([type=radio]):not([type=checkbox]) { max-width: 340px; font-size: 1.1rem; letter-spacing: .03em; font-variant-numeric: tabular-nums; }
+.pay-wrap input[aria-invalid="true"]:not([type=radio]):not([type=checkbox]), .pay-wrap select[aria-invalid="true"] { border-color: var(--red-cta); }
+.pay-momo-hint { font-size: .8rem; color: var(--gray-600); margin-top: -4px; min-height: 1.3em; }
+.pay-ops { border: 0; min-width: 0; }
+.pay-ops legend { font-size: .8rem; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
+.pay-op-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; max-width: 480px; }
+.pay-op { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-md); background: var(--white); cursor: pointer; text-align: center; transition: var(--transition); }
+.pay-op:hover { border-color: var(--green-mid); }
+.pay-op.selected { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,168,156,.15); }
+.pay-op input { position: absolute; opacity: 0; pointer-events: none; }
+.pay-op:has(input:focus-visible) { outline: 2px solid var(--teal-ink); outline-offset: 2px; }
+.pay-op.off { cursor: not-allowed; background: var(--gray-50); }
+.pay-op.off:hover { border-color: var(--gray-200); }
+.pay-op-badge { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .9rem; background: var(--gray-100); color: var(--gray-800); transition: var(--transition); }
+.pay-op.selected .pay-op-badge { background: var(--teal-ink); color: var(--white); }
+.pay-op-name { font-size: .82rem; font-weight: 700; color: var(--black); line-height: 1.25; }
+.pay-op.off .pay-op-name { color: var(--gray-600); }
+.pay-op-sub { font-size: .7rem; color: var(--gray-600); }
+.pay-momo-send { align-self: flex-start; }
+.pay-momo-alt { font-size: .82rem; color: var(--gray-600); }
+.pay-textbtn { background: none; padding: 0; font: inherit; font-weight: 600; color: var(--teal-ink); text-decoration: underline; text-underline-offset: 2px; text-align: left; }
+.pay-textbtn:hover { color: var(--green-dark); }
+.pay-textbtn:focus-visible { outline: 2px solid var(--teal-ink); outline-offset: 2px; border-radius: 2px; }
+.pay-textbtn:disabled { color: var(--gray-400); cursor: wait; }
+
+/* Waiting / result card that replaces the form while a prompt is out */
+.pay-momo-status { max-width: 560px; margin: 0 auto; padding: 36px 28px; text-align: center; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.pay-momo-status p { font-size: .95rem; color: var(--gray-800); max-width: 46ch; }
+.pay-momo-status .pay-momo-small { font-size: .82rem; color: var(--gray-600); }
+.pay-momo-head { font-family: var(--font-head); font-size: 1.5rem; line-height: 1.25; color: var(--black); }
+.pay-momo-msg { white-space: pre-line; }   /* provider instructions may span several lines */
+.pay-momo-visual { position: relative; width: 76px; height: 76px; display: grid; place-items: center; color: var(--teal-ink); margin-bottom: 4px; }
+.pay-momo-visual .icon { width: 30px; height: 30px; stroke-width: 2; }
+.pay-momo-ring { position: absolute; inset: 0; border-radius: 50%; border: 4px solid var(--gray-100); border-top-color: var(--teal-ink); animation: pay-spin 1s linear infinite; }
+@keyframes pay-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .pay-momo-ring { animation: none; border-color: var(--teal); }   /* steady ring; the countdown shows progress */
+}
+.pay-momo-icon { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 4px; }
+.pay-momo-icon .icon { width: 30px; height: 30px; stroke-width: 2.5; }
+.is-ok .pay-momo-icon { background: var(--green-light); color: var(--green-dark); }
+.is-bad .pay-momo-icon { background: #fdecec; color: var(--red-cta); }
+.is-late .pay-momo-icon { background: #fff8e6; color: #8a6100; }
+.pay-momo-bar { width: 100%; max-width: 320px; height: 6px; border-radius: 99px; background: var(--gray-100); overflow: hidden; margin-top: 4px; }
+.pay-momo-bar span { display: block; height: 100%; width: 0; background: var(--teal); transition: width 1s linear; }
+.pay-momo-count { font-variant-numeric: tabular-nums; }
+.pay-momo-ref code { background: var(--gray-100); padding: 1px 6px; border-radius: 4px; font-size: .78rem; overflow-wrap: anywhere; }
+.pay-momo-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; }
+.pay-momo-actions button.btn-outline-dark:not(:hover) { background: var(--white); }   /* <button> has a grey UA background */
+@media (max-width: 560px) {
+  .pay-momo { padding: 16px; }
+  .pay-momo-send { align-self: stretch; justify-content: center; }
+  .pay-op-badge { width: 30px; height: 30px; font-size: .82rem; }
+  .pay-momo-status { padding: 28px 16px; }
+  .pay-momo-head { font-size: 1.3rem; }
+  .pay-momo-actions .btn { flex: 1 1 100%; justify-content: center; }
+}
+
+/* ----- /manage-giving/ ----- */
+.manage-wrap { max-width: 620px; margin: 0 auto; }
+.manage-wrap .contact-form-card h2 { font-size: 1.2rem; font-weight: 700; color: var(--black); margin-bottom: 12px; }
+.manage-intro { font-size: .95rem; color: var(--gray-600); margin-bottom: 22px; }
+#manage-offline .manage-intro { margin-bottom: 0; }
+.manage-status:empty { display: none; }
+.manage-status .callout { margin: 16px 0 0; }
+.manage-more { margin-top: 36px; }
+.manage-more h2 { font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+.manage-more p + p { margin-top: 12px; }
+@media (max-width: 560px) {
+  .manage-wrap .contact-form-card { padding: 24px 18px; }
+}
 .thanks-icon { width: 64px; height: 64px; margin: 0 auto 18px; border-radius: 50%; background: var(--white); display: grid; place-items: center; box-shadow: var(--shadow-md); }
 .thanks-icon .icon { width: 30px; height: 30px; color: var(--red-cta); }
 .thanks-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }

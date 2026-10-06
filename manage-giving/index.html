@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="GAZHP terms of use and our donation, membership, recurring-payment and refund policy, including how to cancel a monthly gift or automatic renewal." />
-  <title>Terms &amp; Refund Policy — GAZHP</title>
+  <meta name="description" content="Update the card for your monthly gift to GAZHP, or cancel a monthly gift or automatic membership renewal. We email you a secure link." />
+  <title>Manage Your Monthly Gift — GAZHP</title>
   <!-- gazhp:head -->
-  <link rel="canonical" href="https://gazhphealth.org/terms/" />
+  <link rel="canonical" href="https://gazhphealth.org/manage-giving/" />
   <meta property="og:site_name" content="GAZHP — Global Alliance of Zambian Healthcare Professionals" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Terms &amp; Refund Policy — GAZHP" />
-  <meta property="og:description" content="GAZHP terms of use and our donation, membership, recurring-payment and refund policy, including how to cancel a monthly gift or automatic renewal." />
-  <meta property="og:url" content="https://gazhphealth.org/terms/" />
+  <meta property="og:title" content="Manage Your Monthly Gift — GAZHP" />
+  <meta property="og:description" content="Update the card for your monthly gift to GAZHP, or cancel a monthly gift or automatic membership renewal. We email you a secure link." />
+  <meta property="og:url" content="https://gazhphealth.org/manage-giving/" />
   <meta property="og:image" content="https://gazhphealth.org/images/og-default.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -98,146 +98,75 @@
 <section class="page-hero">
   <div class="container">
     <div class="page-hero-inner">
-      <div class="breadcrumb">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
-        <span>›</span>
-        <span>Terms &amp; Refund Policy</span>
-      </div>
-      <h1>Terms &amp; Refund Policy</h1>
+        <span aria-hidden="true">›</span>
+        <a href="/donate/">Donate</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Manage Your Gift</span>
+      </nav>
+      <h1>Manage Your Monthly Gift</h1>
       <p>
-        Terms of use for this website, and how donations, membership dues, recurring payments
-        and refunds work.
+        Update the card you give with, or cancel a monthly gift or automatic membership renewal.
       </p>
     </div>
   </div>
 </section>
 
-<!-- ========== TERMS ========== -->
+<!-- ========== MANAGE (POST {api}/manage-giving — see the script at the end of this page) ========== -->
 <section class="section-pad">
   <div class="container">
-    <article class="article-wrap">
-      <!--
-        NOTE FOR GAZHP: These terms were drafted to describe how this website and its payment
-        options actually work (as of 1 October 2026). They are not legal advice. Please have
-        them reviewed by the organization's counsel before relying on them. Counsel may also
-        wish to add clauses this draft deliberately leaves out (e.g. limitation of liability,
-        governing law and jurisdiction).
-        Items marked "TODO (board/counsel)" below need a decision from the organization.
-      -->
-      <div class="article-meta" style="margin-bottom:28px;color:var(--gray-600);">
-        <span>Last updated: <time datetime="2026-10-01">1 October 2026</time></span>
-      </div>
-      <div class="article-body prose-links">
-
-        <div class="callout">
-          <p>
-            <strong>In short:</strong> your gifts and dues support GAZHP's work for Zambia's health
-            system. You can cancel a monthly gift or automatic membership renewal at any time by
-            emailing <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a>. If something
-            went wrong with a payment, email us and we'll help. Approved refunds go back to the
-            original payment method.
+    <div class="manage-wrap">
+      <div class="contact-form-card">
+        <h2 id="manage-title">Get a secure link by email</h2>
+        <!-- Shown when the payments API is switched on (js/payments-config.js → api.baseUrl).
+             The API always answers the same way, so this page never reveals whether an email
+             address gives to GAZHP; the link itself only ever goes to that inbox. -->
+        <div id="manage-online" hidden>
+          <p class="manage-intro">
+            Enter the email address you used when you set up your monthly gift or membership.
+            If it has a monthly gift or automatic renewal paid by card on this website, we'll email it
+            a secure link to manage it with our card payment provider, Stripe.
+          </p>
+          <form id="manage-form" novalidate aria-labelledby="manage-title">
+            <div class="form-group">
+              <label for="manage-email">Email address <span aria-hidden="true">*</span></label>
+              <input type="email" id="manage-email" name="email" placeholder="your@email.com" autocomplete="email" maxlength="160" required />
+              <p class="field-error" id="manage-email-error" hidden></p>
+            </div>
+            <button type="submit" class="btn btn-teal btn-lg form-submit"><span id="manage-label">Email me a link</span></button>
+            <div id="manage-status" class="manage-status prose-links" role="status"></div>
+          </form>
+        </div>
+        <!-- Shown when the payments API isn't switched on yet, and without JavaScript. -->
+        <div id="manage-offline" class="prose-links">
+          <p class="manage-intro">
+            To change or cancel a monthly gift or automatic membership renewal, email
+            <a href="mailto:info@gazhphealth.org?subject=Manage%20my%20monthly%20gift">info@gazhphealth.org</a>
+            with your name, the email address you used and, if you have it, the payment reference.
+            We'll take care of it and confirm by email.
           </p>
         </div>
+      </div>
 
-        <h2 id="about">About these terms</h2>
+      <div class="manage-more prose-links">
+        <h2>Good to know</h2>
         <p>
-          These terms apply when you use gazhphealth.org and when you make a donation or pay
-          membership dues to the Global Alliance of Zambian Healthcare Professionals ("GAZHP",
-          "we", "us"), a 501(c)(3) nonprofit organization registered in Delaware, USA. By using
-          the website or making a payment, you agree to them. Our
-          <a href="/privacy/">Privacy Policy</a> explains how we handle your personal information.
-        </p>
-
-        <h2 id="website">Using this website</h2>
-        <ul>
-          <li>The website gives general information about GAZHP and its work. Nothing on it is medical advice.</li>
-          <li>We work to keep the information accurate and up to date, but we can't guarantee that every detail is complete or current.</li>
-          <li>Links to other websites, including our payment providers, are provided for convenience. We are not responsible for their content or how they handle your information.</li>
-          <li>Please don't misuse the website, for example by trying to access its administrator areas or by sending false payment reports or messages.</li>
-          <li>The GAZHP name and logo belong to GAZHP. You are welcome to share links to our pages.</li>
-        </ul>
-
-        <h2 id="donations">Donations</h2>
-        <ul>
-          <li>Donations are voluntary gifts that support GAZHP's charitable work, such as training, specialist care and medical equipment for Zambia's health system.</li>
-          <li>You can give once or, where the option is offered, every month.</li>
-          <li>Amounts are in US dollars unless the page says otherwise. Payments through DPO Pay (Zambia) can also be made in Zambian kwacha (ZMW). Your bank or payment provider may apply its own exchange rates and fees.</li>
-          <li>We send a receipt to the email address you give us. Please keep it for your records.</li>
-        </ul>
-        <p>
-          GAZHP is a registered US 501(c)(3) nonprofit. Gifts from US taxpayers are tax-deductible
-          to the extent allowed by law. Tax rules in other countries differ, so please check with
-          your tax advisor.
-        </p>
-
-        <h2 id="membership">Membership</h2>
-        <ul>
-          <li>Membership dues are annual. Your membership runs for 12 months from the date your payment is received.</li>
-          <li>Current tiers, prices and benefits are listed on our <a href="/membership/">Membership page</a>, and you can join on the <a href="/join/">Join page</a>.</li>
-          <li>Without automatic renewal, you renew by paying again. We may email you a reminder when your membership is due.</li>
-          <li>If you choose automatic renewal (card payments only), your card is charged the annual dues for your tier every year until you cancel.</li>
-          <li>Because membership comes with benefits, dues may be treated differently from donations for tax purposes. Please check with your tax advisor.</li>
-        </ul>
-
-        <h2 id="cancelling">Cancelling a monthly gift or automatic renewal</h2>
-        <!-- TODO (board/counsel): confirm how quickly cancellation requests will be actioned (e.g. "within X business days"). -->
-        <p>
-          You can cancel a monthly gift or the automatic renewal of your membership at any time.
-          Email <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a> with your name, the
-          email address you used and, if you have it, the payment reference, and we'll cancel it
-          and confirm by email. Please write before your next payment date if you can, so we can
-          stop it in time. For gifts and renewals paid by card on this website, you can also use the
-          <a href="/manage-giving/">Manage your gift</a> page to get a secure link to update or cancel it yourself.
+          Cancelling stops future payments. It doesn't refund payments already made. If a payment was
+          taken that you didn't expect, see our <a href="/terms/#refunds">refund policy</a>.
         </p>
         <p>
-          Cancelling stops future payments. If a payment was taken that you didn't expect, see
-          <a href="#refunds">Refunds</a> below.
-        </p>
-
-        <h2 id="refunds">Refunds</h2>
-        <!-- TODO (board/counsel): decide and state the refund request window (e.g. "within X days of the payment") and the usual processing time. -->
-        <p>
-          If you made a mistake, such as giving the wrong amount, paying twice, or being charged
-          for a recurring payment you meant to cancel, or if you believe a payment was made
-          without your permission, email
-          <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a> within a reasonable time.
-          Please include your name, the date, the amount and the payment reference.
-        </p>
-        <ul>
-          <li>We review every request and tell you the outcome by email.</li>
-          <li>Approved refunds are made to the original payment method: your card, PayPal account, bank account or mobile-money wallet. For offline payments such as bank transfers, Zelle or checks, we return the money by the same method where possible.</li>
-          <li>How long the money takes to reach you depends on your bank or payment provider.</li>
-          <li>Please contact us before disputing a charge with your bank. We can usually sort things out faster.</li>
-        </ul>
-
-        <h2 id="payments">How payments are processed</h2>
-        <p>
-          Online payments are processed by Donorbox, Stripe, PayPal or DPO Pay, depending on the
-          option you choose. Your card, bank and mobile-money details go directly to them and
-          never reach GAZHP, and their own terms also apply to your payment.
+          This page finds monthly gifts and automatic renewals paid by card through this website. If you
+          set up your gift another way, for example through Donorbox, or you'd rather talk to a person,
+          email <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a> and we'll help.
+          See <a href="/terms/#cancelling">how cancelling works</a>.
         </p>
         <p>
-          If you pay by bank transfer, Zelle, Cash App, Venmo, check or direct mobile money,
-          please include the reference code shown on the payment page, then use the
-          "I've paid" button to tell us. This lets us match your payment and send your receipt or
-          membership confirmation.
-        </p>
-
-        <h2 id="changes">Changes to these terms</h2>
-        <p>
-          We may update these terms from time to time. When we do, we will change the
-          "Last updated" date at the top of this page. The version on this page when you make a
-          payment applies to that payment.
-        </p>
-
-        <h2 id="contact">Contact us</h2>
-        <p>
-          Global Alliance of Zambian Healthcare Professionals (GAZHP), Delaware, USA.<br />
-          Email <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a>
-          or use our <a href="/contact/">contact page</a>.
+          We only use your email address to look up your gift and send you the link.
+          Read our <a href="/privacy/">Privacy Policy</a>.
         </p>
       </div>
-    </article>
+    </div>
   </div>
 </section>
 
@@ -290,6 +219,83 @@
   </div>
 </footer>
 
+<script src="/js/payments-config.js"></script>
+<script>
+  /* /manage-giving/ — POST {api}/manage-giving {email}. The API always answers {ok:true} and
+     emails a Stripe billing-portal link only if that address has a subscription, so the
+     message below is the same either way. Without the API, the email instructions stay. */
+  (function () {
+    'use strict';
+    var CFG = window.GAZHP_CONFIG || {};
+    var API = CFG.api && typeof CFG.api.baseUrl === 'string' ? CFG.api.baseUrl.trim().replace(/\/+$/, '') : '';
+    if (!API) return;
+    var TO = 'info@gazhphealth.org';
+    var form = document.getElementById('manage-form');
+    var email = document.getElementById('manage-email');
+    var error = document.getElementById('manage-email-error');
+    var status = document.getElementById('manage-status');
+    var button = form.querySelector('button[type="submit"]');
+    var label = document.getElementById('manage-label');
+    document.getElementById('manage-online').hidden = false;
+    document.getElementById('manage-offline').hidden = true;
+
+    var esc = function (s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+    };
+    function setError(msg) {
+      error.textContent = msg;
+      error.hidden = !msg;
+      if (msg) { email.setAttribute('aria-invalid', 'true'); email.setAttribute('aria-describedby', error.id); }
+      else { email.removeAttribute('aria-invalid'); email.removeAttribute('aria-describedby'); }
+    }
+    // Clear first, then write, so screen readers announce a repeated message too.
+    var sayTimer = 0;
+    function say(html, isError) {
+      status.innerHTML = '';
+      clearTimeout(sayTimer);
+      sayTimer = setTimeout(function () {
+        status.innerHTML = '<div class="callout"' + (isError ? ' style="border-left-color:var(--red-cta);"' : '') + '>' + html + '</div>';
+      }, 60);
+    }
+    email.addEventListener('input', function () { if (email.getAttribute('aria-invalid')) setError(''); });
+
+    var sending = false;
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (sending) return;
+      var v = email.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+        setError(v ? 'Please enter a valid email address, like name@example.com.' : 'Please enter your email address.');
+        email.focus();
+        return;
+      }
+      setError('');
+      var hadFocus = document.activeElement === button;
+      sending = true; button.disabled = true; label.textContent = 'Sending…'; form.setAttribute('aria-busy', 'true');
+      var res = null, data = {};
+      var ctl = new AbortController();
+      var timer = setTimeout(function () { ctl.abort(); }, 20000);
+      try {
+        res = await fetch(API + '/manage-giving', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: v }), signal: ctl.signal });
+        data = await res.json().catch(function () { return {}; });
+      } catch (err) { res = null; }
+      clearTimeout(timer);
+      sending = false; button.disabled = false; label.textContent = 'Email me a link'; form.setAttribute('aria-busy', 'false');
+      if (hadFocus && (!document.activeElement || document.activeElement === document.body)) button.focus();
+
+      if (res && res.ok && data && data.ok === true) {
+        say('<p><strong>Thank you. Please check your inbox.</strong> If ' + esc(v) + ' has a monthly gift or automatic renewal with us, a link to manage it is on its way. The link is short-lived, so please use it soon; you can always ask for a new one here.</p>'
+          + '<p style="margin-top:8px;">Nothing after a few minutes? Check your spam folder, or email <a href="mailto:' + TO + '">' + TO + '</a>.</p>');
+        return;
+      }
+      var reason = res && data && typeof data.error === 'string' && data.error.trim()
+        ? data.error.trim()
+        : res ? 'Our server could not accept it just now.' : 'We could not reach our server. Please check your connection.';
+      say('<p><strong>Your request was not sent.</strong> ' + esc(reason) + '</p>'
+        + '<p style="margin-top:8px;">Please try again, or email <a href="mailto:' + TO + '">' + TO + '</a> and we\'ll help.</p>', true);
+    });
+  })();
+</script>
 <script src="/js/main.js"></script>
 </body>
 </html>

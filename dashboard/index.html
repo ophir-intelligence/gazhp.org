@@ -87,9 +87,16 @@
           <div class="dash-card-head"><h3>Recent payments</h3><button class="link-btn" data-goto="donations">View all ›</button></div>
           <div id="recent"></div>
         </div>
-        <div class="dash-card">
-          <div class="dash-card-head"><h3>Active members by tier</h3></div>
-          <div class="chart" id="tier-chart"></div>
+        <div class="dash-stack">
+          <div class="dash-card">
+            <div class="dash-card-head"><h3>Active members by tier</h3></div>
+            <div class="chart" id="tier-chart"></div>
+          </div>
+          <!-- Shown once payments carry a designation ("Where should your gift go?") -->
+          <div class="dash-card" id="desig-card" hidden>
+            <div class="dash-card-head"><h3>Donations by designation</h3><span class="dash-card-note">Donations only · selected period</span></div>
+            <div class="chart" id="desig-chart"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -125,6 +132,7 @@
           <select id="tx-type"><option value="">Donations &amp; memberships</option><option value="donation">Donations only</option><option value="membership">Memberships only</option></select>
           <select id="tx-method"><option value="">All methods</option></select>
           <select id="tx-status"><option value="">Any status</option><option value="paid">Received</option><option value="pending">Awaiting confirmation</option><option value="failed">Failed / not received</option><option value="refunded">Refunded</option></select>
+          <select id="tx-designation" aria-label="Designation" hidden><option value="">All designations</option></select>
           <select id="tx-year"></select>
         </div>
         <div class="dash-actions">
@@ -171,6 +179,9 @@
         </label>
         <label data-show="membership">Membership tier
           <select name="tier" id="rec-tier"></select>
+        </label>
+        <label data-show="donation">Designation
+          <select name="designation" id="rec-designation"><option value="">Not specified</option></select>
         </label>
         <label>Date received<input type="date" name="date" required /></label>
         <label>Amount<input type="number" name="amount" min="0" step="0.01" required /></label>
@@ -270,6 +281,7 @@
 </div>
 
 <div class="chart-tip" id="chart-tip" role="tooltip" hidden></div>
+<div class="dash-toast" id="dash-toast" role="status" aria-live="polite"></div>
 
 <script src="/js/payments-config.js"></script>
 <script src="/js/dashboard.js"></script>

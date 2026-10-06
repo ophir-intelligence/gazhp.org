@@ -125,17 +125,57 @@
      DATA STORE
      Record shape:
      { id, date:'YYYY-MM-DD', name, email, phone, country, amount, currency,
-       type:'donation'|'membership', tier, method, ref, notes, source }
+       type:'donation'|'membership', tier, method, ref, notes, source,
+       designation?, receipt_sent_at? }
      status (API mode): 'paid' | 'pending' | 'failed' | 'refunded'
      source: 'stripe' | 'paypal' | 'dpo' | 'notify' | 'import' | 'manual' | 'sheet' | 'sample'
+     designation: id of the programme a gift is for ('general', 'mental-health', …)
+     receipt_sent_at (API mode): ISO time the receipt email went out, or null
      ===================================================================== */
   let local = [];      // API mode: server payments. Local mode: saved in this browser.
   let sheet = [];      // loaded from Google Sheet each visit
   let samples = [];    // demo data — kept in this browser only, never sent to the server
   let lastSync = null;
+  let apiConfig = null; // API mode: GET /config (gateways, designations, momoDirect)
   const all = () => local.concat(sheet, samples);
   // Only settled money counts in totals and membership.
   const paid = () => all().filter(r => !r.status || r.status === 'paid');
+
+  /* ---------- Gift designations ("Where should your gift go?") ----------
+     The API's GET /config is the source of truth; this copy keeps labels
+     readable before it loads and in local (no-API) mode. */
+  const DESIGNATIONS_FALLBACK = [
+    { id: 'general', label: 'Where it is needed most' },
+    { id: 'mental-health', label: 'Addiction & Mental Health' },
+    { id: 'cardiovascular', label: 'Cardiovascular Care' },
+    { id: 'primary-care', label: 'Family Medicine & Primary Care' },
+  ];
+  const DESIG_ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
+  const DESIG_NONE = '__none'; // filter value for gifts with no designation
+  const cleanDesignations = list => Array.isArray(list)
+    ? list.filter(d => d && DESIG_ID.test(String(d.id || ''))).map(d => ({ id: String(d.id), label: has(d.label) ? String(d.label) : String(d.id) }))
+    : [];
+  function designations() {
+    const fromApi = cleanDesignations(apiConfig && apiConfig.designations);
+    if (fromApi.length) return fromApi;
+    const fromCfg = cleanDesignations(CFG.designations);
+    return fromCfg.length ? fromCfg : DESIGNATIONS_FALLBACK;
+  }
+  const desigLabel = id => !id ? 'Not specified' : ((designations().find(d => d.id === id) || {}).label || id);
+  // Designation UI appears once payments carry one: always in data from an API that
+  // stores it, and in local mode only after a backup with designations is restored.
+  const showDesignations = () => all().some(r => r.designation) || (!!API && local.some(r => 'designation' in r));
+  // Receipt status is shown only when the API reports it (an older Worker doesn't).
+  const receiptsTracked = () => !!API && local.some(r => 'receipt_sent_at' in r);
+  // Rows that live in the payments database (not demo rows or Google Sheet rows).
+  const isServerRecord = r => !!API && r.source !== 'sample' && r.source !== 'sheet';
+  const fmtStamp = (iso, long) => {
+    const t = Date.parse(iso || '');
+    if (isNaN(t)) return '';
+    return new Date(t).toLocaleString('en-US', long
+      ? { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }
+      : { year: 'numeric', month: 'short', day: 'numeric' });
+  };
 
   async function load() {
     try { samples = JSON.parse(localStorage.getItem(SAMPLE_KEY) || '[]'); } catch { samples = []; }
@@ -444,6 +484,16 @@
     const icon = kind === 'warn' ? '#i-alert' : '#i-check';
     $('#dash-banner').innerHTML = html ? `<div class="dash-banner ${kind}"><svg class="icon" aria-hidden="true"><use href="${icon}"/></svg><div>${html}</div></div>` : '';
   }
+  // Short-lived status message (role="status", so screen readers announce it).
+  let toastTimer;
+  function toast(text, kind = 'ok') {
+    const el = $('#dash-toast');
+    if (!el) { if (kind === 'bad') alert(text); return; }
+    clearTimeout(toastTimer);
+    el.className = 'dash-toast show ' + (kind === 'bad' ? 'bad' : 'ok');
+    el.innerHTML = `<svg class="icon" aria-hidden="true"><use href="${kind === 'bad' ? '#i-alert' : '#i-check'}"/></svg><span>${esc(text)}</span>`;
+    toastTimer = setTimeout(() => { el.className = 'dash-toast'; el.innerHTML = ''; }, kind === 'bad' ? 9000 : 5000);
+  }
   function statusBanner() {
     const missingFx = [...new Set(all().map(r => (r.currency || '').toUpperCase()).filter(c => c && FX[c] == null))];
     const msgs = [];
@@ -616,7 +666,8 @@
       $('#month-chart').innerHTML = `<div class="empty-state">No payments yet.<br>Import CSV exports from your payment providers, record a payment, or try sample data.<br>
         <button class="btn btn-teal btn-sm" data-goto="import">Import data</button> <button class="btn btn-outline-dark btn-sm" data-goto="setup">Try sample data</button></div>`;
       $('#month-legend').innerHTML = ''; $('#month-table').innerHTML = '';
-      ['#method-chart', '#tier-chart', '#recent'].forEach(s => { $(s).innerHTML = '<p class="chart-empty">Nothing to show yet.</p>'; });
+      ['#method-chart', '#tier-chart', '#desig-chart', '#recent'].forEach(s => { $(s).innerHTML = '<p class="chart-empty">Nothing to show yet.</p>'; });
+      $('#desig-card').hidden = true;
       return;
     }
 
@@ -648,6 +699,19 @@
     active.forEach(m => { const k = tierShort(m.tier); byTier[k] = byTier[k] || { name: k, value: 0 }; byTier[k].value++; });
     drawHBars($('#tier-chart'), Object.values(byTier), { label: 'Active members by tier', valueFmt: v => String(v), color: 'var(--series-2)', tipFmt: it => `${it.value} active member${it.value === 1 ? '' : 's'}` });
 
+    // Donations only: membership dues aren't designated gifts.
+    const desigCard = $('#desig-card');
+    desigCard.hidden = !showDesignations();
+    if (!desigCard.hidden) {
+      const byDesig = {};
+      dons.forEach(r => {
+        const k = r.designation || '';
+        byDesig[k] = byDesig[k] || { name: desigLabel(k), value: 0, count: 0 };
+        byDesig[k].value += toReport(r) || 0; byDesig[k].count++;
+      });
+      drawHBars($('#desig-chart'), Object.values(byDesig), { label: 'Donations by designation', tipFmt: it => `${fmt(it.value)} · ${it.count} gift${it.count === 1 ? '' : 's'}` });
+    }
+
     const recent = all().slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
     $('#recent').innerHTML = `<div class="table-wrap"><table class="dtable"><tbody>${recent.map(r => `<tr>
       <td><strong>${esc(r.name || r.email || '—')}</strong><div class="muted">${fmtDate(r.date)} · ${esc(r.method)}</div></td>
@@ -663,7 +727,7 @@
       <div class="table-wrap"><table class="dtable"><tbody>${list.slice(0, 20).map(r => `<tr>
         <td><strong>${esc(r.name || '—')}</strong><div class="muted">${esc(r.email || '')}${r.phone ? ' · ' + esc(r.phone) : ''}</div></td>
         <td class="nowrap">${esc(r.method)}<div class="muted">sent ${fmtDate(r.date)}</div></td>
-        <td>${typePill(r)}${r.tier ? `<div class="muted">${esc(tierShort(r.tier))}</div>` : ''}</td>
+        <td>${typePill(r)}${r.tier ? `<div class="muted">${esc(tierShort(r.tier))}</div>` : ''}${desigLine(r)}</td>
         <td class="muted">${esc(r.ref || '')}</td>
         <td class="num">${fmt(r.amount, r.currency, r.amount % 1 ? 2 : 0)}</td>
         <td class="nowrap"><button class="btn btn-green btn-xs" data-status="paid" data-id="${esc(r.id)}">Confirm</button> <button class="row-del" data-status="failed" data-id="${esc(r.id)}">Not received</button></td>
@@ -671,6 +735,22 @@
   }
   const payStatus = r => !r.status || r.status === 'paid' ? '' : `<div><span class="pill st-${esc(r.status)}">${esc(r.status[0].toUpperCase() + r.status.slice(1))}</span></div>`;
   const typePill = r => r.type === 'membership' ? '<span class="pill m">Membership</span>' : '<span class="pill d">Donation</span>';
+  // Where a gift goes. Dues default to 'general', which says nothing useful on a membership row.
+  const desigLine = r => r.designation && (r.type !== 'membership' || r.designation !== 'general')
+    ? `<div class="muted desig">For: ${esc(desigLabel(r.designation))}</div>` : '';
+  // Receipt status + send/resend action (API mode, settled payments in the database only).
+  function receiptCell(r) {
+    if (!isServerRecord(r) || (r.status && r.status !== 'paid')) return '<span class="muted" title="Receipts go out once a payment is received">—</span>';
+    const sent = r.receipt_sent_at;
+    const state = sent
+      ? `<span class="rcpt sent" title="${esc(fmtStamp(sent, true))}"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>Receipt sent ${esc(fmtStamp(sent))}</span>`
+      : '<span class="rcpt none">No receipt</span>';
+    const canSend = has(r.email) && r.email.includes('@');
+    const action = canSend
+      ? `<button class="link-btn" type="button" data-receipt="${esc(r.id)}">${sent ? 'Resend receipt' : 'Send receipt'}</button>`
+      : '<span class="muted">No email on file</span>';
+    return `${state}<div>${action}</div>`;
+  }
   const statusCell = s => ({
     active: '<span class="status active"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Active</span>',
     expiring: '<span class="status expiring"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Expiring soon</span>',
@@ -715,10 +795,25 @@
   function filteredTx() {
     const q = $('#tx-search').value.trim().toLowerCase();
     const type = $('#tx-type').value, method = $('#tx-method').value, year = $('#tx-year').value, status = $('#tx-status').value;
+    const desig = $('#tx-designation').hidden ? '' : $('#tx-designation').value;
     return all().filter(r => (!type || r.type === type) && (!method || r.method === method) && inYear(r, year) &&
       (!status || (r.status || 'paid') === status) &&
-      (!q || [r.name, r.email, r.ref, r.country, r.notes, r.phone].join(' ').toLowerCase().includes(q)))
+      (!desig || (desig === DESIG_NONE ? !r.designation : r.designation === desig)) &&
+      (!q || [r.name, r.email, r.ref, r.country, r.notes, r.phone, r.designation ? desigLabel(r.designation) : ''].join(' ').toLowerCase().includes(q)))
       .sort((a, b) => b.date.localeCompare(a.date));
+  }
+  const RECURRING_LABEL = { month: 'Monthly', quarter: 'Quarterly', year: 'Yearly' };
+  function designationOptions(sel) {
+    const show = showDesignations();
+    sel.hidden = !show;
+    if (!show) { sel.value = ''; return; }
+    const cur = sel.value;
+    const ids = designations().map(d => d.id);
+    const extra = [...new Set(all().map(r => r.designation).filter(id => id && !ids.includes(id)))].sort();
+    sel.innerHTML = '<option value="">All designations</option>' +
+      ids.concat(extra).map(id => `<option value="${esc(id)}">${esc(desigLabel(id))}</option>`).join('') +
+      `<option value="${DESIG_NONE}">Not specified</option>`;
+    sel.value = [...sel.options].some(o => o.value === cur) ? cur : '';
   }
   function renderTx() {
     yearOptions($('#tx-year'));
@@ -726,22 +821,25 @@
     const methods = [...new Set(all().map(r => r.method))].sort();
     mSel.innerHTML = '<option value="">All methods</option>' + methods.map(m => `<option>${esc(m)}</option>`).join('');
     mSel.value = methods.includes(cur) ? cur : '';
+    designationOptions($('#tx-designation'));
+    const rcpt = receiptsTracked();
     const list = filteredTx();
     const settled = list.filter(r => !r.status || r.status === 'paid');
     $('#tx-summary').textContent = list.length ? `${list.length} payment${list.length === 1 ? '' : 's'} · ${fmt(sum(settled))} received (in ${REPORT_CUR})${settled.length < list.length ? ` · ${list.length - settled.length} pending, failed or refunded (not counted)` : ''}` : '';
     if (!list.length) { $('#tx-table').innerHTML = `<div class="empty-state">${all().length ? 'No payments match these filters.' : 'No payments yet.'}</div>`; return; }
     const shown = list.slice(0, 500);
-    $('#tx-table').innerHTML = `<table class="dtable"><thead><tr><th>Date</th><th>Name</th><th>Type</th><th>Method</th><th>Reference</th><th class="num">Amount</th><th class="num">${esc(REPORT_CUR)}</th><th></th></tr></thead><tbody>
+    $('#tx-table').innerHTML = `<table class="dtable"><thead><tr><th>Date</th><th>Name</th><th>Type</th><th>Method</th><th>Reference</th><th class="num">Amount</th><th class="num">${esc(REPORT_CUR)}</th>${rcpt ? '<th>Receipt</th>' : ''}<th></th></tr></thead><tbody>
       ${shown.map(r => {
         const conv = toReport(r);
         return `<tr>
         <td class="nowrap">${fmtDate(r.date)}</td>
         <td>${esc(r.name || '—')}<div class="muted">${esc(r.email)}${r.country ? ' · ' + esc(r.country) : ''}</div></td>
-        <td>${typePill(r)}${r.tier ? `<div class="muted">${esc(tierShort(r.tier))}</div>` : ''}${payStatus(r)}</td>
-        <td>${esc(r.method)}${r.recurring && r.recurring !== 'once' ? `<div class="muted">${r.recurring === 'month' ? 'Monthly' : 'Yearly'}</div>` : ''}</td>
+        <td>${typePill(r)}${r.tier ? `<div class="muted">${esc(tierShort(r.tier))}</div>` : ''}${desigLine(r)}${payStatus(r)}</td>
+        <td>${esc(r.method)}${r.recurring && r.recurring !== 'once' ? `<div class="muted">${esc(RECURRING_LABEL[r.recurring] || r.recurring)}</div>` : ''}</td>
         <td class="muted">${esc(r.ref)}</td>
         <td class="num">${fmt(r.amount, r.currency, r.amount % 1 ? 2 : 0)}</td>
         <td class="num">${conv == null ? '<span class="muted">no rate</span>' : fmt(conv)}</td>
+        ${rcpt ? `<td class="rcpt-cell">${receiptCell(r)}</td>` : ''}
         <td class="nowrap">${r.status === 'pending' ? `<button class="btn btn-green btn-xs" data-status="paid" data-id="${esc(r.id)}">Confirm</button> ` : ''}${r.source === 'sheet' ? '<span class="muted" title="From Google Sheet — edit it there">sheet</span>' : `<button class="row-del" data-del="${esc(r.id)}" title="Delete this payment">Delete</button>`}</td></tr>`;
       }).join('')}
       </tbody></table>${list.length > shown.length ? `<p class="dash-muted" style="margin-top:12px;">Showing the latest 500. Use filters or export CSV to see all.</p>` : ''}`;
@@ -750,6 +848,14 @@
   /* =====================================================================
      RENDER: SETUP CHECKLIST
      ===================================================================== */
+  // Based on what the database shows, since /config doesn't report email settings.
+  function receiptSetupCell() {
+    if (!receiptsTracked()) return '<span class="check-off">Not reported by the server</span>';
+    const last = local.map(r => r.receipt_sent_at).filter(Boolean).sort().pop();
+    return last
+      ? `<span class="check-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Working — last sent ${esc(fmtStamp(last))}</span>`
+      : '<span class="check-off">None sent yet</span>';
+  }
   function renderSetup() {
     const g = CFG.gateways || {};
     const filled = obj => obj && Object.values(obj).some(v => has(v));
@@ -786,9 +892,11 @@
       <tr><td><strong>Payments API</strong></td><td class="muted">${esc(API)}</td><td>${gw ? '<span class="check-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Connected</span>' : '<span class="check-miss"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Checking… / unreachable</span>'}</td></tr>
       <tr><td><strong>Stripe</strong></td><td class="muted">Cards, Apple Pay, Google Pay, US bank · monthly & yearly</td><td>${gw ? on(gw.stripe) : '—'}</td></tr>
       <tr><td><strong>PayPal</strong></td><td class="muted">PayPal balance & cards (one-time)</td><td>${gw ? on(gw.paypal) : '—'}</td></tr>
-      <tr><td><strong>DPO Pay</strong></td><td class="muted">Zambia: MTN, Airtel, Zamtel mobile money & cards</td><td>${gw ? on(gw.dpo) : '—'}</td></tr>
+      <tr><td><strong>DPO Pay</strong></td><td class="muted">Zambia: MTN & Airtel mobile money and cards</td><td>${gw ? on(gw.dpo) : '—'}</td></tr>
+      <tr><td><strong>Mobile money prompt</strong></td><td class="muted">Zambia: approve with a PIN prompt on the payer's phone (needs DPO Pay and DPO_DIRECT_MOMO on the server). When off, mobile money payers use the DPO payment page.</td><td>${gw ? (apiConfig.momoDirect === true ? on(true) : '<span class="check-off">Off — DPO payment page</span>') : '—'}</td></tr>
+      <tr><td><strong>Email receipts</strong></td><td class="muted">Sent automatically when a payment is received or confirmed (needs RESEND_API_KEY and FROM_EMAIL on the server; the EIN line appears when ORG_EIN is set). Resend from the Payments tab.</td><td>${receiptSetupCell()}</td></tr>
       </tbody></table>
-      <p class="dash-muted">With the API connected, Donorbox and the payment-link rows below are hidden on the site automatically. Bank, Zelle and direct mobile money still show as "Other ways to pay" and arrive here as <em>Awaiting confirmation</em>.</p>` : '';
+      <p class="dash-muted">With the API connected, Donorbox and the payment-link rows below are hidden on the site automatically. Bank, Zelle and mobile money sent to your own numbers still show as "Other ways to pay" and arrive here as <em>Awaiting confirmation</em>.</p>` : '';
     $('#setup-table').innerHTML = apiHtml + `<table class="dtable"><thead><tr><th>Payment method</th><th>What it covers</th><th>Filled in</th><th>Status</th></tr></thead><tbody>
       ${rows.map(([name, what, gw, parts]) => `<tr><td><strong>${esc(name)}</strong></td><td class="muted">${esc(what)}</td><td class="muted">${esc(parts.filter(Boolean).join(', ') || '—')}</td><td>${cell(gw, parts)}</td></tr>`).join('')}
       </tbody></table>
@@ -948,12 +1056,14 @@
      ACTIONS
      ===================================================================== */
   // status is exported so failed / refunded / pending rows never come back as money received.
-  const EXPORT_COLS = ['date', 'status', 'type', 'tier', 'name', 'email', 'phone', 'country', 'profession', 'amount', 'currency', 'method', 'ref', 'recurring', 'notes', 'source'];
-  // Backups made before status/profession/recurring were added still restore.
+  const EXPORT_COLS = ['date', 'status', 'type', 'tier', 'designation', 'name', 'email', 'phone', 'country', 'profession', 'amount', 'currency', 'method', 'ref', 'recurring', 'notes', 'source'];
+  // Backups made before status/profession/recurring/designation were added still restore.
   const BACKUP_REQUIRED = ['date', 'type', 'tier', 'name', 'email', 'phone', 'country', 'amount', 'currency', 'method', 'ref', 'notes', 'source'];
   const STATUSES = ['paid', 'pending', 'failed', 'refunded'];
   function exportRecords(recs, filename) {
-    download(filename, toCSV([EXPORT_COLS, ...recs.map(r => EXPORT_COLS.map(c => c === 'status' ? (r.status || 'paid') : r[c]))]));
+    // receipt_sent_at is for reference only: the server sets it, so a restore ignores it.
+    const cols = receiptsTracked() ? EXPORT_COLS.concat('receipt_sent_at') : EXPORT_COLS;
+    download(filename, toCSV([cols, ...recs.map(r => cols.map(c => c === 'status' ? (r.status || 'paid') : r[c]))]));
   }
   // Turn one backup row into a clean record, or null if it can't be trusted.
   const clip = (v, n) => String(v ?? '').trim().slice(0, n);
@@ -976,7 +1086,48 @@
       method: clip(r.method, 60) || 'Other', ref: clip(r.ref, 120), notes: clip(r.notes, 1000),
     };
     if (['once', 'month', 'year'].includes(recurring)) rec.recurring = recurring;
+    const designation = clip(r.designation, 40).toLowerCase();
+    if (DESIG_ID.test(designation)) rec.designation = designation;
     return rec;
+  }
+
+  // POST /admin/payments/:id/receipt — emails the receipt (or membership confirmation) again.
+  async function sendReceipt(btn) {
+    const id = btn.dataset.receipt;
+    const r = local.find(x => String(x.id) === String(id));
+    if (!API || !r || btn.disabled) return;
+    const again = !!r.receipt_sent_at;
+    const what = r.type === 'membership' ? 'membership confirmation' : 'donation receipt';
+    const summary = [r.name, fmt(r.amount, r.currency, r.amount % 1 ? 2 : 0), fmtDate(r.date), r.ref].filter(Boolean).join(' · ');
+    const prompt = again
+      ? `Send the ${what} again to ${r.email}?\n\n${summary}\n\nA receipt was already sent ${fmtStamp(r.receipt_sent_at, true)}.`
+      : `Email the ${what} to ${r.email}?\n\n${summary}`;
+    if (!confirm(prompt)) return;
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      const data = await api('/admin/payments/' + encodeURIComponent(id) + '/receipt', { method: 'POST' });
+      r.receipt_sent_at = (data && data.receipt_sent_at) || new Date().toISOString();
+      if (tab === 'donations') {
+        renderTx();
+        const next = $$('[data-receipt]').find(b => b.dataset.receipt === String(id));
+        if (next) next.focus(); // keep keyboard users on the same row after the re-render
+      }
+      toast(`${again ? 'Receipt sent again' : 'Receipt sent'} to ${r.email}.`);
+    } catch (err) {
+      if (err.message === 'signed out') return;
+      btn.disabled = false; btn.textContent = label;
+      toast(`Receipt not sent: ${err.message}`, 'bad');
+    }
+  }
+
+  // Designation choices on the Record payment form ("Not specified" + the list).
+  function fillRecordDesignations() {
+    const sel = $('#rec-designation');
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Not specified</option>' + designations().map(d => `<option value="${esc(d.id)}">${esc(d.label)}</option>`).join('');
+    sel.value = [...sel.options].some(o => o.value === cur) ? cur : '';
   }
 
   function bindActions() {
@@ -990,9 +1141,19 @@
       }
       const stBtn = e.target.closest('[data-status]');
       if (stBtn) {
+        const id = stBtn.dataset.id, to = stBtn.dataset.status;
         stBtn.disabled = true;
-        setStatus(stBtn.dataset.id, stBtn.dataset.status).then(render, err => { alert(err.message); stBtn.disabled = false; });
+        setStatus(id, to).then(() => {
+          render();
+          if (!API || to !== 'paid') return;
+          // The server emails the receipt when a payment is confirmed; reload to show it.
+          const r = local.find(x => x.id === id);
+          toast(r && has(r.email) && receiptsTracked() ? `Payment confirmed. A receipt goes to ${r.email} if email sending is set up.` : 'Payment confirmed.');
+          refresh();
+        }, err => { alert(err.message); stBtn.disabled = false; });
       }
+      const rcBtn = e.target.closest('[data-receipt]');
+      if (rcBtn) sendReceipt(rcBtn);
       // Messages tab
       const cardIndex = el => $$('[data-msg-card]').indexOf(el.closest('[data-msg-card]'));
       const msBtn = e.target.closest('[data-msg-status]');
@@ -1024,7 +1185,7 @@
     let rt;
     addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (tab === 'overview') renderOverview(); }, 150); });
     ['#mem-search', '#mem-status', '#mem-tier'].forEach(s => $(s).addEventListener('input', renderMembers));
-    ['#tx-search', '#tx-type', '#tx-method', '#tx-status', '#tx-year'].forEach(s => $(s).addEventListener('input', renderTx));
+    ['#tx-search', '#tx-type', '#tx-method', '#tx-status', '#tx-designation', '#tx-year'].forEach(s => $(s).addEventListener('input', renderTx));
 
     $('#mem-export').addEventListener('click', () => {
       const cols = ['name', 'email', 'phone', 'country', 'tier', 'first', 'lastPaid', 'expires', 'status', 'payments', 'total'];
@@ -1050,10 +1211,12 @@
     const form = $('#rec-form');
     $('#rec-tier').innerHTML = TIERS.map(t => `<option value="${esc(t.id)}">${esc(t.name)} — ${esc(t.region)} (${fmt(t.amount, t.currency)})</option>`).join('');
     $('#rec-currency').innerHTML = Object.keys(FX).map(c => `<option${c === REPORT_CUR ? ' selected' : ''}>${esc(c)}</option>`).join('');
+    fillRecordDesignations();
     form.date.value = today();
     const syncType = () => {
       const isM = form.type.value === 'membership';
       $$('[data-show="membership"]', form).forEach(el => { el.hidden = !isM; });
+      $$('[data-show="donation"]', form).forEach(el => { el.hidden = isM; });
       if (isM && !form.amount.value) {
         const t = TIERS.find(x => x.id === form.tier.value);
         if (t) { form.amount.value = t.amount; form.currency.value = t.currency; }
@@ -1074,6 +1237,7 @@
         name: f.name.trim(), email: f.email.trim().toLowerCase(), phone: f.phone.trim(), country: f.country.trim(),
         ref: f.ref.trim(), notes: f.notes.trim(),
       };
+      if (f.type === 'donation' && DESIG_ID.test(f.designation || '')) rec.designation = f.designation;
       let added = 0;
       try { ({ added } = await addRecords([rec], 'manual')); } catch (err) { $('#rec-msg').textContent = err.message; return; }
       $('#rec-msg').textContent = added ? `Saved: ${rec.name}, ${fmt(rec.amount, rec.currency, 2)}.` : 'This payment is already recorded (same reference or same person, date and amount).';
@@ -1176,7 +1340,8 @@
       const method = pick(donMethods);
       const zmw = /Mobile|DPO/.test(method) && rnd() > .3;
       out.push({ date: dateAt(rnd()), type: 'donation', tier: '', name: n, email: n.toLowerCase().replace(' ', '.') + '@example.com', phone: '', country: zmw ? 'Zambia' : pick(countries),
-        amount: zmw ? pick([250, 500, 1000, 2000]) : pick([25, 50, 50, 100, 100, 250, 500]), currency: zmw ? 'ZMW' : 'USD', method, ref: 'SAMPLE-D' + i, notes: '' });
+        amount: zmw ? pick([250, 500, 1000, 2000]) : pick([25, 50, 50, 100, 100, 250, 500]), currency: zmw ? 'ZMW' : 'USD', method, ref: 'SAMPLE-D' + i, notes: '',
+        designation: pick(['general', 'general', 'general', ...DESIGNATIONS_FALLBACK.slice(1).map(d => d.id)]) });
     }
     for (let i = 0; i < 24; i++) {
       const n = `${pick(first)} ${pick(last)}`;
@@ -1204,10 +1369,13 @@
       setInterval(() => { if (!document.hidden) refresh(); }, 60000);
       document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - (lastSync || 0) > 30000) refresh(); });
       $('#refresh-btn').addEventListener('click', refresh);
-      api('/config').then(c => { apiConfig = c; if (tab === 'setup') renderSetup(); }).catch(() => {});
+      api('/config').then(c => {
+        apiConfig = c;
+        fillRecordDesignations(); // designation labels may differ from the built-in copy
+        if (['overview', 'donations', 'setup'].includes(tab)) render();
+      }).catch(() => {});
     }
   }
-  let apiConfig = null;
   let refreshing = false;
   async function refresh() {
     if (refreshing) return;

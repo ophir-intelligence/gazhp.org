@@ -21,7 +21,7 @@ The API lives in [`api/`](api/). It's a Cloudflare Worker (free tier: 100k reque
 - Creates checkouts server-side with prices from [`api/src/config.js`](api/src/config.js), so nobody can change the price in their browser.
 - **Stripe:** cards, Apple Pay, Google Pay and US bank (ACH), plus **monthly donations** and **auto-renewing yearly memberships**.
 - **PayPal:** one-time payments in USD. If a donor approves a payment but closes the tab before returning to the site, the payment is still captured (immediately via the webhook, or by the 15-minute check).
-- **DPO Pay (Zambia):** MTN / Airtel / Zamtel mobile money and Visa/Mastercard in **ZMW**. Memberships are converted with `ZMW_PER_USD` in `wrangler.toml`. Mobile-money payments that the donor approves on their phone after leaving the page are picked up by an automatic check every 15 minutes.
+- **DPO Pay (Zambia):** MTN and Airtel mobile money and Visa/Mastercard in **ZMW** (DPO does not list Zamtel for Zambia). Memberships are converted with `ZMW_PER_USD` in `wrangler.toml`. Mobile-money payments that the donor approves on their phone after leaving the page are picked up by an automatic check every 15 minutes.
 - Receives webhooks, verifies their signatures, and records each payment once. Renewals, refunds and failed bank debits update automatically.
 - **Contact form:** messages are saved to the database and appear in **Dashboard → Messages**. They are also emailed to you, with Reply-To set to the sender, once email alerts are set up. Without the API, the contact form opens the visitor's email app instead.
 - **Abuse protection:** the public forms (checkout, "I've paid", contact) and the admin login are rate-limited per visitor, with no extra setup or paid features.
@@ -68,7 +68,7 @@ Each gateway switches on as soon as its key is set, with no redeploy needed. Set
 3. Apply for PayPal's confirmed-nonprofit rate.
 
 **DPO Pay (Zambia)**
-1. Apply for a merchant account at dpogroup.com (DPO Pay by Network International). Ask for **MTN, Airtel and Zamtel mobile money** and card acceptance, settling in ZMW, plus USD if you want it.
+1. Apply for a merchant account at dpogroup.com (DPO Pay by Network International). Ask for **MTN and Airtel mobile money with direct charge (ChargeTokenMobile / push prompt)** and card acceptance. Ask whether Zamtel is possible, settling in ZMW, plus USD if you want it.
 2. When approved, DPO gives you a **Company Token** and a **Service Type** number. Put them in `DPO_COMPANY_TOKEN` and `DPO_SERVICE_TYPE`.
 3. Optional: ask DPO to send payment notifications ("push") to `<API>/webhooks/dpo`. Payments are recorded without this too, when the donor returns to the site and through the 15-minute check.
 4. For testing, DPO provides test credentials and a sandbox URL. Put the URL in `DPO_API_URL` in `wrangler.toml`, then run `npx wrangler deploy`.
@@ -83,11 +83,27 @@ Use test keys first:
 
 Make a donation and a membership payment, check that they appear in /dashboard/ within a minute, then swap in the live keys.
 
-### Step 4. Retire Donorbox
-The Donorbox form is hidden automatically once the API is live. Import your Donorbox history in **Dashboard → Import data** (Donations → Export CSV in Donorbox) so past members and donors carry over, then cancel the Donorbox plan.
+### Step 4. Turn on what replaces Donorbox
+The own system covers what Donorbox did, plus a few things it didn't:
+
+| Donorbox feature | Own system | How to switch it on |
+|---|---|---|
+| Card, Apple Pay, Google Pay, PayPal, monthly gifts | Stripe + PayPal checkouts | Step 2 |
+| **Donation receipts by email** | Sent once when a payment is confirmed. Donations carry the 501(c)(3) "no goods or services" line; memberships get a membership confirmation. Admins can resend from the dashboard. | Set `RESEND_API_KEY`, `FROM_EMAIL` (a sender on a domain verified in Resend) and `NOTIFY_EMAIL`. Optionally set `ORG_EIN` in `wrangler.toml` to print the EIN on receipts. Consider turning off Stripe's and PayPal's own receipt emails so donors don't get two. |
+| **Donors manage or cancel monthly gifts** | Page `/manage-giving/`. The donor enters their email and receives a private Stripe link. | In Stripe: **Settings → Billing → Customer portal → Save** (live mode). Needs email set up, as above. |
+| **Choose where the gift goes** | "Where should your gift go?" on /donate/: where it's needed most, Mental Health, Cardiovascular Care, Primary Care. Shown in the dashboard and exports. | Nothing to set up. Edit the list in `api/src/config.js` (`DESIGNATIONS`). |
+| *(new)* **Mobile money prompt on the donor's phone** (like prospero.co.zm) | The donor enters their number on /donate/ (MTN/Airtel is detected automatically), approves the prompt with their PIN, and the page confirms. | Ask DPO to enable direct mobile money (ChargeTokenMobile) for MTN and Airtel, and for the exact MNO values. Set `DPO_MNO_*` if they give them, then `DPO_DIRECT_MOMO = "true"` in `wrangler.toml` and redeploy. Until then, mobile money uses DPO's own payment page. |
+
+Then retire Donorbox:
+1. Make a test donation through each method in test mode (Step 3) and check the receipt email arrives.
+2. Import your Donorbox history in **Dashboard → Import data** (Donorbox → Donations → Export CSV) so past donors and members carry over. Imported rows don't get automatic receipts.
+3. The Donorbox form disappears from the site automatically once the API answers. Set `gateways.donorbox.enabled: false` in `js/payments-config.js` if you also want it gone as a fallback.
+4. **Monthly Donorbox donors:** their recurring gifts keep running in Donorbox until they are cancelled. Email them before cancelling the Donorbox plan, asking them to restart on gazhphealth.org/donate/.
+
+**Mobile money provider choice.** DPO Pay is already integrated. Other providers with phone-prompt APIs include **pawaPay** (UK-based, publishes its fees, has a sandbox, can settle in USD; ask whether a US-registered charity can collect in Zambia) and **Lenco** (covers Zamtel too, but needs a Zambian-registered entity with a kwacha account). Most Zambian providers require a Zambian entity and bank account, so check that first. The Worker could add another provider later if DPO doesn't work out.
 
 ### Upgrading an existing database
-No database has been created yet, so a new install only needs `npm run db:init`. If you created the database before this version, run `npm run db:init` again (safe to repeat; it adds the `messages` and `rate_limits` tables), then once:
+No database has been created yet, so a new install only needs `npm run db:init`. If one was created earlier, run the `ALTER TABLE` lines at the end of `api/schema.sql` **before** deploying new Worker code. If you created the database before this version, run `npm run db:init` again (safe to repeat; it adds the `messages` and `rate_limits` tables), then once:
 ```bash
 npx wrangler d1 execute gazhp-payments --remote --command "ALTER TABLE checkouts ADD COLUMN checked_at TEXT; ALTER TABLE checkouts ADD COLUMN settled_at TEXT;"
 ```
@@ -151,7 +167,7 @@ Pick **either** option:
 For membership you can also paste per-tier PayPal payment links into `paypal.membershipLinks`.
 
 ### DPO Pay (Zambia)
-Takes **MTN, Airtel and Zamtel mobile money** and Visa/Mastercard, in ZMW or USD. Without the API, paste payment links from your DPO account into `dpo.donationLink` / `dpo.membershipLinks`. Ask DPO to enable "Pay by Link" if you don't see it. Using the automated API is better, because payments then record themselves.
+Takes **MTN and Airtel mobile money** and Visa/Mastercard, in ZMW or USD. Without the API, paste payment links from your DPO account into `dpo.donationLink` / `dpo.membershipLinks`. Ask DPO to enable "Pay by Link" if you don't see it. Using the automated API is better, because payments then record themselves.
 
 ### Mobile Money (direct)
 If you have MTN/Airtel/Zamtel merchant or business numbers, fill in `mobileMoney.accountName` plus `number` and/or `merchantCode` for each network you use. Donors see the numbers with copy buttons, a unique reference code (e.g. `GAZHP-D-7KQ2M`), and an "I've paid" button that emails you the details. Membership amounts also show an approximate Kwacha figure based on `dashboard.fxRates.ZMW`.
