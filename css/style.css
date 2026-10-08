@@ -1195,3 +1195,5 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
 .thanks-icon { width: 64px; height: 64px; margin: 0 auto 18px; border-radius: 50%; background: var(--white); display: grid; place-items: center; box-shadow: var(--shadow-md); }
 .thanks-icon .icon { width: 30px; height: 30px; color: var(--red-cta); }
 .thanks-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+.pay-steps { margin: 4px 0 4px 22px; display: flex; flex-direction: column; gap: 8px; font-size: .92rem; color: var(--gray-800); line-height: 1.55; }
+.pay-steps code { background: var(--gray-100); padding: 1px 6px; border-radius: 4px; font-weight: 700; }

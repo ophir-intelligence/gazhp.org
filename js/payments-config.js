@@ -147,7 +147,10 @@ window.GAZHP_CONFIG = {
 
     /* 6. BANK TRANSFER — fill in whichever accounts you have. */
     bankTransfer: {
-      enabled: false,
+      enabled: true,
+      // While no account number is filled in below, donors can request the bank details by
+      // email ("Bank Transfer (Zambia)" option). Fill in zambia/us details to show them directly.
+      requestByEmail: true,
       us: {                                // US account (ACH / domestic wire)
         bankName: '',
         accountName: '',

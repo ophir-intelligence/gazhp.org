@@ -266,7 +266,32 @@
       if (!g.enabled) return null;
       const us = g.us || {}, zm = g.zambia || {};
       const usOk = has(us.accountNumber), zmOk = has(zm.accountNumber);
-      if (!usOk && !zmOk) return null;
+      // No account published yet: donors ask for the bank details by email (with a reference code).
+      if (!usOk && !zmOk) {
+        if (!g.requestByEmail) return null;
+        const what = purpose === 'membership' ? 'pay my membership' : 'make a donation';
+        const subject = `Bank transfer details request — ${refCode}`;
+        const body = [
+          'Hello GAZHP,', '',
+          `I would like to ${what} by bank transfer. Please send me your bank details.`, '',
+          `Reference: ${refCode}`,
+          purpose === 'membership' && selectedTier
+            ? `Membership: ${selectedTier.name} (${selectedTier.region}) — ${money(selectedTier.amount, selectedTier.currency)}`
+            : 'Amount and currency (ZMW or USD): ',
+          'Full name: ', 'Phone: ', 'Country: ',
+        ].join('\n');
+        const href = `mailto:${CFG.org.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        return {
+          id: 'bank', title: 'Bank Transfer (Zambia)', sub: 'Kwacha (ZMW) or USD — we email you our bank details',
+          body: amountHint(true)
+            + `<ol class="pay-steps">
+                <li><strong>Request our bank details</strong> — the button opens an email to us with your reference code.</li>
+                <li><strong>Make the transfer</strong> from your bank, using the reference <code>${esc(refCode)}</code>.</li>
+                <li><strong>Reply to our email</strong> once it's sent, and we'll confirm and send your ${purpose === 'membership' ? 'membership confirmation' : 'receipt'}.</li>
+              </ol>`
+            + payBtn(href, 'Email me the bank details', 'btn-green'),
+        };
+      }
       const usBlock = usOk ? `<div class="pay-subblock"><h5>United States (ACH / wire)</h5>${row('Bank', us.bankName)}${row('Account name', us.accountName)}${row('Account number', us.accountNumber)}${row('ACH routing', us.routingNumber)}${row('Wire routing', us.wireRoutingNumber)}${row('SWIFT (international)', us.swift)}${row('Bank address', us.bankAddress)}</div>` : '';
       const zmBlock = zmOk ? `<div class="pay-subblock"><h5>Zambia (${esc(zm.currency || 'ZMW')})</h5>${row('Bank', zm.bankName)}${row('Account name', zm.accountName)}${row('Account number', zm.accountNumber)}${row('Branch', zm.branch)}${row('Branch code', zm.branchCode)}${row('SWIFT', zm.swift)}</div>` : '';
       return { id: 'bank', title: 'Bank Transfer', sub: [usOk && 'US account', zmOk && 'Zambian account'].filter(Boolean).join(' · '), body: amountHint(zmOk) + `<div class="pay-subgrid">${usBlock}${zmBlock}</div>` + referenceRow() + notifyBlock('Bank transfer') };
