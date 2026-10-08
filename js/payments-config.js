@@ -74,7 +74,7 @@ window.GAZHP_CONFIG = {
           Already live. Campaign slug = the part after donorbox.org/ in your
           campaign URL. */
     donorbox: {
-      enabled: true,
+      enabled: false,
       donationCampaign: 'donate-to-gazhp',
       membershipCampaign: 'join-as-a-member',
     },
@@ -89,17 +89,17 @@ window.GAZHP_CONFIG = {
          public link: donors enter their email and Stripe sends them a sign-in code.
          Used by /manage-giving/ in every mode. */
       portalLoginUrl: '',
-      enabled: false,
-      donationLink: '',                    // e.g. 'https://buy.stripe.com/abc123'
-      monthlyDonationLink: '',             // optional recurring link
-      monthlyPerUnit: 0,                   // 1 = the monthly link is US$1/month with adjustable quantity
+      enabled: true,
+      donationLink: 'https://donate.stripe.com/eVq9AU5YH0mX0i9ex4fQI00', // live one-time donation link
+      monthlyDonationLink: 'https://buy.stripe.com/4gMfZi4UD3z98OFgFcfQI01', // live monthly link (US$1 x quantity)
+      monthlyPerUnit: 1,                   // 1 = the monthly link is US$1/month with adjustable quantity
                                            //     (donors choose any amount); shows a short how-to
       membershipLinks: {                   // one link per tier id (optional per tier)
-        'professional-developed': '',
-        'professional-developing': '',
-        'student-developed': '',
-        'student-developing': '',
-        'corporate': '',
+        'professional-developed': 'https://buy.stripe.com/5kQcN61IrglV7KB88GfQI02',
+        'professional-developing': 'https://buy.stripe.com/4gM8wQfzh9Xx3ul1KifQI03',
+        'student-developed': 'https://buy.stripe.com/aFadRaaeX4Ddfd374CfQI04',
+        'student-developing': 'https://buy.stripe.com/28E4gA1Ir9Xx3ul2OmfQI06',
+        'corporate': 'https://buy.stripe.com/fZu3cw9aTedN7KB88GfQI07',
       },
     },
 
