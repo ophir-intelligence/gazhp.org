@@ -2,7 +2,7 @@
 
 Official website for the Global Alliance of Zambian Healthcare Professionals (GAZHP), a 501(c)(3) nonprofit registered in Delaware, USA.
 
-**Live site:** https://gazhphealth.org
+**Live site:** https://www.gazhphealth.org
 
 ## Project structure
 

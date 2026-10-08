@@ -365,7 +365,7 @@ function receiptEmail(env, p) {
   const isM = p.type === 'membership';
   const t = isM && tierById(p.tier);
   const d = !isM && designationById(p.designation);
-  const site = siteUrl(env) || 'https://gazhphealth.org';
+  const site = siteUrl(env) || 'https://www.gazhphealth.org';
   const dateText = (() => {
     const dt = new Date(`${p.date}T12:00:00Z`);
     return isNaN(dt) ? p.date : dt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
@@ -1269,7 +1269,7 @@ async function sendGivingLinks(env, ctx, email) {
   // Stripe's email filter is case-sensitive; Checkout sessions are created with
   // the lowercased address. Each subscription checkout makes its own customer.
   const customers = await stripeApi(env, `customers?email=${encodeURIComponent(email)}&limit=10`, null, 'GET');
-  const returnUrl = `${siteUrl(env) || 'https://gazhphealth.org'}/donate/`;
+  const returnUrl = `${siteUrl(env) || 'https://www.gazhphealth.org'}/donate/`;
   const links = [];
   for (const c of customers.data || []) {
     const subs = await stripeApi(env, `subscriptions?customer=${encodeURIComponent(c.id)}&status=all&limit=10`, null, 'GET');
@@ -1290,7 +1290,7 @@ async function sendGivingLinks(env, ctx, email) {
     if (links.length >= 5) break;
   }
   if (!links.length) return;
-  const site = siteUrl(env) || 'https://gazhphealth.org';
+  const site = siteUrl(env) || 'https://www.gazhphealth.org';
   const intro = `You asked to manage your recurring giving to ${ORG.short}. Use the secure Stripe link below to update your card, change or cancel. For your security the link expires soon; if it has, request a new one at ${site}/manage-giving/.`;
   const text = ['Hello,', '', intro, '',
     ...links.flatMap(l => [...l.items, l.url, '']),
