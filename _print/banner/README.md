@@ -1,6 +1,6 @@
 # GAZHP roll-up banner (85 × 200 cm)
 
-Print source for the event banner. This folder starts with `_`, so GitHub Pages does not publish it.
+Print source for the event banner. This folder is listed in `.vercelignore`, so it is not published on the website.
 
 - `banner.html` — redesign (one website QR, homepage photo, large type).
 - `banner-original-revised.html` — the organisation's original banner style (flag ribbons, red headings) with the board feedback applied: fewer sections, larger text, website QR, photo.

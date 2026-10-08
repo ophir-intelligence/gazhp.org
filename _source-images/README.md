@@ -1,7 +1,7 @@
 # Source images (not published)
 
-Original, full-resolution images. Folders starting with `_` are skipped by GitHub Pages,
-so these files stay in the repository without being served on gazhphealth.org.
+Original, full-resolution images. This folder is listed in `.vercelignore`, so these files stay in the repository without being
+served on www.gazhphealth.org.
 
 The website uses optimized WebP copies in `/images/`. To add a new photo, export a WebP
 sized for where it appears (e.g. `cwebp -q 78 -resize 720 0 photo.jpg -o images/photo.webp`)

@@ -1,0 +1,528 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": true,
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/home/",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/home-5",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/home-5/",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/our-story",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/our-story/",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/projects",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/projects/",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/services",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/services/",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/our-programs",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/our-programs/",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/cardiovascular-program",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/cardiovascular-program/",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/family-medicine-and-primary-care",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/family-medicine-and-primary-care/",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/event/gazhp-addiction-and-mental-health-program",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/event/gazhp-addiction-and-mental-health-program/",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/about.html",
+      "destination": "/about/",
+      "permanent": true
+    },
+    {
+      "source": "/drkazhila",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/drkazhila/",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-jmm-musonda",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-jmm-musonda/",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-lona-mwenda",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-lona-mwenda/",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-pierre-dil",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-pierre-dil/",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-sebastian-chibale-benaya",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-sebastian-chibale-benaya/",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/biemba-kahalu-maliti",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/biemba-kahalu-maliti/",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/yareka-mhango",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/yareka-mhango/",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/joseph-yikona",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/joseph-yikona/",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/teams",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/teams/",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/teams.html",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/team.html",
+      "destination": "/team/",
+      "permanent": true
+    },
+    {
+      "source": "/member-types",
+      "destination": "/membership/",
+      "permanent": true
+    },
+    {
+      "source": "/member-types/",
+      "destination": "/membership/",
+      "permanent": true
+    },
+    {
+      "source": "/register",
+      "destination": "/membership/",
+      "permanent": true
+    },
+    {
+      "source": "/register/",
+      "destination": "/membership/",
+      "permanent": true
+    },
+    {
+      "source": "/membership.html",
+      "destination": "/membership/",
+      "permanent": true
+    },
+    {
+      "source": "/donation-confirmation",
+      "destination": "/donate/",
+      "permanent": true
+    },
+    {
+      "source": "/donation-confirmation/",
+      "destination": "/donate/",
+      "permanent": true
+    },
+    {
+      "source": "/donation-failed",
+      "destination": "/donate/",
+      "permanent": true
+    },
+    {
+      "source": "/donation-failed/",
+      "destination": "/donate/",
+      "permanent": true
+    },
+    {
+      "source": "/donate.html",
+      "destination": "/donate/",
+      "permanent": true
+    },
+    {
+      "source": "/donation-history",
+      "destination": "/manage-giving/",
+      "permanent": true
+    },
+    {
+      "source": "/donation-history/",
+      "destination": "/manage-giving/",
+      "permanent": true
+    },
+    {
+      "source": "/donor-dashboard",
+      "destination": "/manage-giving/",
+      "permanent": true
+    },
+    {
+      "source": "/donor-dashboard/",
+      "destination": "/manage-giving/",
+      "permanent": true
+    },
+    {
+      "source": "/gazhp-uk",
+      "destination": "/news/ppe-shipment-from-uk/",
+      "permanent": true
+    },
+    {
+      "source": "/gazhp-uk/",
+      "destination": "/news/ppe-shipment-from-uk/",
+      "permanent": true
+    },
+    {
+      "source": "/gazhp-australia",
+      "destination": "/news/australia-fundraising-gala/",
+      "permanent": true
+    },
+    {
+      "source": "/gazhp-australia/",
+      "destination": "/news/australia-fundraising-gala/",
+      "permanent": true
+    },
+    {
+      "source": "/sep2021",
+      "destination": "/news/covid-equipment-update-september-2021/",
+      "permanent": true
+    },
+    {
+      "source": "/sep2021/",
+      "destination": "/news/covid-equipment-update-september-2021/",
+      "permanent": true
+    },
+    {
+      "source": "/unza-resus",
+      "destination": "/news/unza-resuscitation-equipment/",
+      "permanent": true
+    },
+    {
+      "source": "/unza-resus/",
+      "destination": "/news/unza-resuscitation-equipment/",
+      "permanent": true
+    },
+    {
+      "source": "/addi-fundraiser",
+      "destination": "/news/addi-medical-equipment-shipment/",
+      "permanent": true
+    },
+    {
+      "source": "/addi-fundraiser/",
+      "destination": "/news/addi-medical-equipment-shipment/",
+      "permanent": true
+    },
+    {
+      "source": "/addi-webinar",
+      "destination": "/news/addi-medical-equipment-shipment/",
+      "permanent": true
+    },
+    {
+      "source": "/addi-webinar/",
+      "destination": "/news/addi-medical-equipment-shipment/",
+      "permanent": true
+    },
+    {
+      "source": "/e-club-zambezi",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/e-club-zambezi/",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/news-feed",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/news-feed/",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/blogs",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/blogs/",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/events",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/events/",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/event/meet-the-zambian-president-gala-fundraiser",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/event/meet-the-zambian-president-gala-fundraiser/",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/gala-tickets",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/gala-tickets/",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/gala-tickets-and-sponsorship",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/gala-tickets-and-sponsorship/",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/tickets",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/tickets/",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/feed",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/feed/",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/news.html",
+      "destination": "/news/",
+      "permanent": true
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/privacy/",
+      "permanent": true
+    },
+    {
+      "source": "/privacy-policy/",
+      "destination": "/privacy/",
+      "permanent": true
+    },
+    {
+      "source": "/terms-of-service",
+      "destination": "/terms/",
+      "permanent": true
+    },
+    {
+      "source": "/terms-of-service/",
+      "destination": "/terms/",
+      "permanent": true
+    },
+    {
+      "source": "/contact.html",
+      "destination": "/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/contact-us",
+      "destination": "/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/contact-us/",
+      "destination": "/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/membership-account",
+      "destination": "/membership/",
+      "permanent": true
+    },
+    {
+      "source": "/membership-account/:path*",
+      "destination": "/membership/",
+      "permanent": true
+    },
+    {
+      "source": "/donations",
+      "destination": "/donate/",
+      "permanent": true
+    },
+    {
+      "source": "/donations/:path*",
+      "destination": "/donate/",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/images/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000"
+        }
+      ]
+    },
+    {
+      "source": "/(css|js)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

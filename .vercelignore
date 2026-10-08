@@ -1,0 +1,7 @@
+# Not part of the public website (Vercel publishes everything else in the repo).
+api
+_print
+_source-images
+*.md
+.claude
+CNAME

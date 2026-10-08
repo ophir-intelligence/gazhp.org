@@ -3,27 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Apply for GAZHP membership online: choose a Professional, Student or Corporate tier and pay your annual dues securely." />
-  <title>Join GAZHP — Membership Application &amp; Annual Dues</title>
+  <meta name="description" content="Apply to join GAZHP, the Global Alliance of Zambian Healthcare Professionals: choose Professional, Student or Corporate membership and pay annual dues online." />
+  <title>Membership Application &amp; Annual Dues — GAZHP</title>
   <!-- gazhp:head -->
-  <link rel="canonical" href="https://gazhphealth.org/join/" />
-  <meta property="og:site_name" content="GAZHP — Global Alliance of Zambian Healthcare Professionals" />
+  <link rel="canonical" href="https://www.gazhphealth.org/join/" />
+  <meta property="og:site_name" content="GAZHP" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Join GAZHP — Membership Application &amp; Annual Dues" />
-  <meta property="og:description" content="Apply for GAZHP membership online: choose a Professional, Student or Corporate tier and pay your annual dues securely." />
-  <meta property="og:url" content="https://gazhphealth.org/join/" />
-  <meta property="og:image" content="https://gazhphealth.org/images/og-default.jpg" />
+  <meta property="og:title" content="Membership Application &amp; Annual Dues — GAZHP" />
+  <meta property="og:description" content="Apply to join GAZHP, the Global Alliance of Zambian Healthcare Professionals: choose Professional, Student or Corporate membership and pay annual dues online." />
+  <meta property="og:url" content="https://www.gazhphealth.org/join/" />
+  <meta property="og:image" content="https://www.gazhphealth.org/images/og-default.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="GAZHP healthcare professionals in a meeting" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="robots" content="max-image-preview:large" />
   <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/playfair-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebPage", "@id": "https://www.gazhphealth.org/join/#webpage", "url": "https://www.gazhphealth.org/join/", "name": "Membership Application & Annual Dues — GAZHP", "description": "Apply to join GAZHP, the Global Alliance of Zambian Healthcare Professionals: choose Professional, Student or Corporate membership and pay annual dues online.", "inLanguage": "en", "isPartOf": {"@id": "https://www.gazhphealth.org/#website"}, "about": {"@id": "https://www.gazhphealth.org/#organization"}, "breadcrumb": {"@id": "https://www.gazhphealth.org/join/#breadcrumb"}}, {"@type": "BreadcrumbList", "@id": "https://www.gazhphealth.org/join/#breadcrumb", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.gazhphealth.org/"}, {"@type": "ListItem", "position": 2, "name": "Membership", "item": "https://www.gazhphealth.org/membership/"}, {"@type": "ListItem", "position": 3, "name": "Join", "item": "https://www.gazhphealth.org/join/"}]}]}</script>
   <!-- /gazhp:head -->
   <link rel="stylesheet" href="/css/style.css" />
-  <link rel="icon" type="image/png" href="/images/logo.png" />
-  <link rel="apple-touch-icon" href="/images/logo.png" />
-</head>
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/images/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon-192.png" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#1c5928" />
+  </head>
 <body>
 
 <svg xmlns="http://www.w3.org/2000/svg" class="icon-sprite" aria-hidden="true" focusable="false">
@@ -91,16 +98,19 @@
       </nav>
       <h1>Become a Member</h1>
       <p>
-        Join a global community of Zambian healthcare professionals committed to leadership,
-        mentorship, professional growth, and improving healthcare outcomes for our communities.
+        Join the Global Alliance of Zambian Healthcare Professionals (GAZHP): a global community of Zambian
+        doctors, nurses and allied health professionals committed to leadership, mentorship, professional
+        growth, and improving healthcare outcomes for our communities.
       </p>
     </div>
   </div>
 </section>
 
 <!-- ========== APPLY (payment options rendered by js/payments.js) ========== -->
-<section class="section-pad" id="apply">
+<section class="section-pad" id="apply" aria-labelledby="apply-title">
   <div class="container">
+    <!-- Screen-reader heading: keeps the outline h1 → h2 → h3 (js/payments.js renders h3.pay-step headings below). -->
+    <h2 class="sr-only" id="apply-title">Apply and pay your annual dues</h2>
     <div class="center fade-up" style="max-width:720px;margin:0 auto;">
       <p class="section-sub">
         Pick your tier, then choose a secure payment method.
@@ -120,7 +130,8 @@
           <p><a href="/membership/">Compare tiers, prices &amp; benefits</a></p>
         </details>
       </div>
-      <div id="payment-options" data-purpose="membership"></div>
+      <!-- js/payments.js replaces this placeholder with the payment options; it stays only if scripts don't run. -->
+      <div id="payment-options" data-purpose="membership"><p class="pay-loading prose-links">Loading payment options… If they don't appear, email <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a> and we'll help you join.</p></div>
       <p style="text-align:center;margin-top:24px;">
         <a href="/membership/" style="font-size:.88rem;color:var(--teal-ink);font-weight:600;">‹ Back to membership tiers &amp; benefits</a>
       </p>

@@ -11,9 +11,9 @@ database_name = "gazhp-payments"
 database_id = "REPLACE_WITH_DATABASE_ID"   # printed by: npx wrangler d1 create gazhp-payments
 
 [vars]
-SITE_URL = "https://gazhphealth.org"
+SITE_URL = "https://www.gazhphealth.org"
 # Sites allowed to call the API from a browser (comma-separated).
-ALLOWED_ORIGINS = "https://gazhphealth.org,https://www.gazhphealth.org,http://localhost:3000"
+ALLOWED_ORIGINS = "https://www.gazhphealth.org,https://gazhphealth.org,http://localhost:3000"
 # "live" or "sandbox" (PayPal test mode).
 PAYPAL_ENV = "live"
 # Kwacha per 1 US dollar — used to price memberships in ZMW for mobile money (DPO Pay).
