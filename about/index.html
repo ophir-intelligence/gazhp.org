@@ -4,7 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="About GAZHP — Learn the story behind the Global Alliance of Zambian Healthcare Professionals, our mission, values, and founding history." />
-  <title>About — GAZHP</title>
+  <title>About GAZHP — Zambian Diaspora Healthcare Nonprofit</title>
+  <!-- gazhp:head -->
+  <link rel="canonical" href="https://gazhphealth.org/about/" />
+  <meta property="og:site_name" content="GAZHP — Global Alliance of Zambian Healthcare Professionals" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="About GAZHP — Zambian Diaspora Healthcare Nonprofit" />
+  <meta property="og:description" content="About GAZHP — Learn the story behind the Global Alliance of Zambian Healthcare Professionals, our mission, values, and founding history." />
+  <meta property="og:url" content="https://gazhphealth.org/about/" />
+  <meta property="og:image" content="https://gazhphealth.org/images/og-default.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/playfair-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- /gazhp:head -->
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="icon" type="image/png" href="/images/logo.png" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
@@ -42,46 +57,52 @@
   </defs>
 </svg>
 
+<a class="skip-link" href="#main">Skip to main content</a>
+
 <!-- ========== NAVBAR ========== -->
-<nav class="navbar scrolled">
+<header class="site-header">
+<nav class="navbar scrolled" aria-label="Main">
   <div class="navbar-inner">
     <a href="/" class="nav-logo">
-      <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+      <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
       <span>GAZHP</span>
     </a>
     <div class="nav-links">
       <a href="/">Home</a>
-      <a href="/about/" class="active">About</a>
+      <a href="/about/" class="active" aria-current="page">About</a>
       <a href="/team/">Team</a>
       <a href="/news/">News</a>
       <a href="/membership/">Membership</a>
       <a href="/contact/">Contact</a>
       <a href="/donate/" class="nav-donate">Donate Now</a>
     </div>
-    <button class="nav-hamburger" aria-label="Menu">
+    <button type="button" class="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mobile-nav">
       <span></span><span></span><span></span>
     </button>
   </div>
 </nav>
-<nav class="mobile-nav">
+<nav class="mobile-nav" id="mobile-nav" aria-label="Main (mobile)">
   <a href="/">Home</a>
-  <a href="/about/">About</a>
+  <a href="/about/" class="active" aria-current="page">About</a>
   <a href="/team/">Team</a>
   <a href="/news/">News</a>
   <a href="/membership/">Membership</a>
   <a href="/contact/">Contact</a>
   <a href="/donate/" class="btn btn-primary">Donate Now</a>
 </nav>
+</header>
+
+<main id="main" tabindex="-1">
 
 <!-- ========== PAGE HERO ========== -->
 <section class="page-hero">
   <div class="container">
     <div class="page-hero-inner">
-      <div class="breadcrumb">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
-        <span>›</span>
-        <span>About</span>
-      </div>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">About</span>
+      </nav>
       <h1>About GAZHP</h1>
       <p>
         A global movement of Zambian healthcare professionals united by one purpose —
@@ -110,34 +131,35 @@
         </p>
         <br />
         <div style="display:flex;gap:16px;flex-wrap:wrap;">
-          <a href="/#donate" class="btn btn-teal">Support Our Mission</a>
+          <a href="/donate/" class="btn btn-teal">Support Our Mission</a>
           <a href="/membership/" class="btn btn-green">Join the Alliance</a>
         </div>
       </div>
-      <div class="fade-up" style="background:var(--gray-50);border-radius:var(--radius-lg);padding:48px 40px;">
+      <!-- min-width:0 + fluid padding + a stats grid that drops to one column when narrow: nothing here can widen the page on small phones -->
+      <div class="fade-up" style="background:var(--gray-50);border-radius:var(--radius-lg);padding:clamp(28px,6vw,48px) clamp(18px,5vw,40px);min-width:0;">
         <span class="tag">Our Vision</span>
-        <h3 style="font-family:var(--font-head);font-size:1.6rem;color:var(--navy);margin-bottom:16px;line-height:1.3;">
+        <h2 style="font-family:var(--font-head);font-size:1.6rem;color:var(--navy);margin-bottom:16px;line-height:1.3;">
           A Zambia where every citizen has access to world-class healthcare — delivered by Zambians.
-        </h3>
+        </h2>
         <p style="color:var(--gray-600);font-size:.92rem;line-height:1.75;margin-bottom:28px;">
           We envision a future where Zambia's health system is strong, self-sufficient, and driven
           by a skilled domestic workforce supported by a vibrant global diaspora network.
         </p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-          <div style="background:white;border-radius:var(--radius-md);padding:20px;text-align:center;box-shadow:var(--shadow-sm);">
-            <div style="font-size:2rem;font-weight:900;color:var(--teal);">100+</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(max(100px,calc(50% - 20px)),1fr));gap:clamp(12px,3vw,20px);">
+          <div style="background:white;border-radius:var(--radius-md);padding:20px 12px;text-align:center;box-shadow:var(--shadow-sm);">
+            <div style="font-size:2rem;font-weight:900;color:var(--teal-ink);">100+</div>
             <div style="font-size:.8rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;">Members</div>
           </div>
-          <div style="background:white;border-radius:var(--radius-md);padding:20px;text-align:center;box-shadow:var(--shadow-sm);">
-            <div style="font-size:2rem;font-weight:900;color:var(--teal);">15+</div>
+          <div style="background:white;border-radius:var(--radius-md);padding:20px 12px;text-align:center;box-shadow:var(--shadow-sm);">
+            <div style="font-size:2rem;font-weight:900;color:var(--teal-ink);">15+</div>
             <div style="font-size:.8rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;">Countries</div>
           </div>
-          <div style="background:white;border-radius:var(--radius-md);padding:20px;text-align:center;box-shadow:var(--shadow-sm);">
-            <div style="font-size:2rem;font-weight:900;color:var(--teal);">3</div>
+          <div style="background:white;border-radius:var(--radius-md);padding:20px 12px;text-align:center;box-shadow:var(--shadow-sm);">
+            <div style="font-size:2rem;font-weight:900;color:var(--teal-ink);">3</div>
             <div style="font-size:.8rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;">Core Programs</div>
           </div>
-          <div style="background:white;border-radius:var(--radius-md);padding:20px;text-align:center;box-shadow:var(--shadow-sm);">
-            <div style="font-size:2rem;font-weight:900;color:var(--teal);">2019</div>
+          <div style="background:white;border-radius:var(--radius-md);padding:20px 12px;text-align:center;box-shadow:var(--shadow-sm);">
+            <div style="font-size:2rem;font-weight:900;color:var(--teal-ink);">2019</div>
             <div style="font-size:.8rem;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;">Founded</div>
           </div>
         </div>
@@ -220,30 +242,30 @@
       </p>
     </div>
     <div class="programs-grid" style="margin-top:52px;">
-      <div class="program-card fade-up">
-        <div class="program-icon purple"><svg class="icon"><use href="#i-brain"/></svg></div>
+      <div class="program-card program-body fade-up" id="mental-health">
+        <div class="program-icon purple"><svg class="icon" aria-hidden="true"><use href="#i-brain"/></svg></div>
         <div class="program-num">Program 01</div>
-        <div class="program-name">Addiction &amp; Mental Health</div>
+        <h3 class="program-name">Addiction &amp; Mental Health</h3>
         <p class="program-desc">
           GAZHP promotes mental health awareness and builds culturally relevant services through partnerships
           between diaspora professionals and local providers. We work to reduce stigma, train counselors,
           and connect communities with compassionate, accessible mental health care.
         </p>
       </div>
-      <div class="program-card fade-up">
-        <div class="program-icon blue"><svg class="icon"><use href="#i-heart"/></svg></div>
+      <div class="program-card program-body fade-up" id="cardiovascular">
+        <div class="program-icon blue"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg></div>
         <div class="program-num">Program 02</div>
-        <div class="program-name">Cardiovascular Care</div>
+        <h3 class="program-name">Cardiovascular Care</h3>
         <p class="program-desc">
           Heart disease is a growing challenge in Zambia. We strengthen cardiovascular care through
           clinical training, specialist mentorship, telemedicine consultations, and partnerships
           with global cardiology experts — bringing advanced care to patients who need it most.
         </p>
       </div>
-      <div class="program-card fade-up">
-        <div class="program-icon green"><svg class="icon"><use href="#i-hospital"/></svg></div>
+      <div class="program-card program-body fade-up" id="primary-care">
+        <div class="program-icon green"><svg class="icon" aria-hidden="true"><use href="#i-hospital"/></svg></div>
         <div class="program-num">Program 03</div>
-        <div class="program-name">Family Medicine &amp; Primary Care</div>
+        <h3 class="program-name">Family Medicine &amp; Primary Care</h3>
         <p class="program-desc">
           Strong primary care is the backbone of a healthy society. We support training, research,
           and international collaboration to build a robust primary healthcare workforce in Zambia —
@@ -263,19 +285,19 @@
     </div>
     <div class="values-grid">
       <div class="value-card fade-up">
-        <h3><svg class="icon" style="width:18px;height:18px;color:var(--green-mid);margin-right:8px;vertical-align:-3px;"><use href="#i-handshake"/></svg>Collaboration</h3>
+        <h3><svg class="icon" aria-hidden="true" style="width:18px;height:18px;color:var(--green-mid);margin-right:8px;vertical-align:-3px;"><use href="#i-handshake"/></svg>Collaboration</h3>
         <p>We believe in the power of collective action. By connecting diaspora professionals with local communities, we achieve more together than any individual could alone.</p>
       </div>
       <div class="value-card fade-up">
-        <h3><svg class="icon" style="width:18px;height:18px;color:var(--green-mid);margin-right:8px;vertical-align:-3px;"><use href="#i-microscope"/></svg>Excellence</h3>
+        <h3><svg class="icon" aria-hidden="true" style="width:18px;height:18px;color:var(--green-mid);margin-right:8px;vertical-align:-3px;"><use href="#i-microscope"/></svg>Excellence</h3>
         <p>We hold ourselves to the highest professional and ethical standards — because Zambia's patients deserve nothing less than world-class care and expertise.</p>
       </div>
       <div class="value-card fade-up">
-        <h3><svg class="icon" style="width:18px;height:18px;color:var(--green-mid);margin-right:8px;vertical-align:-3px;"><use href="#i-recycle"/></svg>Sustainability</h3>
+        <h3><svg class="icon" aria-hidden="true" style="width:18px;height:18px;color:var(--green-mid);margin-right:8px;vertical-align:-3px;"><use href="#i-recycle"/></svg>Sustainability</h3>
         <p>Every program is built for the long term. We prioritize capacity building over dependency, ensuring our impact outlasts our direct involvement.</p>
       </div>
       <div class="value-card fade-up">
-        <h3><svg class="icon" style="width:18px;height:18px;color:var(--green-mid);margin-right:8px;vertical-align:-3px;"><use href="#i-gem"/></svg>Integrity</h3>
+        <h3><svg class="icon" aria-hidden="true" style="width:18px;height:18px;color:var(--green-mid);margin-right:8px;vertical-align:-3px;"><use href="#i-gem"/></svg>Integrity</h3>
         <p>As a registered nonprofit, we operate with full transparency and accountability to our members, donors, and the communities we serve across Zambia.</p>
       </div>
     </div>
@@ -293,38 +315,71 @@
         to a registered international nonprofit in 2019.
       </p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-top:48px;max-width:920px;margin-left:auto;margin-right:auto;">
+    <div class="team-grid" style="max-width:920px;margin:48px auto 0;">
       <div class="team-card fade-up">
-        <div class="team-photo"><img src="/images/david.jpg" alt="Dr. David Gordon Kazhila" /></div>
+        <div class="team-photo"><img src="/images/david.webp" alt="" width="426" height="426" loading="lazy" decoding="async" /></div>
         <div class="team-info">
-          <div class="team-name">Dr. David Gordon Kazhila</div>
+          <h3 class="team-name">Dr. David Gordon Kazhila</h3>
           <div class="team-role">Co-Founder &amp; Board Member</div>
         </div>
       </div>
       <div class="team-card fade-up">
-        <div class="team-photo"><img src="/images/musonda.jpg" alt="Dr. John Mukuka Musonda" /></div>
+        <div class="team-photo"><img src="/images/musonda.webp" alt="" width="640" height="659" loading="lazy" decoding="async" /></div>
         <div class="team-info">
-          <div class="team-name">Dr. John Mukuka Musonda</div>
+          <h3 class="team-name">Dr. John Mukuka Musonda</h3>
           <div class="team-role">Acting Board Chair</div>
         </div>
       </div>
       <div class="team-card fade-up">
-        <div class="team-photo"><img src="/images/sebastian.jpg" alt="Dr. Sebastian Benaya" /></div>
+        <div class="team-photo"><img src="/images/sebastian.webp" alt="" width="726" height="640" loading="lazy" decoding="async" /></div>
         <div class="team-info">
-          <div class="team-name">Dr. Sebastian Benaya</div>
+          <h3 class="team-name">Dr. Sebastian Benaya</h3>
           <div class="team-role">Interim Secretary</div>
         </div>
       </div>
       <div class="team-card fade-up">
-        <div class="team-photo"><img src="/images/yareka.jpg" alt="Yareka M'hango" /></div>
+        <div class="team-photo"><img src="/images/yareka.webp" alt="" width="640" height="640" loading="lazy" decoding="async" /></div>
         <div class="team-info">
-          <div class="team-name">Yareka M'hango</div>
+          <h3 class="team-name">Yareka M'hango</h3>
           <div class="team-role">Treasurer</div>
         </div>
       </div>
     </div>
     <div style="text-align:center;margin-top:40px;">
       <a href="/team/" class="btn btn-green">View Full Team →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== TRANSPARENCY ========== -->
+<!-- Only facts already published on this site. When the organisation supplies its EIN, mailing address
+     or annual reports, add them here (the EIN also appears on /donate/ and /join/ once set in js/payments-config.js). -->
+<section class="section-pad" id="transparency" style="background:var(--gray-50);">
+  <div class="container">
+    <div class="center fade-up">
+      <span class="tag">Transparency</span>
+      <h2 class="section-title">Governance &amp; Accountability</h2>
+      <p class="section-sub">
+        Who we are legally, who oversees our work, and how your gift is treated.
+      </p>
+    </div>
+    <div class="values-grid prose-links">
+      <div class="value-card fade-up">
+        <h3>Registered nonprofit</h3>
+        <p>The Global Alliance of Zambian Healthcare Professionals (GAZHP) was formally registered as a <span style="white-space:nowrap;">501(c)(3)</span> nonprofit organization in Delaware, USA, in December 2019.</p>
+      </div>
+      <div class="value-card fade-up">
+        <h3>Tax-deductible giving</h3>
+        <p>GAZHP is a registered US <span style="white-space:nowrap;">501(c)(3)</span> nonprofit. Gifts from US taxpayers are tax-deductible to the extent allowed by law. If you pay tax outside the US, please check your local rules.</p>
+      </div>
+      <div class="value-card fade-up">
+        <h3>Board oversight</h3>
+        <p>GAZHP's strategy, governance and vision are led by its Board of Directors. <a href="/team/">Meet the Board of Directors</a>.</p>
+      </div>
+      <div class="value-card fade-up">
+        <h3>Policies &amp; questions</h3>
+        <p>Read our <a href="/privacy/">Privacy Policy</a> and <a href="/terms/">Terms &amp; Refund Policy</a>, or email <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a> with any question about how we work.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -336,10 +391,12 @@
     <p>Join a growing alliance of healthcare professionals dedicated to Zambia's future.</p>
     <div class="cta-actions">
       <a href="/membership/" class="btn btn-primary btn-lg">Join as a Member</a>
-      <a href="/donate/" class="btn btn-outline-white btn-lg"><svg class="icon"><use href="#i-heart"/></svg>Donate</a>
+      <a href="/donate/" class="btn btn-outline-white btn-lg"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg>Donate</a>
     </div>
   </div>
 </section>
+
+</main>
 
 <!-- ========== FOOTER ========== -->
 <footer>
@@ -347,19 +404,15 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="/" class="nav-logo">
-          <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+          <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
           <span>GAZHP</span>
         </a>
-        <p>Global Alliance of Zambian Healthcare Professionals — building a healthier Zambia through diaspora collaboration.</p>
-        <div class="social-links">
-          <a href="#" class="social-link" aria-label="Facebook"><svg class="icon"><use href="#i-facebook"/></svg></a>
-          <a href="#" class="social-link" aria-label="Twitter"><svg class="icon"><use href="#i-twitter"/></svg></a>
-          <a href="#" class="social-link" aria-label="Instagram"><svg class="icon"><use href="#i-instagram"/></svg></a>
-          <a href="#" class="social-link" aria-label="LinkedIn"><svg class="icon"><use href="#i-linkedin"/></svg></a>
-        </div>
+        <p>Global Alliance of Zambian Healthcare Professionals — uniting diaspora expertise with local knowledge to strengthen Zambia's health system.</p>
+        <!-- Social media: when GAZHP has official profiles, add them here, e.g.
+             <div class="social-links"><a href="https://www.linkedin.com/company/…" class="social-link" aria-label="GAZHP on LinkedIn" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg></a></div> -->
       </div>
-      <div class="footer-col">
-        <h4>Navigation</h4>
+      <nav class="footer-col" aria-label="Footer: site">
+        <h2 class="footer-title">Navigation</h2>
         <ul>
           <li><a href="/">Home</a></li>
           <li><a href="/about/">About Us</a></li>
@@ -368,26 +421,26 @@
           <li><a href="/membership/">Membership</a></li>
           <li><a href="/contact/">Contact</a></li>
         </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Programs</h4>
+      </nav>
+      <nav class="footer-col" aria-label="Footer: get involved">
+        <h2 class="footer-title">Get Involved</h2>
         <ul>
-          <li><a href="#programs">Mental Health</a></li>
-          <li><a href="#programs">Cardiovascular Care</a></li>
-          <li><a href="#programs">Primary Care</a></li>
-          <li><a href="#programs">Telemedicine</a></li>
+          <li><a href="/donate/">Donate</a></li>
+          <li><a href="/join/">Become a Member</a></li>
+          <li><a href="/membership/">Membership Tiers</a></li>
+          <li><a href="/contact/">Partner With Us</a></li>
         </ul>
-      </div>
+      </nav>
       <div class="footer-col">
-        <h4>Contact</h4>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-globe"/></svg><span>gazhphealth.org</span></div>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-mail"/></svg><span>info@gazhphealth.org</span></div>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
+        <h2 class="footer-title">Contact</h2>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg><a href="/">gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 GAZHP — <a href="/">Global Alliance of Zambian Healthcare Professionals</a>. All rights reserved.</p>
-      <span class="nonprofit-badge"><svg class="icon"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
+      <p>© 2026 GAZHP — Global Alliance of Zambian Healthcare Professionals. All rights reserved. <span class="footer-legal"><a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms &amp; Refunds</a></span></p>
+      <span class="nonprofit-badge"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
     </div>
   </div>
 </footer>

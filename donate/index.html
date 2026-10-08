@@ -3,8 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Support GAZHP — donate securely through our Donorbox form. Every gift funds programs that train healthcare workers and strengthen Zambia's health system." />
-  <title>Donate — GAZHP</title>
+  <meta name="description" content="Donate to GAZHP, a US 501(c)(3) nonprofit. Your gift funds training, specialist care and medical equipment for Zambia&#x27;s health system." />
+  <title>Donate to Strengthen Zambia's Health System — GAZHP</title>
+  <!-- gazhp:head -->
+  <link rel="canonical" href="https://gazhphealth.org/donate/" />
+  <meta property="og:site_name" content="GAZHP — Global Alliance of Zambian Healthcare Professionals" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Donate to Strengthen Zambia&#x27;s Health System" />
+  <meta property="og:description" content="Donate to GAZHP, a US 501(c)(3) nonprofit. Your gift funds training, specialist care and medical equipment for Zambia&#x27;s health system." />
+  <meta property="og:url" content="https://gazhphealth.org/donate/" />
+  <meta property="og:image" content="https://gazhphealth.org/images/og-default.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/playfair-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- /gazhp:head -->
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="icon" type="image/png" href="/images/logo.png" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
@@ -17,6 +32,9 @@
     <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
     <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
+    <symbol id="i-hospital" viewBox="0 0 24 24"><path d="M12 6v4"/><path d="M14 14h-4"/><path d="M14 18h-4"/><path d="M14 8h-4"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h2"/><path d="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
     <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
     <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
     <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></symbol>
@@ -26,11 +44,14 @@
   </defs>
 </svg>
 
+<a class="skip-link" href="#main">Skip to main content</a>
+
 <!-- ========== NAVBAR ========== -->
-<nav class="navbar scrolled">
+<header class="site-header">
+<nav class="navbar scrolled" aria-label="Main">
   <div class="navbar-inner">
     <a href="/" class="nav-logo">
-      <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+      <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
       <span>GAZHP</span>
     </a>
     <div class="nav-links">
@@ -40,32 +61,35 @@
       <a href="/news/">News</a>
       <a href="/membership/">Membership</a>
       <a href="/contact/">Contact</a>
-      <a href="/donate/" class="nav-donate active">Donate Now</a>
+      <a href="/donate/" class="nav-donate active" aria-current="page">Donate Now</a>
     </div>
-    <button class="nav-hamburger" aria-label="Menu">
+    <button type="button" class="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mobile-nav">
       <span></span><span></span><span></span>
     </button>
   </div>
 </nav>
-<nav class="mobile-nav">
+<nav class="mobile-nav" id="mobile-nav" aria-label="Main (mobile)">
   <a href="/">Home</a>
   <a href="/about/">About</a>
   <a href="/team/">Team</a>
   <a href="/news/">News</a>
   <a href="/membership/">Membership</a>
   <a href="/contact/">Contact</a>
-  <a href="/donate/" class="btn btn-primary">Donate Now</a>
+  <a href="/donate/" class="btn btn-primary active" aria-current="page">Donate Now</a>
 </nav>
+</header>
+
+<main id="main" tabindex="-1">
 
 <!-- ========== PAGE HERO ========== -->
 <section class="page-hero">
   <div class="container">
     <div class="page-hero-inner">
-      <div class="breadcrumb">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
-        <span>›</span>
-        <span>Donate</span>
-      </div>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Donate</span>
+      </nav>
       <h1>Support GAZHP</h1>
       <p>
         Your donation directly funds programs that train healthcare workers, expand specialist access,
@@ -75,27 +99,220 @@
   </div>
 </section>
 
-<!-- ========== DONATE (Donorbox donation form) ========== -->
+<!-- ========== DONATE (payment options rendered by js/payments.js) ========== -->
 <section class="section-pad" id="donate">
   <div class="container">
     <div class="center fade-up" style="max-width:720px;margin:0 auto;">
       <p class="section-sub">
-        Choose your amount below and complete the secure form. Donations are processed through Donorbox.
-        GAZHP is a registered 501(c)(3) nonprofit, so your gift may be tax-deductible — check with your local tax advisor.
+        Choose a secure payment method below.
+        GAZHP is a registered US 501(c)(3) nonprofit. Gifts from US taxpayers are tax-deductible to the extent allowed by law.
       </p>
     </div>
-    <div class="donorbox-wrap fade-up">
-      <script type="module" src="https://donorbox.org/widgets.js" async></script>
-      <dbox-widget campaign="donate-to-gazhp" type="donation_form" enable-auto-scroll="true"></dbox-widget>
-      <p style="font-size:.78rem;color:var(--gray-400);text-align:center;margin-top:16px;display:flex;align-items:center;justify-content:center;gap:6px;">
-        <svg class="icon" style="width:13px;height:13px;"><use href="#i-lock"/></svg>Secure processing by Donorbox.
-      </p>
-      <p style="text-align:center;margin-top:24px;">
-        <a href="/membership/" style="font-size:.88rem;color:var(--teal);font-weight:600;">Prefer to support through membership? View tiers ›</a>
+    <div class="pay-wrap fade-up">
+      <div id="payment-options" data-purpose="donation"></div>
+      <p style="text-align:center;margin-top:24px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 24px;">
+        <a href="/membership/" style="font-size:.88rem;color:var(--teal-ink);font-weight:600;">Prefer to support through membership? View tiers ›</a>
+        <a href="#donor-faq" style="font-size:.88rem;color:var(--teal-ink);font-weight:600;">Questions about giving? Read the donor FAQ ›</a>
       </p>
     </div>
   </div>
 </section>
+
+<!-- ========== WHERE YOUR GIFT GOES ========== -->
+<!-- Same three areas as the homepage (index.html #donate) and the programs on /about/#programs. -->
+<section class="section-pad" style="background:var(--gray-50);" aria-labelledby="where-title">
+  <div class="container">
+    <div class="center fade-up">
+      <span class="tag">Your Impact</span>
+      <h2 class="section-title" id="where-title">Where Your Gift Goes</h2>
+      <p class="section-sub prose-links">
+        Every contribution funds programs that build Zambia's healthcare capacity. Our three core programs are
+        Addiction &amp; Mental Health, Cardiovascular Care, and Family Medicine &amp; Primary Care.
+        <a href="/about/#programs">Read about our programs</a>
+      </p>
+    </div>
+    <div class="donate-grid">
+      <div class="donate-card fade-up">
+        <div class="donate-icon"><svg class="icon" aria-hidden="true"><use href="#i-book-open"/></svg></div>
+        <h3 class="donate-title">Training &amp; Capacity Building</h3>
+        <p class="donate-desc" style="margin-bottom:0;">
+          Support continuous medical education and skills development for Zambian healthcare workers.
+          Knowledge that lasts a lifetime.
+        </p>
+      </div>
+      <div class="donate-card fade-up">
+        <div class="donate-icon"><svg class="icon" aria-hidden="true"><use href="#i-hospital"/></svg></div>
+        <h3 class="donate-title">Specialist Care &amp; Telemedicine</h3>
+        <p class="donate-desc" style="margin-bottom:0;">
+          Expand access to specialist healthcare through diaspora collaboration and telemedicine
+          technology. Bridging the gap between rural Zambia and global expertise.
+        </p>
+      </div>
+      <div class="donate-card fade-up">
+        <div class="donate-icon"><svg class="icon" aria-hidden="true"><use href="#i-wrench"/></svg></div>
+        <h3 class="donate-title">Equipment &amp; Health Systems</h3>
+        <p class="donate-desc" style="margin-bottom:0;">
+          Strengthen healthcare facilities and emergency response with critical equipment and
+          systemic support that transforms how care is delivered.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== WHAT GAZHP HAS DONE ========== -->
+<!-- Every card is taken from a published news post and links to it. Keep the verbs accurate
+     (who donated, who funded, who shipped) and add new cards only with a sourced post. -->
+<section class="section-pad" aria-labelledby="done-title">
+  <div class="container">
+    <div class="center fade-up">
+      <span class="tag">Track Record</span>
+      <h2 class="section-title" id="done-title">What GAZHP Has Done</h2>
+      <p class="section-sub">
+        Highlights of GAZHP's work with partners and the Zambian diaspora, from our published news posts.
+        Each one links to the full story.
+      </p>
+    </div>
+    <div class="grid-auto prose-links" style="grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));margin-top:52px;">
+      <div class="value-card fade-up" style="display:flex;flex-direction:column;">
+        <div class="timeline-date">2021</div>
+        <h3>US$5,000 toward 40 tonnes of equipment</h3>
+        <p>
+          GAZHP contributed US$5,000 to a fundraiser arranged by the Africa Diaspora Development Institute (ADDI)
+          to sponsor a 40-tonne load of medical equipment and PPE for the University Teaching Hospital in Lusaka.
+        </p>
+        <p style="margin-top:auto;padding-top:14px;"><a href="/news/addi-medical-equipment-shipment/">Read the story<span class="sr-only">: GAZHP joins ADDI to ship 40 tonnes of medical equipment to Zambia</span></a></p>
+      </div>
+      <div class="value-card fade-up" style="display:flex;flex-direction:column;">
+        <div class="timeline-date">July 2021</div>
+        <h3>Shipping donated PPE from the UK</h3>
+        <p>
+          GAZHP funded the shipment to Lusaka of 35 boxes of visors and masks donated by PLL Care Services
+          of Oxfordshire, UK, with help from community fundraising.
+        </p>
+        <p style="margin-top:auto;padding-top:14px;"><a href="/news/ppe-shipment-from-uk/">Read the story<span class="sr-only">: 35 boxes of PPE shipped from the UK to Zambia</span></a></p>
+      </div>
+      <div class="value-card fade-up" style="display:flex;flex-direction:column;">
+        <div class="timeline-date">September 2021</div>
+        <h3>PPE for Zambia's Ministry of Health</h3>
+        <p>
+          PPE donated by UK-based Zambians, including 20,000 surgical masks and 6,000 face shields, was shipped
+          by GAZHP for handover to the Ministry of Health. On 17 September 2021 GAZHP representatives in Lusaka
+          handed PPE and pulse oximeters to the Ministry, asking that they go to rural hospitals and health centres.
+        </p>
+        <p style="margin-top:auto;padding-top:14px;"><a href="/news/covid-equipment-update-september-2021/">Read the update<span class="sr-only">: oxygen concentrators, PPE and equipment en route to Zambia</span></a> · <a href="/news/ppe-handover-ministry-of-health/">The handover<span class="sr-only">: GAZHP hands over PPE to Zambia's Ministry of Health</span></a></p>
+      </div>
+      <div class="value-card fade-up" style="display:flex;flex-direction:column;">
+        <div class="timeline-date">September 2021</div>
+        <h3>Oxygen concentrators and pulse oximeters</h3>
+        <p>
+          GAZHP purchased ten 10-litre oxygen concentrators and handed them to the airline for freight to Zambia.
+          Lifebox donated 200 pulse oximeters after GAZHP contacted it.
+        </p>
+        <p style="margin-top:auto;padding-top:14px;"><a href="/news/covid-equipment-update-september-2021/">Read the update<span class="sr-only">: oxygen concentrators, PPE and equipment en route to Zambia</span></a></p>
+      </div>
+      <div class="value-card fade-up" style="display:flex;flex-direction:column;">
+        <div class="timeline-date">2021</div>
+        <h3>Resuscitation training manikins for UNZA</h3>
+        <p>
+          GAZHP president Dr. Joseph Yikona and resuscitation practitioner Kevin Brown, both of West Suffolk
+          Hospital, arranged for the hospital's surplus simulation manikins to go to the University of Zambia
+          School of Medicine in Lusaka.
+        </p>
+        <p style="margin-top:auto;padding-top:14px;"><a href="/news/unza-resuscitation-equipment/">Read the story<span class="sr-only">: UNZA School of Medicine to receive resuscitation training equipment</span></a></p>
+      </div>
+      <div class="value-card fade-up" style="display:flex;flex-direction:column;">
+        <div class="timeline-date">2025–2026</div>
+        <h3>Mental health essay competitions</h3>
+        <p>
+          In 2025 GAZHP sponsored a Youth Mental Health Essay Competition for university students in Zambia,
+          with cash prizes and six-month shadow internships for the top three finalists. In 2026 GAZHP and
+          The YANA Foundation opened a nationwide competition.
+        </p>
+        <p style="margin-top:auto;padding-top:14px;"><a href="/news/mental-health-essay-competition/">2025 competition<span class="sr-only">: Youth Mental Health Essay Competition</span></a> · <a href="/news/mental-health-essay-competition-2026/">2026 competition<span class="sr-only">: Nationwide University Mental Health Essay Competition 2026</span></a></p>
+      </div>
+    </div>
+    <p class="center prose-links fade-up" style="margin-top:40px;font-size:.9rem;color:var(--gray-600);">
+      <a href="/news/">See all news and updates</a>
+    </p>
+  </div>
+</section>
+
+<!-- ========== DONOR FAQ ========== -->
+<section class="section-pad" id="donor-faq" style="background:var(--gray-50);" aria-labelledby="faq-title">
+  <div class="container">
+    <div class="center fade-up">
+      <span class="tag">Donor FAQ</span>
+      <h2 class="section-title" id="faq-title">Questions About Giving</h2>
+    </div>
+    <div class="faq prose-links fade-up" style="max-width:760px;margin:40px auto 0;">
+      <details>
+        <summary>Is my gift tax-deductible?</summary>
+        <p>
+          GAZHP is a registered US 501(c)(3) nonprofit. Gifts from US taxpayers are tax-deductible to the
+          extent allowed by law. If you pay tax outside the US, the rules differ, so please check with your tax advisor.
+        </p>
+      </details>
+      <!-- Check the next two answers whenever the payment setup changes: they match Stripe Payment Links
+           (cards, Apple Pay, Google Pay, monthly giving). Add PayPal / mobile money here when they go live. -->
+      <details>
+        <summary>Can I give monthly?</summary>
+        <p>
+          Yes. Monthly giving is available at checkout: choose the monthly option when you pick your amount.
+          You can cancel a monthly gift at any time by emailing
+          <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a>.
+          You can also use the <a href="/manage-giving/">Manage your gift</a> page. See <a href="/terms/#cancelling">how cancelling works</a>.
+        </p>
+      </details>
+      <details>
+        <summary>Which payment methods can I use?</summary>
+        <p>
+          The payment box at the top of this page always lists the options available right now. Today you can
+          give by card (Visa, Mastercard, Amex), Apple Pay or Google Pay through Stripe's secure checkout.
+          Zambian Visa and Mastercard cards work too.
+        </p>
+      </details>
+      <details>
+        <summary>Is my payment secure?</summary>
+        <p>
+          Yes. Online payments are processed by our payment providers (Donorbox, Stripe, PayPal or DPO Pay,
+          depending on the option you choose). Your card, bank and mobile-money details go directly to them
+          and never reach GAZHP. Read more in our <a href="/privacy/#payments">Privacy Policy</a>.
+        </p>
+      </details>
+      <details>
+        <summary>How do I get a receipt?</summary>
+        <p>
+          We send a receipt to the email address you give at checkout. Please keep
+          it for your records. If it hasn't arrived, check your spam folder or email
+          <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a>.
+        </p>
+      </details>
+      <details>
+        <summary>Can I get a refund?</summary>
+        <p>
+          If something went wrong, for example you gave the wrong amount or paid twice, email
+          <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a> with your name, the date, the amount
+          and the payment reference. We review every request, and approved refunds go back to your original
+          payment method. Full details are in our <a href="/terms/#refunds">Terms &amp; Refund Policy</a>.
+        </p>
+      </details>
+    </div>
+    <div class="callout prose-links fade-up" style="max-width:760px;margin:32px auto 0;">
+      <p style="margin-bottom:10px;">
+        <strong>Who stands behind GAZHP?</strong> GAZHP was registered as a 501(c)(3) nonprofit in Delaware, USA,
+        in December 2019. It is governed by a Board of Directors: healthcare and finance professionals across
+        the diaspora and in Zambia. <a href="/team/">Meet the board</a> · <a href="/about/">Read our story</a>
+      </p>
+      <p>
+        Still have a question? Email <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a>.
+        We typically respond within 2–3 business days.
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
 
 <!-- ========== FOOTER ========== -->
 <footer>
@@ -103,19 +320,15 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="/" class="nav-logo">
-          <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+          <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
           <span>GAZHP</span>
         </a>
-        <p>Global Alliance of Zambian Healthcare Professionals — building a healthier Zambia through diaspora collaboration.</p>
-        <div class="social-links">
-          <a href="#" class="social-link" aria-label="Facebook"><svg class="icon"><use href="#i-facebook"/></svg></a>
-          <a href="#" class="social-link" aria-label="Twitter"><svg class="icon"><use href="#i-twitter"/></svg></a>
-          <a href="#" class="social-link" aria-label="Instagram"><svg class="icon"><use href="#i-instagram"/></svg></a>
-          <a href="#" class="social-link" aria-label="LinkedIn"><svg class="icon"><use href="#i-linkedin"/></svg></a>
-        </div>
+        <p>Global Alliance of Zambian Healthcare Professionals — uniting diaspora expertise with local knowledge to strengthen Zambia's health system.</p>
+        <!-- Social media: when GAZHP has official profiles, add them here, e.g.
+             <div class="social-links"><a href="https://www.linkedin.com/company/…" class="social-link" aria-label="GAZHP on LinkedIn" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg></a></div> -->
       </div>
-      <div class="footer-col">
-        <h4>Navigation</h4>
+      <nav class="footer-col" aria-label="Footer: site">
+        <h2 class="footer-title">Navigation</h2>
         <ul>
           <li><a href="/">Home</a></li>
           <li><a href="/about/">About Us</a></li>
@@ -124,30 +337,32 @@
           <li><a href="/membership/">Membership</a></li>
           <li><a href="/contact/">Contact</a></li>
         </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Get Involved</h4>
+      </nav>
+      <nav class="footer-col" aria-label="Footer: get involved">
+        <h2 class="footer-title">Get Involved</h2>
         <ul>
           <li><a href="/donate/">Donate</a></li>
           <li><a href="/join/">Become a Member</a></li>
           <li><a href="/membership/">Membership Tiers</a></li>
           <li><a href="/contact/">Partner With Us</a></li>
         </ul>
-      </div>
+      </nav>
       <div class="footer-col">
-        <h4>Contact</h4>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-globe"/></svg><span>gazhphealth.org</span></div>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-mail"/></svg><span>info@gazhphealth.org</span></div>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
+        <h2 class="footer-title">Contact</h2>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg><a href="/">gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 GAZHP — <a href="/">Global Alliance of Zambian Healthcare Professionals</a>. All rights reserved.</p>
-      <span class="nonprofit-badge"><svg class="icon"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
+      <p>© 2026 GAZHP — Global Alliance of Zambian Healthcare Professionals. All rights reserved. <span class="footer-legal"><a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms &amp; Refunds</a></span></p>
+      <span class="nonprofit-badge"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
     </div>
   </div>
 </footer>
 
+<script src="/js/payments-config.js"></script>
+<script src="/js/payments.js"></script>
 <script src="/js/main.js"></script>
 </body>
 </html>

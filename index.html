@@ -3,8 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Global Alliance of Zambian Healthcare Professionals — Uniting diaspora healthcare professionals to strengthen Zambia's health system." />
+  <meta name="description" content="Global Alliance of Zambian Healthcare Professionals — Uniting diaspora healthcare professionals to strengthen Zambia&#x27;s health system." />
   <title>GAZHP — Global Alliance of Zambian Healthcare Professionals</title>
+  <!-- gazhp:head -->
+  <link rel="canonical" href="https://gazhphealth.org/" />
+  <meta property="og:site_name" content="GAZHP — Global Alliance of Zambian Healthcare Professionals" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="GAZHP — Global Alliance of Zambian Healthcare Professionals" />
+  <meta property="og:description" content="Global Alliance of Zambian Healthcare Professionals — Uniting diaspora healthcare professionals to strengthen Zambia&#x27;s health system." />
+  <meta property="og:url" content="https://gazhphealth.org/" />
+  <meta property="og:image" content="https://gazhphealth.org/images/og-default.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/playfair-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "NGO", "name": "Global Alliance of Zambian Healthcare Professionals", "alternateName": "GAZHP", "url": "https://gazhphealth.org/", "logo": "https://gazhphealth.org/images/logo.png", "image": "https://gazhphealth.org/images/og-default.jpg", "description": "Global Alliance of Zambian Healthcare Professionals — Uniting diaspora healthcare professionals to strengthen Zambia's health system.", "email": "info@gazhphealth.org", "nonprofitStatus": "Nonprofit501c3", "address": {"@type": "PostalAddress", "addressRegion": "DE", "addressCountry": "US"}, "areaServed": {"@type": "Country", "name": "Zambia"}}, {"@context": "https://schema.org", "@type": "WebSite", "name": "GAZHP", "url": "https://gazhphealth.org/"}]</script>
+  <!-- /gazhp:head -->
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="icon" type="image/png" href="/images/logo.png" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
@@ -43,15 +59,18 @@
   </defs>
 </svg>
 
+<a class="skip-link" href="#main">Skip to main content</a>
+
 <!-- ========== NAVBAR ========== -->
-<nav class="navbar">
+<header class="site-header">
+<nav class="navbar" aria-label="Main">
   <div class="navbar-inner">
     <a href="/" class="nav-logo">
-      <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+      <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
       <span>GAZHP</span>
     </a>
     <div class="nav-links">
-      <a href="/" class="active">Home</a>
+      <a href="/" class="active" aria-current="page">Home</a>
       <a href="/about/">About</a>
       <a href="/team/">Team</a>
       <a href="/news/">News</a>
@@ -59,13 +78,13 @@
       <a href="/contact/">Contact</a>
       <a href="/donate/" class="nav-donate">Donate Now</a>
     </div>
-    <button class="nav-hamburger" aria-label="Menu">
+    <button type="button" class="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mobile-nav">
       <span></span><span></span><span></span>
     </button>
   </div>
 </nav>
-<nav class="mobile-nav">
-  <a href="/">Home</a>
+<nav class="mobile-nav" id="mobile-nav" aria-label="Main (mobile)">
+  <a href="/" class="active" aria-current="page">Home</a>
   <a href="/about/">About</a>
   <a href="/team/">Team</a>
   <a href="/news/">News</a>
@@ -73,6 +92,9 @@
   <a href="/contact/">Contact</a>
   <a href="/donate/" class="btn btn-primary">Donate Now</a>
 </nav>
+</header>
+
+<main id="main" tabindex="-1">
 
 <!-- ========== HERO ========== -->
 <section class="hero">
@@ -81,7 +103,7 @@
   <div class="hero-inner">
     <div class="hero-content">
       <div class="hero-badge eyebrow-pill">
-        <svg class="icon"><use href="#i-globe"/></svg>
+        <svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg>
         <span>Diaspora-Led. Locally Grounded.</span>
       </div>
       <h1 class="hero-title">
@@ -97,7 +119,7 @@
       </p>
       <div class="hero-actions">
         <a href="/donate/" class="btn btn-primary btn-lg">
-          <svg class="icon"><use href="#i-heart"/></svg>Donate Now
+          <svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg>Donate Now
         </a>
         <a href="/about/" class="btn btn-outline-dark btn-lg">
           Learn Our Mission
@@ -105,23 +127,23 @@
       </div>
       <div class="hero-stats">
         <div class="hero-stat-item">
-          <div class="hero-stat-num" data-target="100" data-suffix="+">0+</div>
+          <div class="hero-stat-num" data-target="100" data-suffix="+">100+</div>
           <div class="hero-stat-label">Members</div>
         </div>
         <div class="hero-stat-item">
-          <div class="hero-stat-num" data-target="15" data-suffix="+">0+</div>
+          <div class="hero-stat-num" data-target="15" data-suffix="+">15+</div>
           <div class="hero-stat-label">Countries</div>
         </div>
         <div class="hero-stat-item">
-          <div class="hero-stat-num" data-target="2019" data-raw="1">2019</div>
+          <div class="hero-stat-num">2019</div>
           <div class="hero-stat-label">Founded</div>
         </div>
       </div>
     </div>
     <div class="hero-img-wrap">
-      <img src="/images/healthcare-professionals.png" alt="GAZHP healthcare professionals" />
+      <img src="/images/healthcare-professionals-1024.webp" alt="GAZHP healthcare professionals" srcset="/images/healthcare-professionals-640.webp 640w, /images/healthcare-professionals-1024.webp 1024w" sizes="(max-width: 1024px) calc(100vw - 56px), 522px" width="1024" height="683" fetchpriority="high" />
       <div class="hero-badge-float">
-        <div class="hero-badge-icon"><svg class="icon"><use href="#i-shield-check"/></svg></div>
+        <div class="hero-badge-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield-check"/></svg></div>
         <div class="hero-badge-text">
           <strong>501(c)(3) Nonprofit</strong>
           <span>Registered in Delaware, USA</span>
@@ -149,7 +171,7 @@
     <div class="about-grid">
       <div class="about-visual">
         <div class="about-img-wrap">
-          <img src="/images/team-photo.png" alt="GAZHP healthcare professionals in a meeting" />
+          <img src="/images/healthcare-professionals-1024.webp" alt="GAZHP healthcare professionals in a meeting" srcset="/images/healthcare-professionals-640.webp 640w, /images/healthcare-professionals-1024.webp 1024w" sizes="(max-width: 1024px) 0px, 540px" width="1024" height="683" loading="lazy" decoding="async" />
         </div>
         <div class="about-badge-card">
           <div class="about-badge-num">501(c)(3)</div>
@@ -166,21 +188,21 @@
         </p>
         <div class="about-bullets">
           <div class="about-bullet">
-            <div class="bullet-dot"><svg class="icon"><use href="#i-check"/></svg></div>
+            <div class="bullet-dot"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></div>
             <div class="bullet-text">
               <strong>Diaspora-Led, Locally Grounded</strong>
               <span>Our members span multiple countries but keep Zambia at the center of every initiative.</span>
             </div>
           </div>
           <div class="about-bullet">
-            <div class="bullet-dot"><svg class="icon"><use href="#i-check"/></svg></div>
+            <div class="bullet-dot"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></div>
             <div class="bullet-text">
               <strong>Healthcare Professionals Driving Solutions</strong>
               <span>Doctors, nurses, and allied health professionals — not just donors — lead our programs.</span>
             </div>
           </div>
           <div class="about-bullet">
-            <div class="bullet-dot"><svg class="icon"><use href="#i-check"/></svg></div>
+            <div class="bullet-dot"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></div>
             <div class="bullet-text">
               <strong>Focus on Sustainability</strong>
               <span>We build capacity so Zambia becomes self-sufficient, not dependent on external aid.</span>
@@ -212,31 +234,31 @@
     <div class="programs-grid">
       <div class="program-card fade-up">
         <div class="program-img">
-          <img src="/images/program-mental.png" alt="Mental Health" />
+          <img src="/images/program-mental-1280.webp" alt="" srcset="/images/program-mental-720.webp 720w, /images/program-mental-1280.webp 1280w" sizes="(max-width: 768px) calc(100vw - 56px), (max-width: 1024px) calc(50vw - 40px), 350px" width="1280" height="983" loading="lazy" decoding="async" />
         </div>
         <div class="program-body">
           <div class="program-num">Program 01</div>
-          <div class="program-name">Addiction &amp; Mental Health</div>
+          <h3 class="program-name">Addiction &amp; Mental Health</h3>
           <p class="program-desc">Promoting awareness and culturally relevant mental health services through local and diaspora partnerships. Breaking the stigma and building accessible, compassionate care across Zambia.</p>
         </div>
       </div>
       <div class="program-card fade-up">
         <div class="program-img">
-          <img src="/images/program-cardio.png" alt="Cardiovascular Care" />
+          <img src="/images/program-cardio-720.webp" alt="" width="720" height="676" loading="lazy" decoding="async" />
         </div>
         <div class="program-body">
           <div class="program-num">Program 02</div>
-          <div class="program-name">Cardiovascular Care</div>
+          <h3 class="program-name">Cardiovascular Care</h3>
           <p class="program-desc">Strengthening heart care through clinical training, specialist mentorship, telemedicine consultations, and partnerships with global cardiology experts.</p>
         </div>
       </div>
       <div class="program-card fade-up">
         <div class="program-img">
-          <img src="/images/program-primary.png" alt="Family Medicine & Primary Care" />
+          <img src="/images/program-primary-720.webp" alt="" width="720" height="535" loading="lazy" decoding="async" />
         </div>
         <div class="program-body">
           <div class="program-num">Program 03</div>
-          <div class="program-name">Family Medicine &amp; Primary Care</div>
+          <h3 class="program-name">Family Medicine &amp; Primary Care</h3>
           <p class="program-desc">Building the backbone of Zambia's health system through training, research, and international collaboration. Strong primary care for every community.</p>
         </div>
       </div>
@@ -260,28 +282,28 @@
     </div>
     <div class="how-grid">
       <div class="how-card fade-up">
-        <div class="how-icon"><svg class="icon"><use href="#i-handshake"/></svg></div>
+        <div class="how-icon"><svg class="icon" aria-hidden="true"><use href="#i-handshake"/></svg></div>
         <div class="how-body">
           <h3>Collaborate</h3>
           <p>Connect diaspora professionals with local practitioners and communities, building bridges of knowledge and care that span continents.</p>
         </div>
       </div>
       <div class="how-card fade-up">
-        <div class="how-icon"><svg class="icon"><use href="#i-book-open"/></svg></div>
+        <div class="how-icon"><svg class="icon" aria-hidden="true"><use href="#i-book-open"/></svg></div>
         <div class="how-body">
           <h3>Build Capacity</h3>
           <p>Strengthen clinical skills through training, mentorship, and continuous medical education — empowering Zambia's own healthcare workforce.</p>
         </div>
       </div>
       <div class="how-card fade-up">
-        <div class="how-icon"><svg class="icon"><use href="#i-lightbulb"/></svg></div>
+        <div class="how-icon"><svg class="icon" aria-hidden="true"><use href="#i-lightbulb"/></svg></div>
         <div class="how-body">
           <h3>Innovate</h3>
           <p>Leverage technology, telemedicine, and research for improved healthcare delivery — bringing cutting-edge solutions to underserved communities.</p>
         </div>
       </div>
       <div class="how-card fade-up">
-        <div class="how-icon"><svg class="icon"><use href="#i-ambulance"/></svg></div>
+        <div class="how-icon"><svg class="icon" aria-hidden="true"><use href="#i-ambulance"/></svg></div>
         <div class="how-body">
           <h3>Support Care Delivery</h3>
           <p>Mobilize resources and partnerships for frontline services, ensuring that life-saving care reaches patients in the most remote areas.</p>
@@ -291,27 +313,47 @@
   </div>
 </section>
 
-<!-- ========== STATS ========== -->
-<section class="stats">
+<!-- ========== PROOF OF IMPACT ========== -->
+<!-- Every figure below comes from a published news post and links to it. Add new tiles only with a sourced post. -->
+<section class="stats" aria-labelledby="impact-title">
   <div class="container">
-    <div class="stats-grid">
-      <div class="stat-item fade-up">
-        <div class="stat-number" data-target="100" data-suffix="+">100+</div>
-        <div class="stat-label">Members Worldwide</div>
+    <div class="center fade-up" style="margin-bottom:44px;">
+      <span class="tag" style="color:var(--white)">Proof of Impact</span>
+      <h2 class="section-title" id="impact-title" style="color:var(--white)">Our COVID-19 Response in Numbers</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.85)">
+        Figures from our published 2021 news posts. Each one links to the full story.
+      </p>
+    </div>
+    <!-- Columns: 4 when the grid is at least 1000px wide, otherwise 2, and 1 below 472px (no orphaned 4th tile on tablets). -->
+    <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(max(220px,clamp(calc(25% - 25px),calc((1000px - 100%) * 999),calc(50% - 17px))),1fr));">
+      <div class="stat-item fade-up" style="display:flex;flex-direction:column;align-items:center;">
+        <div class="stat-number" data-target="40">40</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.85)">Tonnes of equipment &amp; PPE</div>
+        <p style="font-size:.88rem;line-height:1.6;color:rgba(255,255,255,.85);margin-top:10px;">A container for the University Teaching Hospital in Lusaka, funded through a diaspora fundraiser with the Africa Diaspora Development Institute (ADDI). GAZHP contributed US$5,000. (2021)</p>
+        <a href="/news/addi-medical-equipment-shipment/" style="margin-top:auto;padding-top:12px;font-size:.85rem;font-weight:700;color:var(--white);text-decoration:underline;text-underline-offset:3px;">Read the story<span class="sr-only">: GAZHP and ADDI ship 40 tonnes of medical equipment</span></a>
       </div>
-      <div class="stat-item fade-up">
-        <div class="stat-number" data-target="15" data-suffix="+">15+</div>
-        <div class="stat-label">Countries Represented</div>
+      <div class="stat-item fade-up" style="display:flex;flex-direction:column;align-items:center;">
+        <div class="stat-number" data-target="35">35</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.85)">Boxes of PPE from the UK</div>
+        <p style="font-size:.88rem;line-height:1.6;color:rgba(255,255,255,.85);margin-top:10px;">Visors and masks donated by PLL Care Services in Oxfordshire. GAZHP funded their shipment to Lusaka. (July 2021)</p>
+        <a href="/news/ppe-shipment-from-uk/" style="margin-top:auto;padding-top:12px;font-size:.85rem;font-weight:700;color:var(--white);text-decoration:underline;text-underline-offset:3px;">Read the story<span class="sr-only">: 35 boxes of PPE shipped from the UK to Zambia</span></a>
       </div>
-      <div class="stat-item fade-up">
-        <div class="stat-number" data-target="3">3</div>
-        <div class="stat-label">Core Health Programs</div>
+      <div class="stat-item fade-up" style="display:flex;flex-direction:column;align-items:center;">
+        <div class="stat-number" data-target="200">200</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.85)">Pulse oximeters</div>
+        <p style="font-size:.88rem;line-height:1.6;color:rgba(255,255,255,.85);margin-top:10px;">Donated by Lifebox after GAZHP reached out, and handed over with 200 paediatric oxygen sensors. (September 2021)</p>
+        <a href="/news/covid-equipment-update-september-2021/" style="margin-top:auto;padding-top:12px;font-size:.85rem;font-weight:700;color:var(--white);text-decoration:underline;text-underline-offset:3px;">Read the update<span class="sr-only">: pulse oximeters from Lifebox</span></a>
       </div>
-      <div class="stat-item fade-up">
-        <div class="stat-number" data-target="2019" data-raw="1">2019</div>
-        <div class="stat-label">Year Founded</div>
+      <div class="stat-item fade-up" style="display:flex;flex-direction:column;align-items:center;">
+        <div class="stat-number" data-target="10">10</div>
+        <div class="stat-label" style="color:rgba(255,255,255,.85)">Oxygen concentrators</div>
+        <p style="font-size:.88rem;line-height:1.6;color:rgba(255,255,255,.85);margin-top:10px;">10-litre concentrators purchased by GAZHP and handed to the airline for freight to Zambia. (September 2021)</p>
+        <a href="/news/covid-equipment-update-september-2021/" style="margin-top:auto;padding-top:12px;font-size:.85rem;font-weight:700;color:var(--white);text-decoration:underline;text-underline-offset:3px;">Read the update<span class="sr-only">: oxygen concentrators purchased by GAZHP</span></a>
       </div>
     </div>
+    <p class="center" style="margin-top:40px;font-size:.88rem;">
+      <a href="/news/" style="color:var(--white);font-weight:700;text-decoration:underline;text-underline-offset:3px;">See all news and updates</a>
+    </p>
   </div>
 </section>
 
@@ -323,61 +365,57 @@
       <h2 class="section-title">Support the Work That Saves Lives</h2>
       <p class="section-sub">
         Every contribution — large or small — directly funds programs that build Zambia's healthcare capacity.
-        Choose where your impact lands.
       </p>
     </div>
     <div class="donate-grid">
       <div class="donate-card fade-up">
-        <div class="donate-icon"><svg class="icon"><use href="#i-book-open"/></svg></div>
-        <div class="donate-title">Training &amp; Capacity Building</div>
-        <p class="donate-desc">
+        <div class="donate-icon"><svg class="icon" aria-hidden="true"><use href="#i-book-open"/></svg></div>
+        <h3 class="donate-title">Training &amp; Capacity Building</h3>
+        <p class="donate-desc" style="margin-bottom:0;">
           Support continuous medical education and skills development for Zambian healthcare workers.
           Knowledge that lasts a lifetime.
         </p>
-        <div class="donate-amounts">
-          <button class="amount-btn">$25</button>
-          <button class="amount-btn">$50</button>
-          <button class="amount-btn">$100</button>
-          <button class="amount-btn">Other</button>
-        </div>
-        <a href="/donate/" class="btn btn-green" style="width:100%;justify-content:center;">Donate</a>
       </div>
-      <div class="donate-card featured fade-up">
-        <div class="featured-badge">Most Impactful</div>
-        <div class="donate-icon"><svg class="icon"><use href="#i-hospital"/></svg></div>
-        <div class="donate-title">Specialist Care &amp; Telemedicine</div>
-        <p class="donate-desc">
+      <div class="donate-card fade-up">
+        <div class="donate-icon"><svg class="icon" aria-hidden="true"><use href="#i-hospital"/></svg></div>
+        <h3 class="donate-title">Specialist Care &amp; Telemedicine</h3>
+        <p class="donate-desc" style="margin-bottom:0;">
           Expand access to specialist healthcare through diaspora collaboration and telemedicine
           technology. Bridging the gap between rural Zambia and global expertise.
         </p>
-        <div class="donate-amounts">
-          <button class="amount-btn">$50</button>
-          <button class="amount-btn">$100</button>
-          <button class="amount-btn">$250</button>
-          <button class="amount-btn">Other</button>
-        </div>
-        <a href="/donate/" class="btn btn-primary" style="width:100%;justify-content:center;">Donate Now</a>
       </div>
       <div class="donate-card fade-up">
-        <div class="donate-icon"><svg class="icon"><use href="#i-wrench"/></svg></div>
-        <div class="donate-title">Equipment &amp; Health Systems</div>
-        <p class="donate-desc">
+        <div class="donate-icon"><svg class="icon" aria-hidden="true"><use href="#i-wrench"/></svg></div>
+        <h3 class="donate-title">Equipment &amp; Health Systems</h3>
+        <p class="donate-desc" style="margin-bottom:0;">
           Strengthen healthcare facilities and emergency response with critical equipment and
           systemic support that transforms how care is delivered.
         </p>
-        <div class="donate-amounts">
-          <button class="amount-btn">$75</button>
-          <button class="amount-btn">$150</button>
-          <button class="amount-btn">$500</button>
-          <button class="amount-btn">Other</button>
-        </div>
-        <a href="/donate/" class="btn btn-green" style="width:100%;justify-content:center;">Donate</a>
       </div>
     </div>
-    <div class="donate-cta">
-      <p class="donate-note">
-        GAZHP is a <span>registered 501(c)(3) nonprofit</span>. All donations are tax-deductible.
+    <div class="donate-cta fade-up">
+      <p id="donate-amounts-label" style="font-size:.9rem;font-weight:600;color:var(--gray-800);margin-bottom:14px;">Choose an amount in US dollars</p>
+      <div class="donate-amounts" role="group" aria-labelledby="donate-amounts-label">
+        <a class="amount-btn" href="/donate/?amount=25"><span class="sr-only">Donate </span>$25</a>
+        <a class="amount-btn" href="/donate/?amount=50"><span class="sr-only">Donate </span>$50</a>
+        <a class="amount-btn" href="/donate/?amount=100"><span class="sr-only">Donate </span>$100</a>
+        <a class="amount-btn" href="/donate/?amount=250"><span class="sr-only">Donate </span>$250</a>
+        <a class="amount-btn" href="/donate/?amount=500"><span class="sr-only">Donate </span>$500</a>
+        <a class="amount-btn" href="/donate/">Other amount</a>
+      </div>
+      <a href="/donate/" class="btn btn-primary btn-lg"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg>Donate Now</a>
+      <p class="donate-note" style="margin-top:16px;">
+        GAZHP is a <span>registered US 501(c)(3) nonprofit</span>. Gifts from US taxpayers are tax-deductible to the extent allowed by law.
       </p>
+      <div class="share-bar" role="group" aria-label="Share this page" style="justify-content:center;margin:28px 0 0;">
+        <span class="share-label">Share:</span>
+        <a class="share-btn" href="https://wa.me/?text=GAZHP%20%E2%80%94%20Global%20Alliance%20of%20Zambian%20Healthcare%20Professionals%20https%3A%2F%2Fgazhphealth.org%2F" target="_blank" rel="noopener">WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
+        <a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fgazhphealth.org%2F" target="_blank" rel="noopener">Facebook<span class="sr-only"> (opens in a new tab)</span></a>
+        <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fgazhphealth.org%2F" target="_blank" rel="noopener">LinkedIn<span class="sr-only"> (opens in a new tab)</span></a>
+        <a class="share-btn" href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fgazhphealth.org%2F&amp;text=GAZHP%20%E2%80%94%20Global%20Alliance%20of%20Zambian%20Healthcare%20Professionals" target="_blank" rel="noopener">X<span class="sr-only"> (opens in a new tab)</span></a>
+        <a class="share-btn" href="mailto:?subject=GAZHP%20%E2%80%94%20Global%20Alliance%20of%20Zambian%20Healthcare%20Professionals&amp;body=https%3A%2F%2Fgazhphealth.org%2F">Email</a>
+        <button type="button" class="share-btn" data-share-copy="https://gazhphealth.org/">Copy link</button>
+      </div>
     </div>
   </div>
 </section>
@@ -395,30 +433,30 @@
     </div>
     <div class="team-grid">
       <div class="team-card fade-up">
-        <div class="team-photo"><img src="/images/david.jpg" alt="Dr. David Gordon Kazhila" /></div>
+        <div class="team-photo"><img src="/images/david.webp" alt="" width="426" height="426" loading="lazy" decoding="async" /></div>
         <div class="team-info">
-          <div class="team-name">Dr. David Gordon Kazhila</div>
+          <h3 class="team-name">Dr. David Gordon Kazhila</h3>
           <div class="team-role">Co-Founder &amp; Board Member</div>
         </div>
       </div>
       <div class="team-card fade-up">
-        <div class="team-photo"><img src="/images/musonda.jpg" alt="Dr. John Mukuka Musonda" /></div>
+        <div class="team-photo"><img src="/images/musonda.webp" alt="" width="640" height="659" loading="lazy" decoding="async" /></div>
         <div class="team-info">
-          <div class="team-name">Dr. John Mukuka Musonda</div>
+          <h3 class="team-name">Dr. John Mukuka Musonda</h3>
           <div class="team-role">Acting Board Chair</div>
         </div>
       </div>
       <div class="team-card fade-up">
-        <div class="team-photo"><img src="/images/sebastian.jpg" alt="Dr. Sebastian Benaya" /></div>
+        <div class="team-photo"><img src="/images/sebastian.webp" alt="" width="726" height="640" loading="lazy" decoding="async" /></div>
         <div class="team-info">
-          <div class="team-name">Dr. Sebastian Benaya</div>
+          <h3 class="team-name">Dr. Sebastian Benaya</h3>
           <div class="team-role">Interim Secretary</div>
         </div>
       </div>
       <div class="team-card fade-up">
-        <div class="team-photo"><img src="/images/yareka.jpg" alt="Yareka M'hango" /></div>
+        <div class="team-photo"><img src="/images/yareka.webp" alt="" width="640" height="640" loading="lazy" decoding="async" /></div>
         <div class="team-info">
-          <div class="team-name">Yareka M'hango</div>
+          <h3 class="team-name">Yareka M'hango</h3>
           <div class="team-role">Treasurer</div>
         </div>
       </div>
@@ -442,28 +480,28 @@
     </div>
     <div class="diff-grid">
       <div class="diff-card fade-up">
-        <div class="diff-icon"><svg class="icon"><use href="#i-globe"/></svg></div>
+        <div class="diff-icon"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></div>
         <div class="diff-body">
           <h3>Diaspora-Led, Locally Grounded</h3>
           <p>Our members live abroad but our roots — and our focus — remain firmly in Zambia. We understand both worlds.</p>
         </div>
       </div>
       <div class="diff-card fade-up">
-        <div class="diff-icon"><svg class="icon"><use href="#i-activity"/></svg></div>
+        <div class="diff-icon"><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg></div>
         <div class="diff-body">
           <h3>Healthcare Professionals Driving Solutions</h3>
           <p>We don't just fund programs — we design, lead, and implement them with clinical expertise and professional accountability.</p>
         </div>
       </div>
       <div class="diff-card fade-up">
-        <div class="diff-icon"><svg class="icon"><use href="#i-refresh-cw"/></svg></div>
+        <div class="diff-icon"><svg class="icon" aria-hidden="true"><use href="#i-refresh-cw"/></svg></div>
         <div class="diff-body">
           <h3>Sustainability Over Dependency</h3>
           <p>Every project is designed to build lasting capacity. We empower Zambia's own workforce rather than creating reliance on external support.</p>
         </div>
       </div>
       <div class="diff-card fade-up">
-        <div class="diff-icon"><svg class="icon"><use href="#i-heart-handshake"/></svg></div>
+        <div class="diff-icon"><svg class="icon" aria-hidden="true"><use href="#i-heart-handshake"/></svg></div>
         <div class="diff-body">
           <h3>Accountable, Ethical, Collaborative</h3>
           <p>As a registered 501(c)(3) nonprofit, we operate with full transparency, ethical governance, and deep community collaboration.</p>
@@ -485,20 +523,20 @@
       </p>
     </div>
     <div class="news-grid">
-      <a href="/news/mental-health-essay-competition/" class="news-card fade-up">
-        <div class="news-card-img"><img src="/images/program-mental.png" alt="Youth mental health awareness" /></div>
+      <a href="/news/mental-health-essay-competition-2026/" class="news-card fade-up">
+        <div class="news-card-img"><img src="/images/program-mental-1280.webp" alt="" srcset="/images/program-mental-720.webp 720w, /images/program-mental-1280.webp 1280w" sizes="(max-width: 768px) calc(100vw - 56px), (max-width: 1024px) calc(50vw - 40px), 350px" width="1280" height="983" loading="lazy" decoding="async" /></div>
         <div class="news-card-body">
           <div class="news-meta">
             <span class="news-tag opportunity">Opportunity</span>
-            <span class="news-date">19 May 2025</span>
+            <span class="news-date">Entries closed · Winners <time datetime="2026-10-10">10 Oct 2026</time></span>
           </div>
-          <h3 class="news-card-title">Youth Mental Health Essay Competition</h3>
-          <p class="news-card-excerpt">GAZHP invited university students across Zambia to write on the costs of silence around mental health — for cash prizes and a shadow internship.</p>
-          <span class="news-readmore">Read more <svg class="icon"><use href="#i-arrow-right"/></svg></span>
+          <h3 class="news-card-title">Nationwide University Mental Health Essay Competition 2026</h3>
+          <p class="news-card-excerpt">GAZHP and The YANA Foundation invited students at Zambia's universities and higher education institutions to write on student wellbeing and breaking mental-health stigma. Entries closed on 31 August 2026; winners will be announced on World Mental Health Day, 10 October 2026.</p>
+          <span class="news-readmore">Read more <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
         </div>
       </a>
       <a href="/news/addi-medical-equipment-shipment/" class="news-card fade-up">
-        <div class="news-card-img"><img src="/images/gazph-lusaka.jpg" alt="Medical equipment for Zambia" /></div>
+        <div class="news-card-img"><img src="/images/gazph-lusaka.webp" alt="" width="768" height="512" loading="lazy" decoding="async" /></div>
         <div class="news-card-body">
           <div class="news-meta">
             <span class="news-tag partnership">Partnership</span>
@@ -506,11 +544,11 @@
           </div>
           <h3 class="news-card-title">GAZHP Joins ADDI to Ship 40 Tonnes of Equipment</h3>
           <p class="news-card-excerpt">A collaboration with the Africa Diaspora Development Institute funded a 40-tonne consignment of equipment and PPE for the University Teaching Hospital in Lusaka.</p>
-          <span class="news-readmore">Read more <svg class="icon"><use href="#i-arrow-right"/></svg></span>
+          <span class="news-readmore">Read more <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
         </div>
       </a>
       <a href="/news/australia-fundraising-gala/" class="news-card fade-up">
-        <div class="news-card-img"><img src="/images/Australia-gazph.jpeg" alt="GAZHP fundraising in Australia" /></div>
+        <div class="news-card-img"><img src="/images/australia-gazph.webp" alt="" width="768" height="576" loading="lazy" decoding="async" /></div>
         <div class="news-card-body">
           <div class="news-meta">
             <span class="news-tag fundraising">Fundraising</span>
@@ -518,12 +556,23 @@
           </div>
           <h3 class="news-card-title">Zambians in Australia Rally for COVID-19 Response</h3>
           <p class="news-card-excerpt">Gala events in Perth gathered ventilators, oxygen cylinders and cash — plus a US$50,000 shipping pledge from First Quantum Minerals.</p>
-          <span class="news-readmore">Read more <svg class="icon"><use href="#i-arrow-right"/></svg></span>
+          <span class="news-readmore">Read more <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
         </div>
       </a>
     </div>
     <div class="center" style="margin-top:44px;">
-      <a href="/news/" class="btn btn-green">View All News <svg class="icon"><use href="#i-arrow-right"/></svg></a>
+      <a href="/news/" class="btn btn-green">View All News <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+    </div>
+    <!-- Text only, no logos. Each name links to the post that documents the work. Add organisations only with a published post (and logos only with written permission). -->
+    <div class="center fade-up" style="margin-top:56px;padding-top:40px;border-top:1px solid var(--gray-100);">
+      <h3 style="font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray-600);margin-bottom:18px;">Organisations we've worked with</h3>
+      <ul style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px 28px;font-size:.95rem;font-weight:600;">
+        <li><a href="/news/addi-medical-equipment-shipment/" style="color:var(--gray-800);text-decoration:underline;text-decoration-color:var(--green-mid);text-underline-offset:4px;">Africa Diaspora Development Institute (ADDI)</a></li>
+        <li><a href="/news/covid-equipment-update-september-2021/" style="color:var(--gray-800);text-decoration:underline;text-decoration-color:var(--green-mid);text-underline-offset:4px;">Lifebox</a></li>
+        <li><a href="/news/unza-resuscitation-equipment/" style="color:var(--gray-800);text-decoration:underline;text-decoration-color:var(--green-mid);text-underline-offset:4px;">University of Zambia School of Medicine</a></li>
+        <li><a href="/news/unza-resuscitation-equipment/" style="color:var(--gray-800);text-decoration:underline;text-decoration-color:var(--green-mid);text-underline-offset:4px;">West Suffolk Hospital</a></li>
+        <li><a href="/news/mental-health-essay-competition-2026/" style="color:var(--gray-800);text-decoration:underline;text-decoration-color:var(--green-mid);text-underline-offset:4px;">The YANA Foundation</a></li>
+      </ul>
     </div>
   </div>
 </section>
@@ -537,11 +586,13 @@
       there is a place for you in the GAZHP community.
     </p>
     <div class="cta-actions">
-      <a href="/donate/" class="btn btn-primary btn-lg"><svg class="icon"><use href="#i-heart"/></svg>Donate Now</a>
+      <a href="/donate/" class="btn btn-primary btn-lg"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg>Donate Now</a>
       <a href="/membership/" class="btn btn-outline-white btn-lg">Join as a Member</a>
     </div>
   </div>
 </section>
+
+</main>
 
 <!-- ========== FOOTER ========== -->
 <footer>
@@ -549,22 +600,15 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="/" class="nav-logo">
-          <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+          <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
           <span>GAZHP</span>
         </a>
-        <p>
-          Global Alliance of Zambian Healthcare Professionals — uniting diaspora expertise
-          with local knowledge to transform Zambia's health system for generations to come.
-        </p>
-        <div class="social-links">
-          <a href="#" class="social-link" aria-label="Facebook"><svg class="icon"><use href="#i-facebook"/></svg></a>
-          <a href="#" class="social-link" aria-label="Twitter"><svg class="icon"><use href="#i-twitter"/></svg></a>
-          <a href="#" class="social-link" aria-label="Instagram"><svg class="icon"><use href="#i-instagram"/></svg></a>
-          <a href="#" class="social-link" aria-label="LinkedIn"><svg class="icon"><use href="#i-linkedin"/></svg></a>
-        </div>
+        <p>Global Alliance of Zambian Healthcare Professionals — uniting diaspora expertise with local knowledge to strengthen Zambia's health system.</p>
+        <!-- Social media: when GAZHP has official profiles, add them here, e.g.
+             <div class="social-links"><a href="https://www.linkedin.com/company/…" class="social-link" aria-label="GAZHP on LinkedIn" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg></a></div> -->
       </div>
-      <div class="footer-col">
-        <h4>Navigation</h4>
+      <nav class="footer-col" aria-label="Footer: site">
+        <h2 class="footer-title">Navigation</h2>
         <ul>
           <li><a href="/">Home</a></li>
           <li><a href="/about/">About Us</a></li>
@@ -573,36 +617,26 @@
           <li><a href="/membership/">Membership</a></li>
           <li><a href="/contact/">Contact</a></li>
         </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Programs</h4>
+      </nav>
+      <nav class="footer-col" aria-label="Footer: get involved">
+        <h2 class="footer-title">Get Involved</h2>
         <ul>
-          <li><a href="/about/#programs">Mental Health</a></li>
-          <li><a href="/about/#programs">Cardiovascular Care</a></li>
-          <li><a href="/about/#programs">Primary Care</a></li>
-          <li><a href="/about/#programs">Telemedicine</a></li>
-          <li><a href="/about/#programs">Capacity Building</a></li>
+          <li><a href="/donate/">Donate</a></li>
+          <li><a href="/join/">Become a Member</a></li>
+          <li><a href="/membership/">Membership Tiers</a></li>
+          <li><a href="/contact/">Partner With Us</a></li>
         </ul>
-      </div>
+      </nav>
       <div class="footer-col">
-        <h4>Contact</h4>
-        <div class="footer-contact-item">
-          <svg class="icon"><use href="#i-globe"/></svg>
-          <span>gazhphealth.org</span>
-        </div>
-        <div class="footer-contact-item">
-          <svg class="icon"><use href="#i-mail"/></svg>
-          <span>info@gazhphealth.org</span>
-        </div>
-        <div class="footer-contact-item">
-          <svg class="icon"><use href="#i-map-pin"/></svg>
-          <span>Delaware, USA &amp; Zambia</span>
-        </div>
+        <h2 class="footer-title">Contact</h2>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg><a href="/">gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 GAZHP — <a href="/">Global Alliance of Zambian Healthcare Professionals</a>. All rights reserved.</p>
-      <span class="nonprofit-badge"><svg class="icon"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
+      <p>© 2026 GAZHP — Global Alliance of Zambian Healthcare Professionals. All rights reserved. <span class="footer-legal"><a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms &amp; Refunds</a></span></p>
+      <span class="nonprofit-badge"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
     </div>
   </div>
 </footer>

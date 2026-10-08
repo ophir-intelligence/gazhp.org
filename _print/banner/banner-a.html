@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>GAZHP Roll-up Banner 85x200cm — direction A (photo-led)</title>
+<style>
+  /* Trim size 850 x 2000 mm, plus 5 mm bleed on every side = 860 x 2010 mm.
+     All positions below are measured from the top-left of the TRIM (.trim). */
+  @font-face { font-family: 'Inter'; font-weight: 100 900; src: url('../../fonts/inter-latin.woff2') format('woff2'); }
+  @font-face { font-family: 'Playfair Display'; font-weight: 400 900; src: url('../../fonts/playfair-latin.woff2') format('woff2'); }
+  @page { size: 860mm 2010mm; margin: 0; }
+  :root {
+    --green: #1c5928; --green-deep: #154420;
+    --flag-green: #198a00; --flag-red: #de2010; --flag-orange: #ef7d00;
+    --ink: #111a15; --mint: #d6efdd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 860mm; height: 2010mm; background: #fff; }
+  body { font-variant-numeric: lining-nums; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Inter', Arial, sans-serif; color: var(--ink); }
+  .page { position: relative; width: 860mm; height: 2010mm; overflow: hidden; background: #fff; }
+  .trim { position: absolute; left: 5mm; top: 5mm; width: 850mm; height: 2000mm; }
+  .abs { position: absolute; left: 0; right: 0; text-align: center; }
+
+  /* Zambian flag bars (decorative, run into the bleed) */
+  .flagbar { position: absolute; left: -5mm; right: -5mm; display: flex; }
+  .flagbar span { display: block; height: 100%; }
+  .flagbar .g { flex: 1; background: var(--flag-green); }
+  .flagbar .r, .flagbar .k, .flagbar .o { width: 60mm; }
+  .flagbar .r { background: var(--flag-red); }
+  .flagbar .k { background: #111; }
+  .flagbar .o { background: var(--flag-orange); }
+  .flagbar.top { top: -5mm; height: 27mm; }
+  .flagbar.bottom { bottom: -5mm; height: 175mm; border-top: 6mm solid #fff; } /* top edge at 1830 mm: ~40 mm stays visible above the stand */
+
+  /* Logo: the PNG has ~13% transparent padding; crop to the artwork (705 x 616 px) */
+  .logo { position: absolute; top: 52mm; left: 50%; width: 211.7mm; height: 185mm; margin-left: -105.85mm; overflow: hidden; }
+  .logo img { position: absolute; width: 282.3mm; height: 282.3mm; left: -35.7mm; top: -38.1mm; }
+
+  .org { top: 255mm; font-weight: 800; font-size: 40mm; line-height: 1.12; color: var(--green); letter-spacing: -0.3mm; }
+
+  /* Full-bleed photo band */
+  .photo { position: absolute; top: 368mm; left: -5mm; right: -5mm; height: 523mm; overflow: hidden; }
+  .photo::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 120mm; background: linear-gradient(to bottom, rgba(28,89,40,0) 0%, rgba(28,89,40,.55) 55%, rgba(28,89,40,1) 100%); }
+  .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+
+  /* Green lower section */
+  .lower { position: absolute; top: 890mm; left: -5mm; right: -5mm; bottom: -5mm; background: var(--green); }
+
+  .headline { top: 904mm; font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 104mm; line-height: 1.03; color: #fff; letter-spacing: -0.8mm; }
+  .headline em { font-style: normal; color: var(--flag-orange); }
+
+  .scan { position: absolute; top: 1280mm; left: 30mm; right: 30mm; display: flex; align-items: center; justify-content: center; gap: 46mm; }
+  .qr { flex: none; width: 300mm; height: 300mm; padding: 24mm; background: #fff; border-radius: 12mm; }
+  .qr img { width: 100%; height: 100%; display: block; }
+  .scan-text { flex: none; color: #fff; text-align: left; }
+  .scan-text .big { font-weight: 800; font-size: 56mm; line-height: 1.08; letter-spacing: -0.4mm; }
+  .scan-text .small { margin-top: 16mm; font-weight: 700; font-size: 30mm; line-height: 1.2; color: var(--mint); }
+
+  .contact { top: 1662mm; font-size: 36mm; font-weight: 800; color: #fff; letter-spacing: -.2mm; }
+  .contact .dot { color: var(--flag-orange); padding: 0 10mm; }
+  .tagline { top: 1760mm; font-weight: 700; font-size: 24mm; letter-spacing: 3.6mm; text-transform: uppercase; color: var(--mint); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="trim">
+    <div class="flagbar top"><span class="g"></span><span class="r"></span><span class="k"></span><span class="o"></span></div>
+
+    <div class="logo"><img src="assets/logo.png" alt="GAZHP logo" /></div>
+    <div class="abs org">Global Alliance of Zambian<br />Healthcare Professionals</div>
+
+    <div class="photo"><img src="assets/photo-hero-main.jpg" alt="Zambian healthcare professionals smiling around a meeting table" /></div>
+
+    <div class="lower"></div>
+    <div class="abs headline">We Serve Where<br /><em>Care Is Needed</em><br />Most</div>
+
+    <div class="scan">
+      <div class="qr"><img src="assets/qr-site.svg" alt="QR code: gazhphealth.org" /></div>
+      <div class="scan-text">
+        <div class="big">Scan to visit<br />our website</div>
+        <div class="small">Learn more · Join · Donate</div>
+      </div>
+    </div>
+
+    <div class="abs contact">gazhphealth.org<span class="dot">•</span>info@gazhphealth.org</div>
+    <div class="abs tagline">Diaspora-led · Locally grounded</div>
+
+    <div class="flagbar bottom"><span class="g"></span><span class="r"></span><span class="k"></span><span class="o"></span></div>
+  </div>
+</div>
+</body>
+</html>

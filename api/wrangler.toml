@@ -1,0 +1,81 @@
+# GAZHP payments API — Cloudflare Worker + D1 database.
+# Setup steps: see ../PAYMENTS-SETUP.md → "Automated payments (own API)".
+
+name = "gazhp-payments"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gazhp-payments"
+database_id = "REPLACE_WITH_DATABASE_ID"   # printed by: npx wrangler d1 create gazhp-payments
+
+[vars]
+SITE_URL = "https://gazhphealth.org"
+# Sites allowed to call the API from a browser (comma-separated).
+ALLOWED_ORIGINS = "https://gazhphealth.org,https://www.gazhphealth.org,http://localhost:3000"
+# "live" or "sandbox" (PayPal test mode).
+PAYPAL_ENV = "live"
+# Kwacha per 1 US dollar — used to price memberships in ZMW for mobile money (DPO Pay).
+ZMW_PER_USD = "27"
+# DPO Pay API server. Use the sandbox URL DPO gives you while testing.
+DPO_API_URL = "https://secure.3gdirectpay.com"
+# Mobile money with a PIN prompt on the donor's phone, from our own page (POST
+# /momo/start, DPO "ChargeTokenMobile"). Leave "false" until DPO has confirmed
+# that mobile money is enabled on the account and which MNO values it uses (see
+# DPO_MNO_* below); while "false", mobile money donors use DPO's hosted page.
+DPO_DIRECT_MOMO = "false"
+# Optional — the exact MNO / country strings DPO set up for this account. When
+# unset, they are looked up from DPO (GetMobilePaymentOptions) for each payment.
+# Ask DPO, or list them with the live company token (terminalmno / terminalmnocountry):
+#   curl -s -X POST https://secure.3gdirectpay.com/API/v6/ -H 'Content-Type: application/xml; charset=utf-8' -H 'Accept: application/xml' \
+#     -d '<?xml version="1.0" encoding="utf-8"?><API3G><CompanyToken>YOUR_TOKEN</CompanyToken><Request>CompanyMobilePaymentOptions</Request></API3G>'
+# An empty list means DPO has not enabled mobile money on the account yet.
+# Other Zambian integrations use "MTNZM" / "AirtelZM" with "zambia", but DPO
+# does not document these: confirm before setting them.
+# DPO_MNO_MTN = ""
+# DPO_MNO_AIRTEL = ""
+# DPO_MNO_COUNTRY = "zambia"
+# DPO lists no Zamtel for Zambia; setting DPO_MNO_ZAMTEL offers Zamtel numbers a prompt too.
+# DPO_MNO_ZAMTEL = ""
+# Phone number format sent to DPO: "intl" (default, 260XXXXXXXXX) or "national"
+# (the 9 digits only). Switch if DPO answers 955 "phone number is invalid".
+# DPO_MSISDN_FORMAT = "intl"
+# Optional — GAZHP's US EIN, printed on donation receipts when set (format XX-XXXXXXX).
+# ORG_EIN = ""
+
+# Every 15 minutes: re-check pending DPO Pay payments (mobile money approved later
+# on the phone), capture PayPal orders approved by donors who never came back to
+# the site, and clear expired rate-limit counters.
+[triggers]
+crons = ["*/15 * * * *"]
+
+# SECRETS — never put these in this file. Set each one with:
+#   npx wrangler secret put NAME
+#
+#   ADMIN_PASSWORD         dashboard password (use 16+ characters)
+#   STRIPE_SECRET_KEY      sk_live_… (or sk_test_… to test)
+#   STRIPE_WEBHOOK_SECRET  whsec_…
+#   PAYPAL_CLIENT_ID       PayPal REST app client ID
+#   PAYPAL_CLIENT_SECRET   PayPal REST app secret
+#   PAYPAL_WEBHOOK_ID      optional — enables PayPal webhooks (refunds, and instant
+#                          capture of approved orders via CHECKOUT.ORDER.APPROVED)
+#   DPO_COMPANY_TOKEN      Company token from DPO Pay
+#   DPO_SERVICE_TYPE       Service type number DPO assigns to your account
+#   RESEND_API_KEY         optional — email via resend.com: alerts for new payments and
+#                          contact-form messages, donor receipts, and the
+#                          manage-giving (Stripe billing portal) links
+#   NOTIFY_EMAIL           optional — where alerts go, e.g. info@gazhphealth.org
+#                          (the first address is also the Reply-To on receipts)
+#   FROM_EMAIL             optional — verified sender, e.g. payments@gazhphealth.org
+#
+# Receipts: with RESEND_API_KEY + FROM_EMAIL set, every payment that becomes
+# paid emails the donor a receipt once (ORG_EIN above is added when set). If
+# Stripe or PayPal also email their own receipts, you may want to turn those off.
+# Manage giving (/manage-giving/): needs STRIPE_SECRET_KEY and the Stripe
+# customer portal saved once (Stripe → Settings → Billing → Customer portal).
+#
+# A gateway switches on automatically once its secret key is set.
+#
+# Rate limiting needs no binding or paid plan: per-IP counters live in the D1
+# table rate_limits (see schema.sql and RATE_LIMITS in src/index.js).

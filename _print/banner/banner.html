@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>GAZHP Roll-up Banner 85x200cm</title>
+<style>
+  /* Trim size 850 x 2000 mm, plus 5 mm bleed on every side = 860 x 2010 mm. */
+  @font-face { font-family: 'Inter'; font-weight: 100 900; src: url('../../fonts/inter-latin.woff2') format('woff2'); }
+  @font-face { font-family: 'Playfair Display'; font-weight: 400 900; src: url('../../fonts/playfair-latin.woff2') format('woff2'); }
+  @page { size: 860mm 2010mm; margin: 0; }
+  :root {
+    --green: #1c5928; --green-deep: #154420;
+    --flag-green: #198a00; --flag-red: #de2010; --flag-orange: #ef7d00;
+    --ink: #111a15; --muted: #4a5e53;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 860mm; height: 2010mm; background: #fff; }
+  body { font-variant-numeric: lining-nums; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Inter', Arial, sans-serif; color: var(--ink); }
+  .page { position: relative; width: 860mm; height: 2010mm; overflow: hidden; background: #fff; }
+  .trim { position: absolute; left: 5mm; top: 5mm; width: 850mm; height: 2000mm; }
+  .abs { position: absolute; left: 0; right: 0; text-align: center; }
+
+  /* Zambian flag stripe (decorative, sits in the top 30 mm / bottom 130 mm zones) */
+  .flagbar { position: absolute; left: -5mm; right: -5mm; display: flex; }
+  .flagbar span { display: block; height: 100%; }
+  .flagbar .g { flex: 1; background: var(--flag-green); }
+  .flagbar .r, .flagbar .k, .flagbar .o { width: 60mm; }
+  .flagbar .r { background: var(--flag-red); }
+  .flagbar .k { background: #111; }
+  .flagbar .o { background: var(--flag-orange); }
+  .top { top: -5mm; height: 27mm; }
+  .bottom { bottom: -5mm; height: 165mm; box-shadow: 0 -6mm 0 #fff; }
+
+  /* Logo lockup: logo cropped to its artwork (img box 230 mm tall, <= 240 mm) + name */
+  .lockup { position: absolute; top: 55mm; left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: 28mm; }
+  .vrule { width: 3mm; height: 150mm; background: var(--flag-orange); border-radius: 2mm; flex: none; }
+  .logo-crop { width: 206mm; height: 180mm; overflow: hidden; position: relative; flex: none; }
+  .logo-crop img { position: absolute; height: 276mm; width: auto; left: -35.5mm; top: -37.6mm; }
+  .name { font-weight: 800; font-size: 40mm; line-height: 1.12; color: var(--green); text-align: left; letter-spacing: -0.2mm; }
+
+  .headline { top: 275mm; font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 118mm; line-height: 1.02; color: var(--ink); letter-spacing: -1mm; }
+  .headline em { font-style: normal; color: var(--green); }
+
+  /* Photo: full-bleed, 860 mm wide (= 1536 px / 1.79 px per mm), faces kept whole */
+  .photo { position: absolute; left: -5mm; right: -5mm; top: 670mm; height: 510mm; overflow: hidden; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+  .photo::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 200mm; background: linear-gradient(to bottom, rgba(28,89,40,0), var(--green)); }
+
+  /* Green base panel */
+  .panel { position: absolute; left: -5mm; right: -5mm; top: 1179mm; bottom: -5mm; background: var(--green); }
+
+  /* Website QR: 330 mm code on a white card, 32 mm quiet zone; centre at 1297 mm */
+  .qr-card { position: absolute; left: 228mm; top: 1125mm; width: 394mm; height: 394mm; padding: 32mm; background: #fff; border-radius: 16mm; box-shadow: 0 4mm 14mm rgba(0,0,0,.18); }
+  .qr-card img { width: 330mm; height: 330mm; display: block; }
+
+  .scan { top: 1542mm; font-weight: 800; font-size: 46mm; line-height: 1.1; color: #fff; letter-spacing: 0.2mm; }
+  .scan-sub { top: 1600mm; font-weight: 600; font-size: 30mm; line-height: 1.1; color: rgba(255,255,255,.9); letter-spacing: 0.4mm; }
+  .scan-sub .dot { color: var(--flag-orange); padding: 0 5mm; }
+  .scan .arrow { color: var(--flag-orange); }
+  .hrule { position: absolute; top: 1660mm; left: 375mm; width: 100mm; height: 4mm; background: var(--flag-orange); border-radius: 2mm; }
+  .site { top: 1684mm; font-weight: 800; font-size: 76mm; line-height: 1; color: #fff; letter-spacing: -0.6mm; }
+  .mail { top: 1782mm; font-weight: 600; font-size: 38mm; line-height: 1; color: rgba(255,255,255,.88); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="trim">
+    <div class="flagbar top"><span class="g"></span><span class="r"></span><span class="k"></span><span class="o"></span></div>
+
+    <div class="lockup">
+      <div class="logo-crop"><img src="assets/logo.png" alt="GAZHP logo" /></div>
+      <div class="vrule"></div>
+      <div class="name">Global Alliance of<br />Zambian Healthcare<br />Professionals</div>
+    </div>
+
+    <div class="abs headline">We Serve<br /><em>Where Care Is<br />Needed Most</em></div>
+
+    <div class="photo"><img src="assets/photo-hero-main.jpg" alt="Smiling Zambian healthcare professionals around a meeting table" /></div>
+    <div class="panel"></div>
+
+    <div class="qr-card"><img src="assets/qr-site.svg" alt="QR code: gazhphealth.org" /></div>
+
+    <div class="abs scan">Scan to visit our website</div>
+    <div class="abs scan-sub">Learn more<span class="dot">·</span>Join<span class="dot">·</span>Donate</div>
+    <div class="hrule"></div>
+    <div class="abs site">gazhphealth.org</div>
+    <div class="abs mail">info@gazhphealth.org</div>
+
+    <div class="flagbar bottom"><span class="g"></span><span class="r"></span><span class="k"></span><span class="o"></span></div>
+  </div>
+</div>
+</body>
+</html>

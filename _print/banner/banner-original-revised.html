@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>GAZHP Roll-up Banner 85x200cm — original design, revised</title>
+<style>
+  /* Trim size 850 x 2000 mm, plus 5 mm bleed on every side = 860 x 2010 mm.
+     Revision of the organisation's original banner: same look (white, flag-ribbon corners,
+     black title, red headings, centred black text), fewer items, larger type, photo + website QR. */
+  @font-face { font-family: 'Inter'; font-weight: 100 900; src: url('../../fonts/inter-latin.woff2') format('woff2'); }
+  @font-face { font-family: 'Playfair Display'; font-weight: 400 900; src: url('../../fonts/playfair-latin.woff2') format('woff2'); }
+  @page { size: 860mm 2010mm; margin: 0; }
+  :root {
+    --flag-green: #198a00; --flag-red: #de2010; --flag-orange: #ef7d00; --flag-black: #111;
+    --ink: #111; --heading: var(--flag-red); --rule: #d9ddd9; --qr-frame: #b9dcae;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 860mm; height: 2010mm; background: #fff; }
+  body { font-variant-numeric: lining-nums; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Inter', Arial, sans-serif; color: var(--ink); }
+  .page { position: relative; width: 860mm; height: 2010mm; overflow: hidden; background: #fff; }
+  .trim { position: absolute; left: 5mm; top: 5mm; width: 850mm; height: 2000mm; }
+  .ribbons { position: absolute; left: 0; top: 0; width: 860mm; height: 2010mm; }
+
+  /* Content column: everything essential sits >= 35 mm inside the trim edges */
+  .content { position: absolute; left: 35mm; right: 35mm; top: 0; text-align: center; }
+
+  /* Top wedges are 306 x 108 mm (scale 0.9); this margin keeps the title ink >= 25 mm from the stripes */
+  .title { margin-top: 90mm; font-weight: 900; font-size: 80mm; line-height: 0.92; letter-spacing: -0.045em; word-spacing: 0.05em; color: var(--ink); }
+  .tagline { margin-top: 18mm; font-weight: 700; font-size: 28mm; line-height: 1.25; }
+  .tagline .red { color: var(--flag-red); }
+  .tagline .green { color: var(--flag-green); }
+
+  /* Logo cropped to its artwork (705 x 616 px of the 940 px file) — 165 mm tall */
+  .logo { margin: 22mm auto 0; width: 188.8mm; height: 165mm; overflow: hidden; position: relative; }
+  .logo img { position: absolute; height: 251.8mm; width: auto; left: -31.9mm; top: -34mm; }
+
+  .photo { margin: 26mm 0 0; height: 250mm; border-radius: 18mm; overflow: hidden; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 32%; display: block; }
+
+  h2 { font-weight: 800; font-size: 34mm; line-height: 1.1; color: var(--heading); letter-spacing: -0.2mm; }
+  .body { font-weight: 700; font-size: 26mm; line-height: 1.3; color: var(--ink); }
+  .about { margin-top: 28mm; }
+  .about h2 { margin-bottom: 8mm; }
+
+  /* Why join + website QR side by side */
+  .join-row { margin-top: 28mm; display: flex; align-items: center; gap: 24mm; }
+  .why { flex: 1; text-align: center; }
+  .why h2 { margin-bottom: 12mm; }
+  .why ul { list-style: none; display: inline-block; text-align: left; }
+  .why li { font-weight: 700; font-size: 26mm; line-height: 1.2; padding: 4.5mm 0 4.5mm 22mm; position: relative; }
+  .why li::before { content: '•'; position: absolute; left: 0; color: var(--flag-red); }
+  .qr { flex: none; width: 330mm; text-align: center; }
+  /* 243 mm code (29 modules, ~8.4 mm each) + 26 mm white quiet zone (3 modules) + light frame */
+  .qr-box { width: 300mm; height: 300mm; margin: 0 auto; padding: 26mm; background: #fff; border: 1.5mm solid var(--qr-frame); border-radius: 16mm; }
+  .qr-box img { width: 100%; height: 100%; display: block; }
+  .qr-label { margin-top: 8mm; font-weight: 800; font-size: 24mm; line-height: 1.15; }
+  .qr-sub { margin-top: 4mm; font-weight: 600; font-size: 22mm; line-height: 1.2; }
+
+  /* Membership prices */
+  .members { margin-top: 28mm; }
+  .members h2 { margin-bottom: 8mm; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: center; vertical-align: middle; border-bottom: 1.2mm solid var(--rule); }
+  thead th { font-weight: 700; font-size: 22mm; line-height: 1.15; color: var(--flag-green); padding: 0 4mm 6mm; }
+  thead th:first-child { color: var(--ink); text-align: left; padding-left: 6mm; vertical-align: bottom; }
+  tbody th { font-weight: 800; font-size: 30mm; text-align: left; padding: 6mm 0 6mm 6mm; }
+  td { font-weight: 900; font-size: 38mm; letter-spacing: -0.5mm; padding: 6mm 0; }
+  td small { font-weight: 700; font-size: 22mm; letter-spacing: 0; }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+
+  .contact { margin-top: 28mm; font-weight: 800; font-size: 32mm; line-height: 1.1; color: var(--ink); }
+  .contact .dot { color: var(--flag-red); padding: 0 7mm; }
+  .legal { margin-top: 6mm; font-weight: 600; font-size: 22mm; color: #333; }
+</style>
+</head>
+<body>
+<div class="page">
+  <!-- Zambian-flag ribbon wedges: top-left, top-right, bottom-right (page coordinates incl. bleed) -->
+  <svg class="ribbons" viewBox="0 0 860 2010" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <g id="wedge">
+        <!-- bands between parallel lines x/340 + y/120 = t (t = .58, .72, .86, 1) -->
+        <polygon fill="#198a00" points="0,0 197.2,0 0,69.6" />
+        <polygon fill="#de2010" points="0,69.6 197.2,0 244.8,0 0,86.4" />
+        <polygon fill="#111111" points="0,86.4 244.8,0 292.4,0 0,103.2" />
+        <polygon fill="#ef7d00" points="0,103.2 292.4,0 340,0 0,120" />
+      </g>
+    </defs>
+    <use href="#wedge" transform="scale(0.9)" />
+    <use href="#wedge" transform="translate(860,0) scale(-0.9,0.9)" />
+    <use href="#wedge" transform="translate(860,2010) scale(-1.53,-2)" />
+  </svg>
+
+  <div class="trim">
+    <div class="content">
+      <div class="title">Global Alliance of<br />Zambian Healthcare<br />Professionals</div>
+      <div class="tagline"><span class="red">Diaspora-Led. Locally Grounded.</span><br /><span class="green">We Serve Where Care Is Needed the Most</span></div>
+
+      <div class="logo"><img src="assets/logo.png" alt="GAZHP logo" /></div>
+
+      <div class="photo"><img src="assets/photo-hero-main.jpg" alt="Smiling Zambian healthcare professionals around a table" /></div>
+
+      <section class="about">
+        <h2>About GAZHP</h2>
+        <p class="body">A global movement of Zambian healthcare professionals,<br />united to transform a nation’s health.</p>
+      </section>
+
+      <div class="join-row">
+        <section class="why">
+          <h2>Why Join GAZHP?</h2>
+          <ul>
+            <li>Be Part of Something Bigger</li>
+            <li>Global Professional Network</li>
+            <li>Continuous Medical Education</li>
+            <li>Direct Impact on Zambia</li>
+            <li>Leadership Opportunities</li>
+          </ul>
+        </section>
+        <div class="qr">
+          <div class="qr-box"><img src="assets/qr-site.svg" alt="QR code: gazhphealth.org" /></div>
+          <div class="qr-label">Scan to visit our website</div>
+          <div class="qr-sub">Learn more, join or donate</div>
+        </div>
+      </div>
+
+      <section class="members">
+        <h2>Choose Your Membership</h2>
+        <table>
+          <thead>
+            <tr><th>Per year</th><th>Developed<br />countries</th><th>Zambia &amp; developing<br />countries</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>Professional</th><td>US$200</td><td>US$100</td></tr>
+            <tr><th>Student</th><td>US$75</td><td>US$40</td></tr>
+            <tr><th>Corporate</th><td colspan="2">US$1,000 <small>· all corporations</small></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <div class="contact">gazhphealth.org<span class="dot">·</span>info@gazhphealth.org</div>
+      <div class="legal">Registered 501(c)(3) nonprofit · Delaware, USA</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

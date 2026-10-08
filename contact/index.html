@@ -4,7 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Contact GAZHP — Get in touch, donate, or apply for membership with the Global Alliance of Zambian Healthcare Professionals." />
-  <title>Contact — GAZHP</title>
+  <title>Contact Us — GAZHP</title>
+  <!-- gazhp:head -->
+  <link rel="canonical" href="https://gazhphealth.org/contact/" />
+  <meta property="og:site_name" content="GAZHP — Global Alliance of Zambian Healthcare Professionals" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Contact Us" />
+  <meta property="og:description" content="Contact GAZHP — Get in touch, donate, or apply for membership with the Global Alliance of Zambian Healthcare Professionals." />
+  <meta property="og:url" content="https://gazhphealth.org/contact/" />
+  <meta property="og:image" content="https://gazhphealth.org/images/og-default.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/playfair-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- /gazhp:head -->
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="icon" type="image/png" href="/images/logo.png" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
@@ -30,11 +45,14 @@
   </defs>
 </svg>
 
+<a class="skip-link" href="#main">Skip to main content</a>
+
 <!-- ========== NAVBAR ========== -->
-<nav class="navbar scrolled">
+<header class="site-header">
+<nav class="navbar scrolled" aria-label="Main">
   <div class="navbar-inner">
     <a href="/" class="nav-logo">
-      <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+      <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
       <span>GAZHP</span>
     </a>
     <div class="nav-links">
@@ -43,33 +61,36 @@
       <a href="/team/">Team</a>
       <a href="/news/">News</a>
       <a href="/membership/">Membership</a>
-      <a href="/contact/" class="active">Contact</a>
-      <a href="#donate" class="nav-donate">Donate Now</a>
+      <a href="/contact/" class="active" aria-current="page">Contact</a>
+      <a href="/donate/" class="nav-donate">Donate Now</a>
     </div>
-    <button class="nav-hamburger" aria-label="Menu">
+    <button type="button" class="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mobile-nav">
       <span></span><span></span><span></span>
     </button>
   </div>
 </nav>
-<nav class="mobile-nav">
+<nav class="mobile-nav" id="mobile-nav" aria-label="Main (mobile)">
   <a href="/">Home</a>
   <a href="/about/">About</a>
   <a href="/team/">Team</a>
   <a href="/news/">News</a>
   <a href="/membership/">Membership</a>
-  <a href="/contact/">Contact</a>
-  <a href="#donate" class="btn btn-primary">Donate Now</a>
+  <a href="/contact/" class="active" aria-current="page">Contact</a>
+  <a href="/donate/" class="btn btn-primary">Donate Now</a>
 </nav>
+</header>
+
+<main id="main" tabindex="-1">
 
 <!-- ========== PAGE HERO ========== -->
 <section class="page-hero">
   <div class="container">
     <div class="page-hero-inner">
-      <div class="breadcrumb">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
-        <span>›</span>
-        <span>Contact</span>
-      </div>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Contact</span>
+      </nav>
       <h1>Get in Touch</h1>
       <p>
         Have questions about GAZHP, our programs, or how to get involved?
@@ -87,72 +108,69 @@
       <div class="contact-info fade-up">
         <h3>Contact Information</h3>
         <div class="contact-detail">
-          <div class="contact-icon"><svg class="icon"><use href="#i-globe"/></svg></div>
+          <div class="contact-icon"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></div>
           <div class="contact-detail-text">
             <strong>Website</strong>
-            <span>gazhphealth.org</span>
+            <span class="prose-links"><a href="/">gazhphealth.org</a></span>
           </div>
         </div>
         <div class="contact-detail">
-          <div class="contact-icon"><svg class="icon"><use href="#i-mail"/></svg></div>
+          <div class="contact-icon"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg></div>
           <div class="contact-detail-text">
             <strong>Email</strong>
-            <span>info@gazhphealth.org</span>
+            <span class="prose-links"><a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a></span>
           </div>
         </div>
         <div class="contact-detail">
-          <div class="contact-icon"><svg class="icon"><use href="#i-map-pin"/></svg></div>
+          <div class="contact-icon"><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg></div>
           <div class="contact-detail-text">
             <strong>Registered Address</strong>
             <span>Delaware, USA<br />501(c)(3) Nonprofit</span>
           </div>
         </div>
         <div class="contact-detail">
-          <div class="contact-icon"><svg class="icon"><use href="#i-globe"/></svg></div>
+          <div class="contact-icon"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></div>
           <div class="contact-detail-text">
             <strong>Operations</strong>
             <span>Zambia &amp; Global Diaspora Network<br />15+ Countries</span>
           </div>
         </div>
 
-        <div class="contact-social">
-          <h4>Follow Us</h4>
-          <div class="social-links">
-            <a href="#" class="social-link" aria-label="Facebook"><svg class="icon"><use href="#i-facebook"/></svg></a>
-            <a href="#" class="social-link" aria-label="Twitter"><svg class="icon"><use href="#i-twitter"/></svg></a>
-            <a href="#" class="social-link" aria-label="Instagram"><svg class="icon"><use href="#i-instagram"/></svg></a>
-            <a href="#" class="social-link" aria-label="LinkedIn"><svg class="icon"><use href="#i-linkedin"/></svg></a>
-          </div>
-        </div>
+        <!-- Social media: when GAZHP has official profiles, add a "Follow Us" block here
+             (see the footer comment for the markup). No placeholder links until then. -->
 
         <!-- Quick links -->
         <div style="margin-top:36px;background:var(--gray-50);border-radius:var(--radius-md);padding:24px;">
           <h4 style="font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-800);margin-bottom:16px;">Quick Actions</h4>
           <div style="display:flex;flex-direction:column;gap:10px;">
-            <a href="/membership/" class="btn btn-green" style="justify-content:center;"><svg class="icon"><use href="#i-handshake"/></svg>Join as a Member</a>
-            <a href="#donate" class="btn btn-teal" style="justify-content:center;"><svg class="icon"><use href="#i-heart"/></svg>Make a Donation</a>
-            <a href="/about/" class="btn" style="border:2px solid var(--gray-200);color:var(--navy);justify-content:center;"><svg class="icon"><use href="#i-book-open"/></svg>Learn About Us</a>
+            <a href="/membership/" class="btn btn-green" style="justify-content:center;"><svg class="icon" aria-hidden="true"><use href="#i-handshake"/></svg>Join as a Member</a>
+            <a href="/donate/" class="btn btn-teal" style="justify-content:center;"><svg class="icon" aria-hidden="true"><use href="#i-heart"/></svg>Make a Donation</a>
+            <a href="/about/" class="btn" style="border:2px solid var(--gray-200);color:var(--navy);justify-content:center;"><svg class="icon" aria-hidden="true"><use href="#i-book-open"/></svg>Learn About Us</a>
           </div>
         </div>
       </div>
 
       <!-- RIGHT: Form -->
       <div class="contact-form-card fade-up">
-        <h3>Send Us a Message</h3>
-        <form class="js-contact-form">
+        <h3 id="contact-form-title">Send Us a Message</h3>
+        <!-- js/contact.js sends this through the GAZHP API when js/payments-config.js has api.baseUrl,
+             otherwise it opens the visitor's email app with the message prefilled. The mailto action
+             below is only the no-JavaScript fallback. -->
+        <form id="contact-form" class="contact-form" action="mailto:info@gazhphealth.org" method="post" enctype="text/plain" aria-labelledby="contact-form-title">
+          <p class="form-note" style="text-align:left;margin:-14px 0 18px;">Fields marked * are required.</p>
           <div class="form-row">
             <div class="form-group">
-              <label for="fname">First Name *</label>
-              <input type="text" id="fname" name="fname" placeholder="Your first name" required />
+              <label for="fname">First Name <span aria-hidden="true">*</span></label>
+              <input type="text" id="fname" name="fname" placeholder="Your first name" autocomplete="given-name" maxlength="80" required />
             </div>
             <div class="form-group">
-              <label for="lname">Last Name *</label>
-              <input type="text" id="lname" name="lname" placeholder="Your last name" required />
+              <label for="lname">Last Name <span aria-hidden="true">*</span></label>
+              <input type="text" id="lname" name="lname" placeholder="Your last name" autocomplete="family-name" maxlength="80" required />
             </div>
           </div>
           <div class="form-group">
-            <label for="email">Email Address *</label>
-            <input type="email" id="email" name="email" placeholder="your@email.com" required />
+            <label for="email">Email Address <span aria-hidden="true">*</span></label>
+            <input type="email" id="email" name="email" placeholder="your@email.com" autocomplete="email" maxlength="160" required />
           </div>
           <div class="form-group">
             <label for="profession">Profession / Role</label>
@@ -169,7 +187,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="subject">Subject *</label>
+            <label for="subject">Subject <span aria-hidden="true">*</span></label>
             <select id="subject" name="subject" required>
               <option value="">What is this about?</option>
               <option>General Inquiry</option>
@@ -182,18 +200,27 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="message">Message *</label>
-            <textarea id="message" name="message" placeholder="Tell us how we can help or how you'd like to get involved…" required></textarea>
+            <label for="message">Message <span aria-hidden="true">*</span></label>
+            <textarea id="message" name="message" rows="6" placeholder="Tell us how we can help or how you'd like to get involved…" maxlength="5000" required></textarea>
+          </div>
+          <!-- Spam trap: people never see or fill this; bots that do are ignored. -->
+          <div class="pay-hp" aria-hidden="true">
+            <label for="website">Leave this field empty</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
           </div>
           <button type="submit" class="btn btn-teal btn-lg form-submit">
-            Send Message →
+            <span class="contact-submit-label">Send Message</span> <span aria-hidden="true">→</span>
           </button>
-          <p class="form-note">We typically respond within 2–3 business days.</p>
+          <div id="contact-status" class="contact-status" role="status" style="margin-top:16px;"></div>
+          <p class="form-note prose-links">We typically respond within 2–3 business days. Prefer email? Write to <a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a>.</p>
+          <p class="form-note prose-links">We use these details to reply to your message. See our <a href="/privacy/">Privacy Policy</a>.</p>
         </form>
       </div>
     </div>
   </div>
 </section>
+
+</main>
 
 <!-- ========== FOOTER ========== -->
 <footer>
@@ -201,19 +228,15 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="/" class="nav-logo">
-          <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+          <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
           <span>GAZHP</span>
         </a>
-        <p>Global Alliance of Zambian Healthcare Professionals — building a healthier Zambia through diaspora collaboration.</p>
-        <div class="social-links">
-          <a href="#" class="social-link" aria-label="Facebook"><svg class="icon"><use href="#i-facebook"/></svg></a>
-          <a href="#" class="social-link" aria-label="Twitter"><svg class="icon"><use href="#i-twitter"/></svg></a>
-          <a href="#" class="social-link" aria-label="Instagram"><svg class="icon"><use href="#i-instagram"/></svg></a>
-          <a href="#" class="social-link" aria-label="LinkedIn"><svg class="icon"><use href="#i-linkedin"/></svg></a>
-        </div>
+        <p>Global Alliance of Zambian Healthcare Professionals — uniting diaspora expertise with local knowledge to strengthen Zambia's health system.</p>
+        <!-- Social media: when GAZHP has official profiles, add them here, e.g.
+             <div class="social-links"><a href="https://www.linkedin.com/company/…" class="social-link" aria-label="GAZHP on LinkedIn" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg></a></div> -->
       </div>
-      <div class="footer-col">
-        <h4>Navigation</h4>
+      <nav class="footer-col" aria-label="Footer: site">
+        <h2 class="footer-title">Navigation</h2>
         <ul>
           <li><a href="/">Home</a></li>
           <li><a href="/about/">About Us</a></li>
@@ -222,30 +245,32 @@
           <li><a href="/membership/">Membership</a></li>
           <li><a href="/contact/">Contact</a></li>
         </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Programs</h4>
+      </nav>
+      <nav class="footer-col" aria-label="Footer: get involved">
+        <h2 class="footer-title">Get Involved</h2>
         <ul>
-          <li><a href="/about/#programs">Mental Health</a></li>
-          <li><a href="/about/#programs">Cardiovascular Care</a></li>
-          <li><a href="/about/#programs">Primary Care</a></li>
-          <li><a href="/about/#programs">Telemedicine</a></li>
+          <li><a href="/donate/">Donate</a></li>
+          <li><a href="/join/">Become a Member</a></li>
+          <li><a href="/membership/">Membership Tiers</a></li>
+          <li><a href="/contact/">Partner With Us</a></li>
         </ul>
-      </div>
+      </nav>
       <div class="footer-col">
-        <h4>Contact</h4>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-globe"/></svg><span>gazhphealth.org</span></div>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-mail"/></svg><span>info@gazhphealth.org</span></div>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
+        <h2 class="footer-title">Contact</h2>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg><a href="/">gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 GAZHP — <a href="/">Global Alliance of Zambian Healthcare Professionals</a>. All rights reserved.</p>
-      <span class="nonprofit-badge"><svg class="icon"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
+      <p>© 2026 GAZHP — Global Alliance of Zambian Healthcare Professionals. All rights reserved. <span class="footer-legal"><a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms &amp; Refunds</a></span></p>
+      <span class="nonprofit-badge"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
     </div>
   </div>
 </footer>
 
 <script src="/js/main.js"></script>
+<script src="/js/payments-config.js"></script>
+<script src="/js/contact.js"></script>
 </body>
 </html>

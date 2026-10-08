@@ -3,15 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Meet the GAZHP team — the healthcare professionals driving Zambia's health transformation from around the world." />
-  <title>Our Team — GAZHP</title>
+  <meta name="description" content="Meet the GAZHP team — the healthcare professionals driving Zambia&#x27;s health transformation from around the world." />
+  <title>Board of Directors — GAZHP</title>
+  <!-- gazhp:head -->
+  <link rel="canonical" href="https://gazhphealth.org/team/" />
+  <meta property="og:site_name" content="GAZHP — Global Alliance of Zambian Healthcare Professionals" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Board of Directors" />
+  <meta property="og:description" content="Meet the GAZHP team — the healthcare professionals driving Zambia&#x27;s health transformation from around the world." />
+  <meta property="og:url" content="https://gazhphealth.org/team/" />
+  <meta property="og:image" content="https://gazhphealth.org/images/og-default.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/playfair-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- /gazhp:head -->
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="icon" type="image/png" href="/images/logo.png" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
   <style>
     .team-full-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
       gap: 28px;
       margin-top: 52px;
     }
@@ -23,7 +38,9 @@
       transition: var(--transition);
       text-align: center;
     }
-    .team-full-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+    @media (hover: hover) {
+      .team-full-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+    }
     .team-full-photo {
       aspect-ratio: 1;
       background: linear-gradient(135deg, var(--navy) 0%, var(--teal) 100%);
@@ -43,9 +60,9 @@
     }
     .team-full-info { padding: 24px 20px; }
     .team-full-name { font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
-    .team-full-role { font-size: .8rem; color: var(--teal); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .team-full-role { font-size: .8rem; color: var(--teal-ink); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
     .team-full-bio { font-size: .85rem; color: var(--gray-600); line-height: 1.6; }
-    .team-full-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: .82rem; font-weight: 600; color: var(--teal); }
+    .team-full-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: .82rem; font-weight: 600; color: var(--teal-ink); }
     .team-full-link .icon { width: 15px; height: 15px; }
     .team-full-link:hover { color: var(--green-dark); }
     .team-section-head {
@@ -53,7 +70,7 @@
       padding-bottom: 16px;
       border-bottom: 2px solid var(--gray-200);
     }
-    .team-section-head h3 {
+    .team-section-head h2 {
       font-family: var(--font-head);
       font-size: 1.6rem;
       color: var(--navy);
@@ -67,12 +84,19 @@
       color: var(--white);
       margin-top: 80px;
     }
-    .join-banner h3 {
+    .join-banner h2 {
       font-family: var(--font-head);
       font-size: 2rem;
       margin-bottom: 12px;
     }
     .join-banner p { font-size: 1rem; color: rgba(255,255,255,.75); margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
+    /* Phones: shorter (4:3) portraits so nine one-column cards don't make the page several screens too long */
+    @media (max-width: 560px) {
+      .team-full-photo { aspect-ratio: 4 / 3; }
+      .team-full-info { padding: 18px 16px; }
+      .join-banner { padding: 36px 22px; margin-top: 56px; }
+      .join-banner h2 { font-size: 1.6rem; }
+    }
   </style>
 </head>
 <body>
@@ -91,46 +115,52 @@
   </defs>
 </svg>
 
+<a class="skip-link" href="#main">Skip to main content</a>
+
 <!-- ========== NAVBAR ========== -->
-<nav class="navbar scrolled">
+<header class="site-header">
+<nav class="navbar scrolled" aria-label="Main">
   <div class="navbar-inner">
     <a href="/" class="nav-logo">
-      <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+      <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
       <span>GAZHP</span>
     </a>
     <div class="nav-links">
       <a href="/">Home</a>
       <a href="/about/">About</a>
-      <a href="/team/" class="active">Team</a>
+      <a href="/team/" class="active" aria-current="page">Team</a>
       <a href="/news/">News</a>
       <a href="/membership/">Membership</a>
       <a href="/contact/">Contact</a>
       <a href="/donate/" class="nav-donate">Donate Now</a>
     </div>
-    <button class="nav-hamburger" aria-label="Menu">
+    <button type="button" class="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mobile-nav">
       <span></span><span></span><span></span>
     </button>
   </div>
 </nav>
-<nav class="mobile-nav">
+<nav class="mobile-nav" id="mobile-nav" aria-label="Main (mobile)">
   <a href="/">Home</a>
   <a href="/about/">About</a>
-  <a href="/team/">Team</a>
+  <a href="/team/" class="active" aria-current="page">Team</a>
   <a href="/news/">News</a>
   <a href="/membership/">Membership</a>
   <a href="/contact/">Contact</a>
   <a href="/donate/" class="btn btn-primary">Donate Now</a>
 </nav>
+</header>
+
+<main id="main" tabindex="-1">
 
 <!-- ========== PAGE HERO ========== -->
 <section class="page-hero">
   <div class="container">
     <div class="page-hero-inner">
-      <div class="breadcrumb">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
-        <span>›</span>
-        <span>Team</span>
-      </div>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Team</span>
+      </nav>
       <h1>Our Team</h1>
       <p>
         Meet the Board of Directors — healthcare and finance professionals across the diaspora and in
@@ -145,82 +175,82 @@
   <div class="container">
     <div class="team-section-head fade-up">
       <span class="tag">Leadership</span>
-      <h3>Board of Directors</h3>
+      <h2>Board of Directors</h2>
       <p>The board members driving GAZHP's strategy, governance and vision.</p>
     </div>
     <div class="team-full-grid">
       <div class="team-full-card fade-up">
-        <div class="team-full-photo"><img src="/images/david.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. David Gordon Kazhila" /></div>
+        <div class="team-full-photo"><img src="/images/david.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="" width="426" height="426" /></div>
         <div class="team-full-info">
-          <div class="team-full-name">Dr. David Gordon Kazhila</div>
+          <h3 class="team-full-name">Dr. David Gordon Kazhila</h3>
           <div class="team-full-role">Co-Founder &amp; Board Member</div>
           <p class="team-full-bio">Co-founder of GAZHP and the visionary who sparked the movement in 2019. A specialist in Internal Medicine and Cardiology based in Canada, and President of Dr David Kazhila Medicine Professional Corporation.</p>
-          <a href="https://www.linkedin.com/in/dr-david-gordon-kazhila-mbchb-fcp-sa-frcpc-lmcc-6b450134" target="_blank" rel="noopener" class="team-full-link"><svg class="icon"><use href="#i-linkedin"/></svg>LinkedIn</a>
+          <a href="https://www.linkedin.com/in/dr-david-gordon-kazhila-mbchb-fcp-sa-frcpc-lmcc-6b450134" target="_blank" rel="noopener" class="team-full-link"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn<span class="sr-only"> profile of Dr. David Gordon Kazhila (opens in a new tab)</span></a>
         </div>
       </div>
       <div class="team-full-card fade-up">
-        <div class="team-full-photo"><img src="/images/musonda.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. John Mukuka Musonda" /></div>
+        <div class="team-full-photo"><img src="/images/musonda.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="" width="640" height="659" /></div>
         <div class="team-full-info">
-          <div class="team-full-name">Dr. John Mukuka Musonda</div>
+          <h3 class="team-full-name">Dr. John Mukuka Musonda</h3>
           <div class="team-full-role">Acting Board Chair</div>
           <p class="team-full-bio">A specialist family physician (PhD, M.Med, MBA, MSc) who heads a Family Medicine unit for Gauteng Health and serves on the joint academic staff of the University of the Witwatersrand, Johannesburg. Extensive clinical, research and administrative experience across district, regional and tertiary hospitals.</p>
-          <a href="https://www.linkedin.com/in/john-m-m-musonda-ph-d-m-med-fam-med-mba-msc-mbchb-bsc-73b26a65" target="_blank" rel="noopener" class="team-full-link"><svg class="icon"><use href="#i-linkedin"/></svg>LinkedIn</a>
+          <a href="https://www.linkedin.com/in/john-m-m-musonda-ph-d-m-med-fam-med-mba-msc-mbchb-bsc-73b26a65" target="_blank" rel="noopener" class="team-full-link"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn<span class="sr-only"> profile of Dr. John Mukuka Musonda (opens in a new tab)</span></a>
         </div>
       </div>
       <div class="team-full-card fade-up">
-        <div class="team-full-photo"><img src="/images/sebastian.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. Sebastian Benaya" /></div>
+        <div class="team-full-photo"><img src="/images/sebastian.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="" width="726" height="640" /></div>
         <div class="team-full-info">
-          <div class="team-full-name">Dr. Sebastian Benaya</div>
+          <h3 class="team-full-name">Dr. Sebastian Benaya</h3>
           <div class="team-full-role">Interim Secretary</div>
           <p class="team-full-bio">General Cardiologist and Internal Medicine Specialist at Fredericton Chalmers Regional Hospital, and Assistant Clinical Professor of Medicine at Dalhousie University, Canada.</p>
         </div>
       </div>
       <div class="team-full-card fade-up">
-        <div class="team-full-photo"><img src="/images/pierre.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. Pierre George Dil" /></div>
+        <div class="team-full-photo"><img src="/images/pierre.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="" width="338" height="452" /></div>
         <div class="team-full-info">
-          <div class="team-full-name">Dr. Pierre George Dil</div>
+          <h3 class="team-full-name">Dr. Pierre George Dil</h3>
           <div class="team-full-role">Assistant Secretary</div>
           <p class="team-full-bio">A semi-retired physician practising family medicine and addiction medicine locums in Canada.</p>
         </div>
       </div>
       <div class="team-full-card fade-up">
-        <div class="team-full-photo"><img src="/images/yareka.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Yareka M'hango" /></div>
+        <div class="team-full-photo"><img src="/images/yareka.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="" width="640" height="640" loading="lazy" decoding="async" /></div>
         <div class="team-full-info">
-          <div class="team-full-name">Yareka M'hango</div>
+          <h3 class="team-full-name">Yareka M'hango</h3>
           <div class="team-full-role">Treasurer</div>
           <p class="team-full-bio">Chief Financial Officer at Phoenix Houses of New York, bringing expertise in finance and accounting, healthcare, and nonprofit governance.</p>
         </div>
       </div>
       <div class="team-full-card fade-up">
-        <div class="team-full-photo"><img src="/images/ali.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Ali J. Mweene" /></div>
+        <div class="team-full-photo"><img src="/images/ali.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="" width="640" height="669" loading="lazy" decoding="async" /></div>
         <div class="team-full-info">
-          <div class="team-full-name">Ali J. Mweene, CPA</div>
+          <h3 class="team-full-name">Ali J. Mweene, CPA</h3>
           <div class="team-full-role">Treasurer</div>
           <p class="team-full-bio">A finance executive (Chief Financial Officer) based in the USA, supporting GAZHP's treasury and financial governance.</p>
-          <a href="https://www.linkedin.com/in/joseph-ali-mweene-444a48156/" target="_blank" rel="noopener" class="team-full-link"><svg class="icon"><use href="#i-linkedin"/></svg>LinkedIn</a>
+          <a href="https://www.linkedin.com/in/joseph-ali-mweene-444a48156/" target="_blank" rel="noopener" class="team-full-link"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn<span class="sr-only"> profile of Ali J. Mweene, CPA (opens in a new tab)</span></a>
         </div>
       </div>
       <div class="team-full-card fade-up">
-        <div class="team-full-photo"><img src="/images/lona.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. Lona Mwenda" /></div>
+        <div class="team-full-photo"><img src="/images/lona.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="" width="640" height="640" loading="lazy" decoding="async" /></div>
         <div class="team-full-info">
-          <div class="team-full-name">Dr. Lona Mwenda</div>
+          <h3 class="team-full-name">Dr. Lona Mwenda</h3>
           <div class="team-full-role">Board Member</div>
           <p class="team-full-bio">A pediatrician and pediatric critical care specialist based in Canada [FCPaeds (SA), FRCPC (Canada), PCCM fellowship at McGill]. Focused on strengthening pediatric and neonatal critical care in Zambia, drawing on clinical experience across Zambia, South Africa and Namibia.</p>
         </div>
       </div>
       <div class="team-full-card fade-up">
-        <div class="team-full-photo"><img src="/images/catherine.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Dr. Catherine Muyeba" /></div>
+        <div class="team-full-photo"><img src="/images/catherine.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="" width="640" height="897" loading="lazy" decoding="async" /></div>
         <div class="team-full-info">
-          <div class="team-full-name">Dr. Catherine Muyeba</div>
+          <h3 class="team-full-name">Dr. Catherine Muyeba</h3>
           <div class="team-full-role">Board Member</div>
           <p class="team-full-bio">A Regional Lead Consultant Psychiatrist in the United Kingdom, specialising in adult psychiatry, addiction and lifestyle medicine.</p>
-          <a href="https://www.linkedin.com/in/dr-catherine-sampa-muyeba-mbchb-msc-frcpsych-dipiblm-954a1b50" target="_blank" rel="noopener" class="team-full-link"><svg class="icon"><use href="#i-linkedin"/></svg>LinkedIn</a>
+          <a href="https://www.linkedin.com/in/dr-catherine-sampa-muyeba-mbchb-msc-frcpsych-dipiblm-954a1b50" target="_blank" rel="noopener" class="team-full-link"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn<span class="sr-only"> profile of Dr. Catherine Muyeba (opens in a new tab)</span></a>
         </div>
       </div>
       <div class="team-full-card fade-up">
-        <div class="team-full-photo"><img src="/images/biemba.jpg" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="Biemba K. Maliti" /></div>
+        <div class="team-full-photo"><img src="/images/biemba.webp" style="width:100%;height:100%;object-fit:cover;object-position:top;" alt="" width="475" height="696" loading="lazy" decoding="async" /></div>
         <div class="team-full-info">
-          <div class="team-full-name">Biemba K. Maliti</div>
+          <h3 class="team-full-name">Biemba K. Maliti</h3>
           <div class="team-full-role">Member</div>
           <p class="team-full-bio">Chief Nursing Officer for Psychiatry at Chainama Hills College Hospital in Zambia, with expertise in nursing and health management.</p>
         </div>
@@ -229,7 +259,7 @@
 
     <!-- Join Banner -->
     <div class="join-banner fade-up">
-      <h3>Are You a Zambian Healthcare Professional?</h3>
+      <h2>Are You a Zambian Healthcare Professional?</h2>
       <p>
         Whether you're based in Zambia or anywhere in the world, there is a place for you in GAZHP.
         Join a community of professionals committed to transforming Zambia's health future.
@@ -242,25 +272,23 @@
   </div>
 </section>
 
+</main>
+
 <!-- ========== FOOTER ========== -->
 <footer>
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="/" class="nav-logo">
-          <img src="/images/logo.png" alt="GAZHP" class="nav-logo-img" />
+          <img src="/images/logo.png" alt="GAZHP — home" class="nav-logo-img" width="94" height="94" />
           <span>GAZHP</span>
         </a>
-        <p>Global Alliance of Zambian Healthcare Professionals — building a healthier Zambia through diaspora collaboration.</p>
-        <div class="social-links">
-          <a href="#" class="social-link" aria-label="Facebook"><svg class="icon"><use href="#i-facebook"/></svg></a>
-          <a href="#" class="social-link" aria-label="Twitter"><svg class="icon"><use href="#i-twitter"/></svg></a>
-          <a href="#" class="social-link" aria-label="Instagram"><svg class="icon"><use href="#i-instagram"/></svg></a>
-          <a href="#" class="social-link" aria-label="LinkedIn"><svg class="icon"><use href="#i-linkedin"/></svg></a>
-        </div>
+        <p>Global Alliance of Zambian Healthcare Professionals — uniting diaspora expertise with local knowledge to strengthen Zambia's health system.</p>
+        <!-- Social media: when GAZHP has official profiles, add them here, e.g.
+             <div class="social-links"><a href="https://www.linkedin.com/company/…" class="social-link" aria-label="GAZHP on LinkedIn" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg></a></div> -->
       </div>
-      <div class="footer-col">
-        <h4>Navigation</h4>
+      <nav class="footer-col" aria-label="Footer: site">
+        <h2 class="footer-title">Navigation</h2>
         <ul>
           <li><a href="/">Home</a></li>
           <li><a href="/about/">About Us</a></li>
@@ -269,26 +297,26 @@
           <li><a href="/membership/">Membership</a></li>
           <li><a href="/contact/">Contact</a></li>
         </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Programs</h4>
+      </nav>
+      <nav class="footer-col" aria-label="Footer: get involved">
+        <h2 class="footer-title">Get Involved</h2>
         <ul>
-          <li><a href="/about/#programs">Mental Health</a></li>
-          <li><a href="/about/#programs">Cardiovascular Care</a></li>
-          <li><a href="/about/#programs">Primary Care</a></li>
-          <li><a href="/about/#programs">Telemedicine</a></li>
+          <li><a href="/donate/">Donate</a></li>
+          <li><a href="/join/">Become a Member</a></li>
+          <li><a href="/membership/">Membership Tiers</a></li>
+          <li><a href="/contact/">Partner With Us</a></li>
         </ul>
-      </div>
+      </nav>
       <div class="footer-col">
-        <h4>Contact</h4>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-globe"/></svg><span>gazhphealth.org</span></div>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-mail"/></svg><span>info@gazhphealth.org</span></div>
-        <div class="footer-contact-item"><svg class="icon"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
+        <h2 class="footer-title">Contact</h2>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><a href="mailto:info@gazhphealth.org">info@gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg><a href="/">gazhphealth.org</a></div>
+        <div class="footer-contact-item"><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg><span>Delaware, USA &amp; Zambia</span></div>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 GAZHP — <a href="/">Global Alliance of Zambian Healthcare Professionals</a>. All rights reserved.</p>
-      <span class="nonprofit-badge"><svg class="icon"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
+      <p>© 2026 GAZHP — Global Alliance of Zambian Healthcare Professionals. All rights reserved. <span class="footer-legal"><a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms &amp; Refunds</a></span></p>
+      <span class="nonprofit-badge"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>501(c)(3) Registered Nonprofit</span>
     </div>
   </div>
 </footer>

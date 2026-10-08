@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# /dashboard/ and /thank-you/ carry a noindex tag, so they are not blocked here
+# (search engines must be able to read that tag).
+Sitemap: https://gazhphealth.org/sitemap.xml

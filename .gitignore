@@ -11,3 +11,8 @@ node_modules/
 *.xlsx
 *.xls
 *.csv
+
+# Payments API (Cloudflare Worker)
+api/node_modules/
+api/.wrangler/
+api/.dev.vars
