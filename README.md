@@ -35,16 +35,24 @@ Every page is a folder with its own `index.html`, so URLs are clean (`/about/`, 
 ├── api/                   # Optional payments API (Cloudflare Worker + D1 database)
 ├── fonts/                 # Self-hosted web fonts (Inter, Playfair Display), no Google Fonts
 ├── images/                # Optimized images used by the site (WebP), logo, social-share images
-├── _source-images/        # Original full-size images, not published (GitHub Pages skips "_" folders)
-├── sitemap.xml            # Page list for search engines
-├── robots.txt
+├── _source-images/        # Original full-size images, not linked from any page (see Hosting: Vercel publishes "_" folders)
+├── sitemap.xml            # Page list for search engines (www URLs, with <lastmod> dates)
+├── robots.txt             # Points to the sitemap; blocks crawling of _print/ and _source-images/
 ├── PAYMENTS-SETUP.md      # Step-by-step payments & dashboard setup
-└── CNAME                  # Custom domain for GitHub Pages
+└── CNAME                  # Custom domain for GitHub Pages only (not used by Vercel)
 ```
 
 There is no build step or template system. The header (skip link, navigation, mobile menu), the icon sprite, the `<!-- gazhp:head -->` block and the footer are copied into every page, including `404.html`, `privacy/` and `terms/`. If you change one of them, change it in all pages. The current page's nav link is marked with `class="active" aria-current="page"`.
 
 When adding a page, also add it to `sitemap.xml` (unless it is `noindex`).
+
+### Search engines (SEO)
+
+- **One address.** `https://www.gazhphealth.org/` (with `www` and a trailing slash) is the canonical address. Every page's `<link rel="canonical">`, `og:url`, structured data, `sitemap.xml` and `robots.txt` use it. Never use `https://gazhphealth.org/…` (no `www`) in new code.
+- **Titles and descriptions.** Each page has its own `<title>` (aim for 60 characters or fewer) and meta description (about 120–160 characters). Keep `og:title` and `og:description` in step with them.
+- **Structured data (JSON-LD)** lives inside the `<!-- gazhp:head -->` block. The full organization (`NGO`, `"@id": "https://www.gazhphealth.org/#organization"`) and website (`"@id": "https://www.gazhphealth.org/#website"`) entries live only on the home page. Other pages refer to them by `@id`, and each indexable inner page has a `BreadcrumbList` that matches its visible breadcrumb. Check changes with Google's Rich Results Test.
+- **`sitemap.xml`:** when you change a page's content or `<head>`, set its `<lastmod>` to that day's date.
+- **Don't invent facts.** Names, numbers, dates and profile links in page copy and structured data must come from the organization.
 
 The Privacy Policy and Terms & Refund Policy describe how this site and its payment options actually work. Have them reviewed by the organization's counsel, and update them (and their "Last updated" date) whenever payment providers, the API, the contact form or the dashboard change. Open decisions are marked `TODO (board/counsel)` in HTML comments in those two files.
 
@@ -68,6 +76,10 @@ Then open http://localhost:3000.
 
 ## Hosting
 
-The site is deployed via **GitHub Pages** from the `main` branch root of [`ophir-intelligence/gazhp.org`](https://github.com/ophir-intelligence/gazhp.org), with the custom domain `gazhphealth.org` set via the `CNAME` file.
+The live site is served by **Vercel** at **https://www.gazhphealth.org**, deployed from the `main` branch of [`ophir-intelligence/gazhp.org`](https://github.com/ophir-intelligence/gazhp.org). The bare domain `gazhphealth.org` redirects to `www`. In Vercel (Project → Settings → Domains → `gazhphealth.org`), set that redirect to **308 Permanent** rather than 307 Temporary, so search engines treat `www` as the only address.
+
+Vercel publishes every file in the repository, including `_` folders such as `_print/` and `_source-images/`, Markdown files and `api/`. Anything that should not be public is excluded in the `.vercelignore` file at the repository root (currently `api/`, `_print/`, `_source-images/`, Markdown files and `.claude/`). Redirects for old WordPress URLs, the trailing-slash rule and cache headers live in `vercel.json`.
+
+GitHub Pages is also still switched on for the repository. It builds from `main` and uses the `CNAME` file (`gazhphealth.org`), but it is not the production host. Its default address only redirects to the custom domain.
 
 The repo is owned by the **Ophir Intelligence** GitHub organization.
