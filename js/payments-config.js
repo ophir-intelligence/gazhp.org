@@ -83,6 +83,12 @@ window.GAZHP_CONFIG = {
           Stripe Dashboard → Payment Links → New. For donations choose
           "Customers choose what to pay". Paste the https://buy.stripe.com/… URLs. */
     stripe: {
+      /* Stripe's ready-made "manage my subscription" page for donors (monthly gifts,
+         membership renewals). Stripe → Settings → Billing → Customer portal → turn on
+         "Login link" and paste it here (https://billing.stripe.com/p/login/…). It is a
+         public link: donors enter their email and Stripe sends them a sign-in code.
+         Used by /manage-giving/ in every mode. */
+      portalLoginUrl: '',
       enabled: false,
       donationLink: '',                    // e.g. 'https://buy.stripe.com/abc123'
       monthlyDonationLink: '',             // optional recurring link

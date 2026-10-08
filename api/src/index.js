@@ -559,8 +559,13 @@ async function stripeCreate(env, co, label) {
       },
     }],
   };
-  if (recurringMode) params.subscription_data = { metadata: meta, description: label };
-  else { params.submit_type = 'donate'; params.payment_intent_data = { description: label, metadata: meta }; }
+  // The description is printed on Stripe's own receipt emails, so for donations it carries the
+  // IRS acknowledgement — Stripe's receipts then work as tax receipts even without Resend.
+  const description = co.purpose === 'donation'
+    ? `${label}. GAZHP is a registered US 501(c)(3) nonprofit${env.ORG_EIN ? ` (EIN ${env.ORG_EIN})` : ''}. No goods or services were provided in exchange for this contribution.`
+    : label;
+  if (recurringMode) params.subscription_data = { metadata: meta, description };
+  else { params.submit_type = 'donate'; params.payment_intent_data = { description, metadata: meta }; }
   const s = await stripeApi(env, 'checkout/sessions', params);
   return { redirect: s.url, gatewayRef: s.id };
 }

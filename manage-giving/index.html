@@ -139,6 +139,16 @@
           </form>
         </div>
         <!-- Shown when the payments API isn't switched on yet, and without JavaScript. -->
+        <!-- Shown when js/payments-config.js has gateways.stripe.portalLoginUrl (Stripe's own
+             secure sign-in page; Stripe emails the donor a one-time code). -->
+        <div id="manage-portal" hidden>
+          <p class="manage-intro">
+            Monthly gifts and automatic membership renewals paid by card are managed securely on
+            Stripe, our card payment provider. Enter the email address you used and Stripe will
+            send you a one-time code to sign in, then you can update your card or cancel.
+          </p>
+          <p style="margin-top:20px;"><a class="btn btn-teal" id="manage-portal-link" href="#" rel="noopener">Manage my gift on Stripe<span class="sr-only"> (opens Stripe's secure page)</span></a></p>
+        </div>
         <div id="manage-offline" class="prose-links">
           <p class="manage-intro">
             To change or cancel a monthly gift or automatic membership renewal, email
@@ -227,6 +237,15 @@
   (function () {
     'use strict';
     var CFG = window.GAZHP_CONFIG || {};
+    // Preferred: Stripe's own customer-portal sign-in (needs no email service on our side).
+    var PORTAL = ((CFG.gateways || {}).stripe || {}).portalLoginUrl;
+    if (typeof PORTAL === 'string' && /^https:\/\/billing\.stripe\.com\//.test(PORTAL.trim())) {
+      document.getElementById('manage-portal-link').href = PORTAL.trim();
+      document.getElementById('manage-title').textContent = 'Manage your gift on Stripe';
+      document.getElementById('manage-portal').hidden = false;
+      document.getElementById('manage-offline').hidden = true;
+      return;
+    }
     var API = CFG.api && typeof CFG.api.baseUrl === 'string' ? CFG.api.baseUrl.trim().replace(/\/+$/, '') : '';
     if (!API) return;
     var TO = 'info@gazhphealth.org';
