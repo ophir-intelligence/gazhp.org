@@ -128,6 +128,10 @@
     ? `<div class="pay-detail"><span class="pay-detail-label">${esc(label)}</span><span class="pay-detail-value">${esc(value)}</span><button type="button" class="pay-copy" data-copy="${esc(value)}" data-label="${esc(label)}" aria-label="Copy ${esc(label)}">Copy</button></div>`
     : '';
   const referenceRow = () => row('Reference / note', refCode);
+  // Checkout links (Stripe / PayPal payment links) open in the same tab: the provider sends the
+  // donor back to /thank-you/ afterwards, which only makes sense in the original tab.
+  const payBtn = (url, label, cls = 'btn-teal') =>
+    `<a class="btn ${cls} pay-link-btn" href="${esc(url)}">${esc(label)} <span aria-hidden="true">→</span></a>`;
   const linkBtn = (url, label, cls = 'btn-teal') =>
     `<a class="btn ${cls} pay-link-btn" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}<span class="sr-only"> (opens in a new tab)</span> <span aria-hidden="true">↗</span></a>`;
   // Smooth scrolling only when the visitor hasn't asked for reduced motion.
@@ -210,12 +214,17 @@
       if (purpose === 'membership') {
         const url = tierLink(g);
         if (!url) return null;
-        return { id: 'stripe', title: 'Card via Stripe', sub: 'Visa, Mastercard, Amex, Apple Pay, Google Pay', body: amountHint() + linkBtn(url, 'Pay membership with Stripe') };
+        return { id: 'stripe', title: 'Card via Stripe', sub: 'Visa, Mastercard, Amex, Apple Pay, Google Pay', body: amountHint() + payBtn(url, 'Pay membership securely') };
       }
       if (!has(g.donationLink) && !has(g.monthlyDonationLink)) return null;
+      // A monthly link priced per US$1 with adjustable quantity lets donors pick any monthly amount.
+      const perUnit = Number(g.monthlyPerUnit) > 0;
+      const monthlyHow = has(g.monthlyDonationLink) && perUnit
+        ? `<p class="pay-amount" style="margin-top:12px;"><strong>Giving monthly?</strong> <span>On the next page, set the quantity to the number of US dollars you'd like to give each month: 25 = US$25 a month. You can change or cancel it anytime on our <a href="/manage-giving/">Manage your gift</a> page.</span></p>`
+        : '';
       return {
         id: 'stripe', title: 'Card via Stripe', sub: 'Visa, Mastercard, Amex, Apple Pay, Google Pay',
-        body: `<div class="pay-btn-row">${has(g.donationLink) ? linkBtn(g.donationLink, 'Give once') : ''}${has(g.monthlyDonationLink) ? linkBtn(g.monthlyDonationLink, 'Give monthly', 'btn-green') : ''}</div>`,
+        body: `<div class="pay-btn-row">${has(g.donationLink) ? payBtn(g.donationLink, 'Give once') : ''}${has(g.monthlyDonationLink) ? payBtn(g.monthlyDonationLink, 'Give monthly', 'btn-green') : ''}</div>${monthlyHow}`,
       };
     },
     function paypal() {

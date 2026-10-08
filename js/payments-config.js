@@ -92,6 +92,8 @@ window.GAZHP_CONFIG = {
       enabled: false,
       donationLink: '',                    // e.g. 'https://buy.stripe.com/abc123'
       monthlyDonationLink: '',             // optional recurring link
+      monthlyPerUnit: 0,                   // 1 = the monthly link is US$1/month with adjustable quantity
+                                           //     (donors choose any amount); shows a short how-to
       membershipLinks: {                   // one link per tier id (optional per tier)
         'professional-developed': '',
         'professional-developing': '',

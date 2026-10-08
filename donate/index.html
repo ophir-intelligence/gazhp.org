@@ -20,9 +20,6 @@
   <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/playfair-latin.woff2" as="font" type="font/woff2" crossorigin />
   <!-- /gazhp:head -->
-  <!-- Warm up the connection to the Donorbox form (its widget script loads in CORS mode, its form iframe without) -->
-  <link rel="preconnect" href="https://donorbox.org" />
-  <link rel="preconnect" href="https://donorbox.org" crossorigin />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="icon" type="image/png" href="/images/logo.png" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
@@ -256,9 +253,8 @@
           extent allowed by law. If you pay tax outside the US, the rules differ, so please check with your tax advisor.
         </p>
       </details>
-      <!-- Check the next two answers whenever the payment setup changes: they match today's Donorbox form
-           (cards, Apple Pay, Google Pay, PayPal, recurring). When js/payments-config.js api.baseUrl is set,
-           monthly giving needs Stripe, and PayPal needs the PayPal gateway switched on. -->
+      <!-- Check the next two answers whenever the payment setup changes: they match Stripe Payment Links
+           (cards, Apple Pay, Google Pay, monthly giving). Add PayPal / mobile money here when they go live. -->
       <details>
         <summary>Can I give monthly?</summary>
         <p>
@@ -272,7 +268,8 @@
         <summary>Which payment methods can I use?</summary>
         <p>
           The payment box at the top of this page always lists the options available right now. Today you can
-          give by card, Apple Pay, Google Pay or PayPal through a secure checkout.
+          give by card (Visa, Mastercard, Amex), Apple Pay or Google Pay through Stripe's secure checkout.
+          Zambian Visa and Mastercard cards work too.
         </p>
       </details>
       <details>
