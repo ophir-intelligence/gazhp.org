@@ -491,6 +491,16 @@
       "source": "/donations/:path*/",
       "destination": "/donate/",
       "permanent": true
+    },
+    {
+      "source": "/membership-account/",
+      "destination": "/membership/",
+      "permanent": true
+    },
+    {
+      "source": "/donations/",
+      "destination": "/donate/",
+      "permanent": true
     }
   ],
   "headers": [
