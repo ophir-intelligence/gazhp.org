@@ -867,6 +867,25 @@ footer { background: var(--black); color: rgba(255,255,255,.65); padding: 64px 0
 .callout > :last-child { margin-bottom: 0; }
 .callout strong { color: var(--green-dark); }
 
+/* Winner blocks on news posts: heading, sub-line, certificate, then the essay behind <details class="essay"> */
+.winner { margin-top: 44px; padding-top: 8px; }
+.winner + .winner { border-top: 1px solid var(--gray-100); }
+.winner-sub { color: var(--gray-600); margin-top: -6px; }
+.winner figure img { width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.12); }
+.winner figcaption { margin-top: 10px; font-size: .9rem; color: var(--gray-600); text-align: center; }
+.essay { margin: 18px 0 0; border: 1px solid var(--gray-100); border-radius: var(--radius-sm); background: var(--white); }
+.essay[open] { border-color: var(--green-mid); box-shadow: var(--shadow-sm); }
+.essay summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 18px; font-weight: 700; color: var(--green-dark); }
+.essay summary::-webkit-details-marker { display: none; }
+.essay summary::after { content: ""; flex: none; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform .2s; }
+.essay[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.essay summary:hover { color: var(--green-mid); }
+.essay summary:focus-visible { outline: 2px solid var(--teal-ink); outline-offset: 4px; border-radius: var(--radius-sm); }
+.essay-text { padding: 0 18px 20px; }
+.essay-text p { margin-bottom: 14px; }
+.essay-text .diary { font-weight: 700; color: var(--black); margin: 22px 0 6px; }
+.essay-text .refs { font-size: .88rem; color: var(--gray-600); margin-top: 24px; }
+
 /* FAQ: a stack of <details><summary>Question</summary><p>Answer</p></details> cards */
 .faq { display: flex; flex-direction: column; gap: 12px; }
 .faq details {
